@@ -31,5 +31,6 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
     "babel.config.js"
-  ]
+  ],
+  "extends": "expo/tsconfig.base"
 }

@@ -1,15 +1,11 @@
 import { Text, View } from "react-native";
+import tw from 'twrnc';
 
 export default function Index() {
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
+    <View style={tw`bg-backgroundcolor`}
     >
-      <Text>Edit app/index.tsx to edit this screen.</Text>
+      <Text style={{color: '#FFF', fontFamily: 'Nunito-Bold'}}>get started 1</Text>
     </View>
   );
 }
