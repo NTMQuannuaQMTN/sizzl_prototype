@@ -4,17 +4,24 @@ import { useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import tw from 'twrnc';
 import { getSchoolFromEmail } from "../admin/checkEmail";
+import { useAuthStore } from "../store/authStore";
 
 export default function SignUp() {
     const router = useRouter();
     const [valid, setValid] = useState(true);
     const [email, setEmail] = useState('');
     const [school, setSchool] = useState('');
+    
+    const {user, setUser} = useAuthStore();
 
     const checkEmail = async () => {
         const newSchool = await getSchoolFromEmail(email);
         setSchool(newSchool);
         setValid(newSchool !== '');
+        if (newSchool !== '') {
+            setUser({email: email})
+            router.push('/(auth)/verify');
+        }
     }
 
     return (

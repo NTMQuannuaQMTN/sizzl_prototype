@@ -1,0 +1,104 @@
+import { LinearGradient } from "expo-linear-gradient";
+import { useEffect, useState } from 'react';
+import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import tw from 'twrnc';
+import { useAuthStore } from "../store/authStore";
+
+export default function Verify() {
+    const [code, setCode] = useState('');
+    const MAXLENGTH = 6;
+    const [error, setError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const {user, token, verify, isLoading, checkCode} = useAuthStore();
+
+    useEffect(() => {
+        verify(user.email);
+    }, []);
+
+    const handleContinue = async () => {
+        if (code.length !== 6) {
+            setError('Please enter a 6-digit code');
+            return;
+        }
+
+        setIsSubmitting(true);
+        setError('');
+
+        try {
+            const result = await checkCode(user.email, code);
+            
+            if (result.valid) {
+                // Success - navigate to next screen
+                console.log('Verification successful');
+                // router.push('/(auth)/register'); // Add your navigation here
+            } else {
+                setError(result.error || 'Invalid code');
+            }
+        } catch (err) {
+            setError('Something went wrong. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleResend = async () => {
+        setError('');
+        try {
+            await verify(user.email);
+            setError('Code resent successfully!');
+        } catch (err) {
+            setError('Failed to resend code. Please try again.');
+        }
+    };
+
+    return (
+        <LinearGradient
+            colors={['#080B32', '#0E1241', '#291C56', '#392465', '#51286A']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}
+        >
+            <Text style={tw`text-[#FFFFFF] text-[2.9] text-center`}>Check your email inbox!</Text>
+            <Text style={tw`text-[#FFFFFF] font-extrabold text-xl`}>Type in the code 🙌</Text>
+
+            {/* Form */}
+            <Text style={tw`text-[#FFFFFF] font-bold w-full`}>Verification code</Text>
+            <View style={tw`w-full relative items-center`}>
+                <TextInput style={tw`text-center h-[8] border border-[#FFFFFF] border-opacity-10 w-full rounded-[1] px-2 py-2 text-opacity-0 text-[#FFF]`}
+                    value={code}
+                    onChangeText={newCode => { setCode(newCode); setError(''); }}
+                    maxLength={MAXLENGTH}
+                    caretHidden={true}
+                    keyboardType="numeric"
+                ></TextInput>
+                <View style={tw`w-full h-[8] py-2 items-center justify-center absolute top-0`}>
+                    <Text style={tw`${code.length > 0 ? 'text-[#FFFFFF]' : 'text-gray-400'} text-md tracking-[2]`}>{code + '_'.repeat(MAXLENGTH - code.length)}</Text>
+                </View>
+            </View>
+            
+            {/* Error */}
+            {error && (
+                <View style={tw`w-full py-2 items-center justify-center bg-[#FF1769] rounded-[1]`}>
+                    <Text style={tw`text-[#FFFFFF] text-center`}>{error}</Text>
+                </View>
+            )}
+
+            <Text style={tw`text-[#FFFFFF] text-center`}>Haven't seen the code?</Text>
+            <TouchableOpacity onPress={handleResend} disabled={isLoading}>
+                <Text style={tw`text-[#FFFFFF] text-center underline`}>
+                    {isLoading ? 'Sending...' : 'Resend code'}
+                </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+                style={tw`bg-white rounded-[5] py-[10] w-full items-center ${isSubmitting ? 'opacity-50' : ''}`}
+                onPress={handleContinue}
+                disabled={isSubmitting || code.length !== 6}>
+                <Text style={tw`text-[#000000] font-bold`}>
+                    {isSubmitting ? 'Verifying...' : 'Continue'}
+                </Text>
+            </TouchableOpacity>
+        </LinearGradient>
+    );
+}
