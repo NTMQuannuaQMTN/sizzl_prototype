@@ -9,11 +9,16 @@ export default function Verify() {
     const MAXLENGTH = 6;
     const [valid, setValid] = useState(true);
 
-    const {user, token, verify, isLoading, checkCode} = useAuthStore();
+    const { user, token, verify, isLoading } = useAuthStore();
 
     useEffect(() => {
         verify(user.email);
     }, []);
+
+    const checkOTP = async () => {
+        const check = await checkCode(user.email, code);
+        setValid(check);
+    }
 
     return (
         <LinearGradient
@@ -50,10 +55,7 @@ export default function Verify() {
 
             <TouchableOpacity
                 style={tw`bg-white rounded-[5] py-[10] w-full items-center`}
-                onPress={() => {
-                    const codeValid = checkCode(user.email, code);
-                    setValid(codeValid);
-                }}>
+                onPress={() => {checkOTP()}}>
                 <Text style={tw`text-[#000000] font-bold`}>Continue</Text>
             </TouchableOpacity>
         </LinearGradient>

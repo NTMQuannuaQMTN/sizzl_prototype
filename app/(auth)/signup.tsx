@@ -10,16 +10,14 @@ export default function SignUp() {
     const router = useRouter();
     const [valid, setValid] = useState(true);
     const [email, setEmail] = useState('');
-    const [school, setSchool] = useState('');
     
     const {user, setUser} = useAuthStore();
 
     const checkEmail = async () => {
         const newSchool = await getSchoolFromEmail(email);
-        setSchool(newSchool);
         setValid(newSchool !== '');
         if (newSchool !== '') {
-            setUser({email: email})
+            setUser({email: email, school: newSchool})
             router.push('/(auth)/verify');
         }
     }

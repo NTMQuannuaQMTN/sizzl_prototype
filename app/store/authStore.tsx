@@ -21,20 +21,20 @@ export const useAuthStore = create((set) => ({
         }
         set({isLoading: false});
     },
-    checkCode: async (email, otp) => {
-        set({isLoading: true});
-        const {data, error} = await supabase.auth.verifyOtp({
-            email: email,
-            token: otp,
-            type: 'email',
-        });
-        let valid = true;
-        if (error) {
-            valid = false;
-        }
-        set({isLoading: false});
-        return valid;
-    }
+    // checkCode: async (email, otp) => {
+    //     set({isLoading: true});
+    //     const {data, error} = await supabase.auth.verifyOtp({
+    //         email: email,
+    //         token: otp,
+    //         type: 'email',
+    //     });
+    //     let valid = true;
+    //     if (error) {
+    //         valid = false;
+    //     }
+    //     set({isLoading: false});
+    //     return valid;
+    // }
 }));
 
 const checkMailAvailable = async (email) => {
