@@ -1,0 +1,47 @@
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+import { useState } from "react";
+import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import tw from 'twrnc';
+import { getSchoolFromEmail } from "../admin/checkEmail";
+
+export default function SignUp() {
+    const router = useRouter();
+    const [valid, setValid] = useState(true);
+    const [email, setEmail] = useState('');
+    const [school, setSchool] = useState('');
+
+    const checkEmail = () => {
+        const newSchool = getSchoolFromEmail(email);
+        setSchool(newSchool);
+        setValid(newSchool !== '');
+    }
+
+    return (
+        <LinearGradient
+            colors={['#080B32', '#0E1241', '#291C56', '#392465', '#51286A']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}
+        >
+            <Text style={tw`text-[#FFFFFF] text-[2.9] text-center`}>What's sizzlin' on your campus</Text>
+            <Text style={tw`text-[#FFFFFF] font-extrabold text-xl`}>Join to find out 🚀</Text>
+
+            {/* Form */}
+            <Text style={tw`text-[#FFFFFF] font-bold w-full`}>College email</Text>
+            <TextInput style={tw`h-[8] border border-[#FFFFFF] border-opacity-10 w-full rounded-[1] px-2 py-2 text-[#FFFFFF]`}
+                placeholder="hello@yourcollege.edu" placeholderTextColor={'#9CA3AF'}
+                value={email} onChangeText={(newVal) => {setEmail(newVal); setValid(true);}}></TextInput>
+            {/* Error */}
+            {valid || <View style={tw`w-full py-2 items-center justify-center bg-[#FF1769] rounded-[1]`}>
+                <Text style={tw`text-[#FFFFFF]`}>Oops, you gotta use a proper .edu email 😭</Text>
+            </View>}
+
+            <Text style={tw`text-[#FFFFFF] text-[2.9] text-center`}>By tapping SEND CODE, you consent to receive email updates from us or event hosts. Unsubscribe in the emails</Text>
+            <TouchableOpacity onPress={() => {checkEmail()}}
+                style={tw`bg-white rounded-[5] py-[10] w-full items-center`}>
+                <Text style={tw`text-[#000000] font-bold`}>Send code</Text>
+            </TouchableOpacity>
+        </LinearGradient>
+    );
+}
