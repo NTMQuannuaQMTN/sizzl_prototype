@@ -7,7 +7,7 @@ import { useAuthStore } from "../store/authStore";
 export default function Verify() {
     const [code, setCode] = useState('');
     const MAXLENGTH = 6;
-    const [valid, setValid] = useState(false);
+    const [valid, setValid] = useState(true);
 
     const {user, token, verify, isLoading, checkCode} = useAuthStore();
 

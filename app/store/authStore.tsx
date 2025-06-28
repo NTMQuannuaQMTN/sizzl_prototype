@@ -9,10 +9,11 @@ export const useAuthStore = create((set) => ({
     setUser: (user) => set({user: user}),
     verify: async (email) => {
         set({isLoading: true});
+        const available = await checkMailAvailable(email);
         const {data, error} = await supabase.auth.signInWithOtp({
             email: email,
             options: {
-                shouldCreateUser: false,
+                shouldCreateUser: available ? true : false,
             }
         });
         if (error) {
