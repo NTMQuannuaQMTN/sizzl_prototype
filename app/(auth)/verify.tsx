@@ -1,3 +1,4 @@
+import { supabase } from "@/utils/supabase";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from 'react';
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -9,15 +10,34 @@ export default function Verify() {
     const MAXLENGTH = 6;
     const [valid, setValid] = useState(true);
 
-    const { user, token, verify, isLoading } = useAuthStore();
+    const { user } = useAuthStore();
 
-    useEffect(() => {
-        verify(user.email);
-    }, []);
+    useEffect(() => {verify()}, []);
 
-    const checkOTP = async () => {
-        const check = await checkCode(user.email, code);
-        setValid(check);
+    const verify = async () => {
+        console.log(user);
+        const {error} = await supabase.auth.signInWithOtp({
+            email: user.email,
+            options: {
+                shouldCreateUser: false,
+            }
+        });
+        if (error) {
+            console.log(error.message);
+        }
+    }
+
+    const checkCode = async () => {
+        console.log(user.email, code);
+        const {data: {session}, error} = await supabase.auth.verifyOtp({
+            email: user.email,
+            token: code,
+            type: 'email',
+        })
+        if (error) {
+            setValid(false);
+            console.log(error.message);
+        }
     }
 
     return (
@@ -49,13 +69,13 @@ export default function Verify() {
             </View>}
 
             <Text>Haven't seen the code?</Text>
-            <TouchableOpacity onPress={() => verify(user.email)}>
+            <TouchableOpacity onPress={() => verify()}>
                 <Text>Resend code</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
                 style={tw`bg-white rounded-[5] py-[10] w-full items-center`}
-                onPress={() => {checkOTP()}}>
+                onPress={checkCode}>
                 <Text style={tw`text-[#000000] font-bold`}>Continue</Text>
             </TouchableOpacity>
         </LinearGradient>
