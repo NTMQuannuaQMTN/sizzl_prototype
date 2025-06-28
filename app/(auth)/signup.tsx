@@ -11,8 +11,8 @@ export default function SignUp() {
     const [email, setEmail] = useState('');
     const [school, setSchool] = useState('');
 
-    const checkEmail = () => {
-        const newSchool = getSchoolFromEmail(email);
+    const checkEmail = async () => {
+        const newSchool = await getSchoolFromEmail(email);
         setSchool(newSchool);
         setValid(newSchool !== '');
     }
