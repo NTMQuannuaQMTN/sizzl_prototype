@@ -7,50 +7,13 @@ import { useAuthStore } from "../store/authStore";
 export default function Verify() {
     const [code, setCode] = useState('');
     const MAXLENGTH = 6;
-    const [error, setError] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [valid, setValid] = useState(false);
 
     const {user, token, verify, isLoading, checkCode} = useAuthStore();
 
     useEffect(() => {
         verify(user.email);
     }, []);
-
-    const handleContinue = async () => {
-        if (code.length !== 6) {
-            setError('Please enter a 6-digit code');
-            return;
-        }
-
-        setIsSubmitting(true);
-        setError('');
-
-        try {
-            const result = await checkCode(user.email, code);
-            
-            if (result.valid) {
-                // Success - navigate to next screen
-                console.log('Verification successful');
-                // router.push('/(auth)/register'); // Add your navigation here
-            } else {
-                setError(result.error || 'Invalid code');
-            }
-        } catch (err) {
-            setError('Something went wrong. Please try again.');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    const handleResend = async () => {
-        setError('');
-        try {
-            await verify(user.email);
-            setError('Code resent successfully!');
-        } catch (err) {
-            setError('Failed to resend code. Please try again.');
-        }
-    };
 
     return (
         <LinearGradient
@@ -67,37 +30,31 @@ export default function Verify() {
             <View style={tw`w-full relative items-center`}>
                 <TextInput style={tw`text-center h-[8] border border-[#FFFFFF] border-opacity-10 w-full rounded-[1] px-2 py-2 text-opacity-0 text-[#FFF]`}
                     value={code}
-                    onChangeText={newCode => { setCode(newCode); setError(''); }}
+                    onChangeText={newCode => { setCode(newCode); setValid(true); }}
                     maxLength={MAXLENGTH}
                     caretHidden={true}
-                    keyboardType="numeric"
                 ></TextInput>
                 <View style={tw`w-full h-[8] py-2 items-center justify-center absolute top-0`}>
                     <Text style={tw`${code.length > 0 ? 'text-[#FFFFFF]' : 'text-gray-400'} text-md tracking-[2]`}>{code + '_'.repeat(MAXLENGTH - code.length)}</Text>
                 </View>
             </View>
-            
             {/* Error */}
-            {error && (
-                <View style={tw`w-full py-2 items-center justify-center bg-[#FF1769] rounded-[1]`}>
-                    <Text style={tw`text-[#FFFFFF] text-center`}>{error}</Text>
-                </View>
-            )}
+            {valid || <View style={tw`w-full py-2 items-center justify-center bg-[#FF1769] rounded-[1]`}>
+                <Text style={tw`text-[#FFFFFF]`}>Oops, the code doesn't match 😭</Text>
+            </View>}
 
-            <Text style={tw`text-[#FFFFFF] text-center`}>Haven't seen the code?</Text>
-            <TouchableOpacity onPress={handleResend} disabled={isLoading}>
-                <Text style={tw`text-[#FFFFFF] text-center underline`}>
-                    {isLoading ? 'Sending...' : 'Resend code'}
-                </Text>
+            <Text>Haven't seen the code?</Text>
+            <TouchableOpacity onPress={() => verify(user.email)}>
+                <Text>Resend code</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-                style={tw`bg-white rounded-[5] py-[10] w-full items-center ${isSubmitting ? 'opacity-50' : ''}`}
-                onPress={handleContinue}
-                disabled={isSubmitting || code.length !== 6}>
-                <Text style={tw`text-[#000000] font-bold`}>
-                    {isSubmitting ? 'Verifying...' : 'Continue'}
-                </Text>
+                style={tw`bg-white rounded-[5] py-[10] w-full items-center`}
+                onPress={() => {
+                    const codeValid = checkCode(user.email, code);
+                    setValid(codeValid);
+                }}>
+                <Text style={tw`text-[#000000] font-bold`}>Continue</Text>
             </TouchableOpacity>
         </LinearGradient>
     );
