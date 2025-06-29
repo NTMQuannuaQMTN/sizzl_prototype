@@ -3,7 +3,6 @@ import { useRouter } from "expo-router";
 import { useState } from 'react';
 import { Text, TouchableOpacity } from "react-native";
 import tw from 'twrnc';
-import { theme } from './_layout';
 
 export default function Index() {
   const textLanding = ['get started 1', 'get started 2', 'get started 3'];
@@ -23,7 +22,7 @@ export default function Index() {
         if (slide < 2) {
           setSlide(slide + 1);
         } else {
-          router.push('/(auth)/signup');
+          router.replace('/(auth)/signup');
         }
       }}
         style={tw`bg-white rounded-[5] py-[10] w-full items-center`}>

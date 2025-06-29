@@ -48,7 +48,7 @@ export default function SignUp() {
                 return;
             }
 
-            router.push('/(auth)/verify');
+            router.replace('/(auth)/verify');
         }
     };
 

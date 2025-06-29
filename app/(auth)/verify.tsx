@@ -42,7 +42,6 @@ export default function Verify() {
         }
 
         setLoading(true);
-        console.log("Verifying code for:", signupInfo.email, "Code:", code);
 
         const { data, error } = await supabase.auth.verifyOtp({
             email: signupInfo.email,
@@ -59,8 +58,13 @@ export default function Verify() {
             setValid(true);
             setUser(data.user);
             setSession(data.session);
-            router.replace("/(app)/home");
-            console.log("Verification successful:", data);
+            const userAvailable = await checkAvailable(signupInfo.email);
+            console.log(userAvailable);
+            if (userAvailable === null) {
+                router.replace('/(auth)/register');
+            } else {
+                router.replace('/(auth)/image');// Tạm thay cho Home
+            }
         } else {
             setValid(false);
             console.log("Verification failed: No session returned");
@@ -81,7 +85,7 @@ export default function Verify() {
             <Text style={tw`text-[#FFFFFF] font-bold w-full`}>Verification code</Text>
             <View style={tw`w-full relative items-center`}>
                 <TextInput 
-                    style={tw`text-center h-[8] border border-[#FFFFFF] border-opacity-10 w-full rounded-[1] px-2 py-2 text-[#FFF]`}
+                    style={tw`text-center h-[8] border border-[#FFFFFF] border-opacity-10 w-full rounded-[1] px-2 py-2 text-[#FFF] text-opacity-0`}
                     value={code}
                     onChangeText={newCode => { 
                         setCode(newCode); 
@@ -120,4 +124,10 @@ export default function Verify() {
             </TouchableOpacity>
         </LinearGradient>
     );
+}
+
+const checkAvailable = async (email) => {
+    const {data, error} = await supabase.from("users").select('*').eq('email', email).single();
+    if (error) {return null};
+    return data;
 }
