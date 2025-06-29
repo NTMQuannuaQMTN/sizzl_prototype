@@ -1,8 +1,8 @@
 import { supabase } from "@/utils/supabase";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { useState, useEffect } from 'react';
-import { Text, TextInput, TouchableOpacity, View, Keyboard, TouchableWithoutFeedback } from "react-native";
+import { useEffect, useState } from 'react';
+import { Alert, Keyboard, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import tw from 'twrnc';
 import { useAuthStore } from "../store/authStore";
 
@@ -77,11 +77,14 @@ export default function Verify() {
             setValid(false);
             console.log("Verification error:", error.message);
         } else if (data && data.session && data.user) {
-            setValid(true);
-            setUser(data.user);
-            setSession(data.session);
-            router.replace("/(app)/home");
             console.log("Verification successful:", data);
+            const {error} = await supabase.from('users')
+            .select('*').eq('email', signupInfo.email).single();
+            if (error) {
+                router.replace('/(auth)/register');
+            } else {
+                Alert.alert("Already");
+            }
         } else {
             setValid(false);
             console.log("Verification failed: No session returned");
