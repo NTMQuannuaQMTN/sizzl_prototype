@@ -1,8 +1,8 @@
 import { supabase } from "@/utils/supabase";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { useState } from 'react';
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useState, useEffect } from 'react';
+import { Text, TextInput, TouchableOpacity, View, Keyboard, TouchableWithoutFeedback } from "react-native";
 import tw from 'twrnc';
 import { useAuthStore } from "../store/authStore";
 
@@ -11,13 +11,34 @@ export default function Verify() {
     const MAXLENGTH = 6;
     const [valid, setValid] = useState(true);
     const [loading, setLoading] = useState(false);
+    const [isFocused, setIsFocused] = useState(false);
+    const [countdown, setCountdown] = useState(60);
+    const [canResend, setCanResend] = useState(false);
 
     const router = useRouter();
     const { signupInfo, setUser, setSession } = useAuthStore();
 
+    // Countdown timer effect
+    useEffect(() => {
+        let timer: ReturnType<typeof setTimeout>;
+        if (countdown > 0) {
+            timer = setTimeout(() => {
+                setCountdown(countdown - 1);
+            }, 1000);
+        } else {
+            setCanResend(true);
+        }
+        return () => clearTimeout(timer);
+    }, [countdown]);
+
     // Function to resend OTP
     const resendOTP = async () => {
-        if (!signupInfo?.email) return;
+        if (!signupInfo?.email || !canResend) return;
+        
+        // Reset countdown
+        setCountdown(60);
+        setCanResend(false);
+        
         console.log("Resending OTP to:", signupInfo.email);
         const { error } = await supabase.auth.signInWithOtp({
             email: signupInfo.email,
@@ -42,6 +63,7 @@ export default function Verify() {
         }
 
         setLoading(true);
+        console.log("Verifying code for:", signupInfo.email, "Code:", code);
 
         const { data, error } = await supabase.auth.verifyOtp({
             email: signupInfo.email,
@@ -58,13 +80,8 @@ export default function Verify() {
             setValid(true);
             setUser(data.user);
             setSession(data.session);
-            const userAvailable = await checkAvailable(signupInfo.email);
-            console.log(userAvailable);
-            if (userAvailable === null) {
-                router.replace('/(auth)/register');
-            } else {
-                router.replace('/(auth)/image');// Tạm thay cho Home
-            }
+            router.replace("/(app)/home");
+            console.log("Verification successful:", data);
         } else {
             setValid(false);
             console.log("Verification failed: No session returned");
@@ -72,62 +89,91 @@ export default function Verify() {
     };
 
     return (
-        <LinearGradient
-            colors={['#080B32', '#0E1241', '#291C56', '#392465', '#51286A']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 1 }}
-            style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}
-        >
-            <Text style={tw`text-[#FFFFFF] text-[2.9] text-center`}>Check your email inbox!</Text>
-            <Text style={tw`text-[#FFFFFF] font-extrabold text-xl`}>Type in the code 🙌</Text>
+        <TouchableWithoutFeedback onPress={() => {
+            Keyboard.dismiss();
+            setIsFocused(false);
+        }}>
+            <LinearGradient
+                colors={['#080B32', '#0E1241', '#291C56', '#392465', '#51286A']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                style={{ flex: 1, padding: 20 }}
+            >
+            {/* Center content - takes up most of the screen */}
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <View style={tw`mb-8`}>
+                    <Text style={[tw`text-white text-sm text-center mb-2`, { fontFamily: 'Nunito-Medium' }]}>Check your email inbox!</Text>
+                    <Text style={[tw`text-white text-lg text-center`, { fontFamily: 'Nunito-ExtraBold' }]}>Type in the code 🙌</Text>
+                </View>
 
-            {/* Form */}
-            <Text style={tw`text-[#FFFFFF] font-bold w-full`}>Verification code</Text>
-            <View style={tw`w-full relative items-center`}>
-                <TextInput 
-                    style={tw`text-center h-[8] border border-[#FFFFFF] border-opacity-10 w-full rounded-[1] px-2 py-2 text-[#FFF] text-opacity-0`}
-                    value={code}
-                    onChangeText={newCode => { 
-                        setCode(newCode); 
-                        setValid(true); 
-                    }}
-                    maxLength={MAXLENGTH}
-                    caretHidden={true}
-                    keyboardType="numeric"
-                    autoComplete="one-time-code"
-                />
-                <View style={tw`w-full h-[8] py-2 items-center justify-center absolute top-0`}>
-                    <Text style={tw`${code.length > 0 ? 'text-[#FFFFFF]' : 'text-gray-400'} text-md tracking-[2]`}>
-                        {code + '_'.repeat(MAXLENGTH - code.length)}
-                    </Text>
+                {/* Form */}
+                <View style={tw`w-full`}>
+                    <Text style={[tw`text-white mb-1.5 text-[13px]`, { fontFamily: 'Nunito-SemiBold' }]}>Verification code</Text>
+                    <View style={tw`w-full relative items-center`}>
+                        <TextInput 
+                            style={[
+                                tw`text-center h-10 bg-white bg-opacity-5 w-full rounded-[2] px-3 py-2 text-[13px]`,
+                                {
+                                    fontFamily: 'Nunito-Medium',
+                                    borderWidth: 1,
+                                    borderColor: isFocused ? '#FFFFFF' : 'rgba(255, 255, 255, 0.1)',
+                                    color: 'transparent', // Make the actual text invisible
+                                    textAlign: 'center',
+                                }
+                            ]}
+                            value={code}
+                            onChangeText={newCode => { 
+                                setCode(newCode); 
+                                setValid(true); 
+                            }}
+                            onFocus={() => setIsFocused(true)}
+                            onBlur={() => setIsFocused(false)}
+                            maxLength={MAXLENGTH}
+                            caretHidden={true} // Always hide the cursor since we have overlay
+                            keyboardType="numeric"
+                            autoComplete="one-time-code"
+                            selectionColor="transparent" // Hide text selection
+                        />
+                        <View style={tw`w-full h-10 py-2 items-center justify-center absolute top-0`}>
+                            <Text style={[tw`${code.length > 0 ? 'text-white' : 'text-gray-400'} text-md tracking-[2]`, { fontFamily: 'Nunito-Medium' }]}>
+                                {code + '_'.repeat(MAXLENGTH - code.length)}
+                            </Text>
+                        </View>
+                    </View>
+                </View>
+
+                {/* Error */}
+                {valid || 
+                <View style={tw`w-full py-2 mt-1.5 items-center justify-center bg-[#FF1769] rounded-[2]`}>
+                    <Text style={[tw`text-white`, { fontFamily: 'Nunito-Medium' }]}>Oops, the code doesn't match 😭</Text>
+                </View>}
+
+                {/* Resend section */}
+                <View style={tw`mt-4 items-center flex-row`}>
+                    <Text style={[tw`text-white text-[12px]`, { fontFamily: 'Nunito-Medium' }]}>Haven't seen the code? </Text>
+                    {canResend ? (
+                        <TouchableOpacity onPress={resendOTP}>
+                            <Text style={[tw`text-white underline text-[12px]`, { fontFamily: 'Nunito-Medium' }]}>Resend code</Text>
+                        </TouchableOpacity>
+                    ) : (
+                        <Text style={[tw`text-gray-400 text-[12px]`, { fontFamily: 'Nunito-Medium' }]}>
+                            Resend code ({countdown}s)
+                        </Text>
+                    )}
                 </View>
             </View>
 
-            {/* Error */}
-            {valid || <View style={tw`w-full py-2 items-center justify-center bg-[#FF1769] rounded-[1]`}>
-                <Text style={tw`text-[#FFFFFF]`}>Oops, the code doesn't match 😭</Text>
-            </View>}
-
-            <Text style={tw`text-[#FFFFFF] mt-4`}>Haven't seen the code?</Text>
-            <TouchableOpacity onPress={resendOTP}>
-                <Text style={tw`text-[#FFFFFF] underline`}>Resend code</Text>
-            </TouchableOpacity>
-
+            {/* Bottom button - fixed at bottom */}
             <TouchableOpacity
-                style={tw`bg-white rounded-[5] py-[10] w-full items-center mt-6 ${loading ? 'opacity-50' : ''}`}
+                style={tw`bg-white rounded-full py-[10] w-full items-center mb-8 ${loading ? 'opacity-50' : ''}`}
                 onPress={checkCode}
                 disabled={loading}
             >
-                <Text style={tw`text-[#000000] font-bold`}>
+                <Text style={[tw`text-black`, { fontFamily: 'Nunito-ExtraBold' }]}>
                     {loading ? 'Verifying...' : 'Continue'}
                 </Text>
             </TouchableOpacity>
         </LinearGradient>
+        </TouchableWithoutFeedback>
     );
-}
-
-const checkAvailable = async (email) => {
-    const {data, error} = await supabase.from("users").select('*').eq('email', email).single();
-    if (error) {return null};
-    return data;
 }
