@@ -1,14 +1,16 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 
-const URL="https://hnejyhgiocecmjwklarm.supabase.co"
-const KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhuZWp5aGdpb2NlY21qd2tsYXJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEwMDc2NjksImV4cCI6MjA2NjU4MzY2OX0.50QQzMFrkdUgvQU5n4I48egqnMr3cNrHRSZ2kh1ra48";
+// Your Supabase credentials
+const supabaseUrl = "https://vljucxtqozauseouhzud.supabase.co";
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZsanVjeHRxb3phdXNlb3VoenVkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTExNTM3MzEsImV4cCI6MjA2NjcyOTczMX0.hjACakd7Ndr-l5ZuUvcjI7_1pAE9RIhxcHG1ydM5j94";
 
-export const supabase = createClient(URL, KEY, {
+// Create a single Supabase client for use throughout your app
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     storage: AsyncStorage,
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
   },
-})
+});

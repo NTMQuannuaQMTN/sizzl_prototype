@@ -11,7 +11,7 @@ export default function SignUp() {
     const [valid, setValid] = useState(true);
     const [email, setEmail] = useState('');
 
-    const { user, setUser } = useAuthStore();
+    const { setSignupInfo } = useAuthStore();
 
     const getSchoolFromEmail = async (email: string) => {
         if (email.indexOf('@') < 0) return '';
@@ -33,10 +33,25 @@ export default function SignUp() {
         const newSchool = await getSchoolFromEmail(email);
         setValid(newSchool !== '');
         if (newSchool !== '') {
-            setUser({ email: email, school: newSchool })
+            setSignupInfo({ email: email, school: newSchool });
+
+            const { error } = await supabase.auth.signInWithOtp({
+                email: email,
+                options: {
+                    shouldCreateUser: true,
+                    emailRedirectTo: 'exp://j3bihve-courtins-8081.exp.direct',
+                },
+            });
+
+            if (error) {
+                console.log("OTP send error", error.message);
+                return;
+            }
+
             router.push('/(auth)/verify');
         }
-    }
+    };
+
 
     return (
         <LinearGradient
@@ -59,7 +74,7 @@ export default function SignUp() {
             </View>}
 
             <Text style={tw`text-[#FFFFFF] text-[2.9] text-center`}>By tapping SEND CODE, you consent to receive email updates from us or event hosts. Unsubscribe in the emails</Text>
-            <TouchableOpacity onPress={() => { checkEmail() }}
+            <TouchableOpacity onPress={checkEmail}
                 style={tw`bg-white rounded-[5] py-[10] w-full items-center`}>
                 <Text style={tw`text-[#000000] font-bold`}>Send code</Text>
             </TouchableOpacity>
