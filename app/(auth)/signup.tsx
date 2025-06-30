@@ -116,8 +116,8 @@ export default function SignUp() {
                     <Text style={[tw`text-[#FFFFFF]`, { fontFamily: 'Nunito-Medium' }]}>Oops, you gotta use a proper .edu email 😭</Text>
                 </View>}
                 {alreadyVerified &&
-                <View style={tw`w-full py-2 mt-1.5 items-center justify-center bg-yellow-500 rounded-[2]`}>
-                    <Text style={[tw`text-black`, { fontFamily: 'Nunito-Medium' }]}>Hey, this email has been verified. <Text style={tw`underline`} onPress={() => router.replace('/(auth)/login')}>Want to login?</Text></Text>
+                <View style={tw`w-full py-2 mt-1.5 items-center justify-center`}>
+                    <Text style={[tw`text-[12px] text-white`, { fontFamily: 'Nunito-Medium' }]}>Hey, this email has been verified. <Text style={tw`underline`} onPress={() => router.replace('/(auth)/login')}>Login instead?</Text></Text>
                 </View>}
             </View>
 

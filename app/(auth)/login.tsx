@@ -103,14 +103,14 @@ export default function Login() {
             </View>
 
             {/* Bottom content - fixed at bottom */}
-            <TouchableOpacity onPress={() => router.replace('/(auth)/signup')}
-                style={tw`mb-4`}
-            >
-                <Text style={[tw`text-white underline text-center`, { fontFamily: 'Nunito-Medium' }]}>Signup</Text>
-            </TouchableOpacity>
+            <Text style={[tw`text-white text-[10px] text-center mb-4`, { fontFamily: 'Nunito-Regular' }]}>By tapping SEND CODE, you consent to receive email updates from us or event hosts. Unsubscribe in the emails</Text>
             <TouchableOpacity onPress={checkEmail}
-                style={tw`bg-white rounded-full py-[10] w-full items-center mb-8`}>
+                style={tw`bg-white rounded-full py-[10] w-full items-center mb-4`}>
                 <Text style={[tw`text-black`, { fontFamily: 'Nunito-ExtraBold' }]}>Send code</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => router.replace('/(auth)/signup')}
+                style={tw`w-full items-center mb-8`}>
+                <Text style={[tw`text-white underline`, { fontFamily: 'Nunito-Medium' }]}>Signup</Text>
             </TouchableOpacity>
         </LinearGradient>
         </TouchableWithoutFeedback>
