@@ -26,8 +26,7 @@ export default function Register() {
   const [registerInfo, setRegisterInfo] = useState({
     username: '',
     firstname: '',
-    lastname: '',
-    profile_image: '',
+    lastname: ''
   })
 
   const pickImage = async () => {
@@ -90,40 +89,43 @@ export default function Register() {
       lastName: registerInfo.lastname.trim()
     });
 
+    const { error: insertError } = await supabase.from('users').insert({ ...registerInfo, ...signupInfo, createdAt: new Date() }).select().single();
+
+    if (insertError) { console.log("INSERT ERR:", insertError.message) }
+
     return true;
   }
 
   const confirmRegister = async () => {
-    const filePath = `avatar/${registerInfo.username}`
+    if (!imageInput) return;
+    const { data } = await supabase.from('users').select('id').eq('username', registerInfo.username).single();
+    const userID = data?.id;
 
-    // Convert the image URI to a Blob before uploading to Supabase
     try {
+      const filePath = `avatar/${userID}`;
+
       const response = await fetch(imageInput);
-      console.log(response);
       const blob = await response.blob();
 
-      const { error: updateError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('sizzl-profileimg')
-        .update(filePath, blob);
+        .upload(filePath, blob);
 
-      if (updateError) {
-        console.log(updateError);
-        const { error: uploadError } = await supabase.storage
-          .from('sizzl-profileimg')
-          .upload(filePath, blob);
-        if (uploadError) {
-          console.log("Error upload/dating:", uploadError);
-        }
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
         return;
       }
 
-      const { data } = await supabase.storage.from('sizzl-profileimg').getPublicUrl(filePath);
-      setRegisterInfo((regInfo) => ({ ...regInfo, profile_image: data.publicUrl }));
-      console.log(registerInfo);
+      const { data: urlData } = await supabase.storage
+        .from('sizzl-profileimg')
+        .getPublicUrl(filePath);
 
-      const { error: insertError } = await supabase.from('users').insert({ ...registerInfo, ...signupInfo, createdAt: new Date() }).select().single();
-      if (insertError) {
-        console.error('Insert error', insertError);
+      const publicUrl = urlData?.publicUrl;
+
+      const { error: setAvatarError } = await supabase.from('users').update({ 'profile_image': publicUrl }).select().single();
+
+      if (setAvatarError) {
+        console.error("Set error:", setAvatarError);
       }
     } catch (err) {
       console.error('Image upload failed:', err);
