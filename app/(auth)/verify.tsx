@@ -114,8 +114,7 @@ export default function Verify() {
                     <Text style={[tw`text-white mb-1.5 text-[13px]`, { fontFamily: 'Nunito-SemiBold' }]}>Verification code</Text>
                     <View style={tw`w-full relative items-center`}>
                         <TextInput 
-                            style={[
-                                tw`text-center h-10 bg-white bg-opacity-5 w-full rounded-[2] px-3 py-2 text-[13px]`,
+                            style={[tw`text-center h-10 bg-white bg-opacity-5 w-full rounded-[2] px-3 py-2 text-[13px]`,
                                 {
                                     fontFamily: 'Nunito-Medium',
                                     borderWidth: 1,
