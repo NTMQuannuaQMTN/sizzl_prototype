@@ -63,9 +63,12 @@ export default function Verify() {
         }
 
         setLoading(true);
-        
+
+        // Always use lowercase for email
+        const lowerEmail = signupInfo.email.trim().toLowerCase();
+
         const { data, error } = await supabase.auth.verifyOtp({
-            email: signupInfo.email,
+            email: lowerEmail,
             token: code,
             type: "email", // Use "email_otp" if "email" doesn't work for your supabase-js version.
         });
@@ -77,12 +80,18 @@ export default function Verify() {
             console.log("Verification error:", error.message);
         } else if (data && data.session && data.user) {
             console.log("Verification successful:", data);
-            const {error} = await supabase.from('users')
-            .select('*').eq('email', signupInfo.email).single();
-            if (error) {
+            const { data: userData, error: userError } = await supabase.from('users')
+                .select('profile_image').eq('email', lowerEmail).single();
+            if (userError) {
                 router.replace('/(auth)/register');
             } else {
-                Alert.alert("Already");
+                // Existing user: check for profile image
+                console.log("profile_image value:", userData.profile_image);
+                if (userData.profile_image && userData.profile_image.trim() !== '') {
+                    router.replace('/(auth)/home');
+                } else {
+                    router.replace('/(auth)/image');
+                }
             }
         } else {
             setValid(false);

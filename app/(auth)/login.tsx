@@ -6,10 +6,9 @@ import { Keyboard, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, 
 import tw from 'twrnc';
 import { useAuthStore } from "../store/authStore";
 
-export default function SignUp() {
+export default function Login() {
     const router = useRouter();
     const [valid, setValid] = useState(true);
-    const [alreadyVerified, setAlreadyVerified] = useState(false);
     const [email, setEmail] = useState('');
     const [isFocused, setIsFocused] = useState(false);
 
@@ -32,30 +31,17 @@ export default function SignUp() {
     }
 
     const checkEmail = async () => {
-        setAlreadyVerified(false);
         const newSchool = await getSchoolFromEmail(email);
         setValid(newSchool !== '');
         if (newSchool !== '') {
-            // Always compare emails in lowercase
+            // Always use lowercase for email
             const lowerEmail = email.trim().toLowerCase();
-            // Fetch all users with the same email, case-insensitive
-            const { data: users, error: userError } = await supabase
-                .from('users')
-                .select('email');
-            if (users && !userError) {
-                // Check if any user email matches input, case-insensitive
-                const match = users.find((u: any) => (u.email || '').toLowerCase() === lowerEmail);
-                if (match) {
-                    setAlreadyVerified(true);
-                    return;
-                }
-            }
             setSignupInfo({ email: lowerEmail, school_id: newSchool });
 
             const { error } = await supabase.auth.signInWithOtp({
                 email: lowerEmail,
                 options: {
-                    shouldCreateUser: true,
+                    shouldCreateUser: false, // Only allow login for existing users
                     emailRedirectTo: 'exp://j3bihve-courtins-8081.exp.direct',
                 },
             });
@@ -68,7 +54,6 @@ export default function SignUp() {
             router.replace('/(auth)/verify');
         }
     };
-
 
     return (
         <TouchableWithoutFeedback onPress={() => {
@@ -84,8 +69,8 @@ export default function SignUp() {
             {/* Center content - takes up most of the screen */}
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                 <View style={tw`mb-8`}>
-                    <Text style={[tw`text-white text-sm text-center mb-2`, { fontFamily: 'Nunito-Medium' }]}>What's sizzlin' on your campus?</Text>
-                    <Text style={[tw`text-white text-lg text-center`, { fontFamily: 'Nunito-ExtraBold' }]}>Join to find out 🚀</Text>
+                    <Text style={[tw`text-white text-sm text-center mb-2`, { fontFamily: 'Nunito-Medium' }]}>Welcome back!</Text>
+                    <Text style={[tw`text-white text-lg text-center`, { fontFamily: 'Nunito-ExtraBold' }]}>Login to continue 🔥</Text>
                 </View>
 
                 {/* Form */}
@@ -115,21 +100,17 @@ export default function SignUp() {
                 <View style={tw`w-full py-2 mt-1.5 items-center justify-center bg-[#FF1769] rounded-[2]`}>
                     <Text style={[tw`text-[#FFFFFF]`, { fontFamily: 'Nunito-Medium' }]}>Oops, you gotta use a proper .edu email 😭</Text>
                 </View>}
-                {alreadyVerified &&
-                <View style={tw`w-full py-2 mt-1.5 items-center justify-center bg-yellow-500 rounded-[2]`}>
-                    <Text style={[tw`text-black`, { fontFamily: 'Nunito-Medium' }]}>Hey, this email has been verified. <Text style={tw`underline`} onPress={() => router.replace('/(auth)/login')}>Want to login?</Text></Text>
-                </View>}
             </View>
 
             {/* Bottom content - fixed at bottom */}
-            <Text style={[tw`text-white text-[10px] text-center mb-4`, { fontFamily: 'Nunito-Regular' }]}>By tapping SEND CODE, you consent to receive email updates from us or event hosts. Unsubscribe in the emails</Text>
-            <TouchableOpacity onPress={checkEmail}
-                style={tw`bg-white rounded-full py-[10] w-full items-center mb-4`}>
-                <Text style={[tw`text-black`, { fontFamily: 'Nunito-ExtraBold' }]}>Send code</Text>
+            <TouchableOpacity onPress={() => router.replace('/(auth)/signup')}
+                style={tw`mb-4`}
+            >
+                <Text style={[tw`text-white underline text-center`, { fontFamily: 'Nunito-Medium' }]}>Signup</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.replace('/(auth)/login')}
-                style={tw`w-full items-center mb-8`}>
-                <Text style={[tw`text-white underline`, { fontFamily: 'Nunito-Medium' }]}>Login</Text>
+            <TouchableOpacity onPress={checkEmail}
+                style={tw`bg-white rounded-full py-[10] w-full items-center mb-8`}>
+                <Text style={[tw`text-black`, { fontFamily: 'Nunito-ExtraBold' }]}>Send code</Text>
             </TouchableOpacity>
         </LinearGradient>
         </TouchableWithoutFeedback>

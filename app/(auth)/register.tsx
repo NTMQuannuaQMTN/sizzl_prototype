@@ -2,12 +2,14 @@ import { supabase } from '@/utils/supabase';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
+import { useRouter } from 'expo-router';
 import { Alert, Image, Keyboard, KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import tw from 'twrnc';
 import DefaultProfileIMG from '../../assets/images/pfp-default.png';
 import { useAuthStore } from '../store/authStore';
 
 export default function Register() {
+  const router = useRouter();
   // Helper to check if all required fields are filled
   const allFieldsFilled = () => {
     return (
@@ -316,12 +318,7 @@ export default function Register() {
                     </View>
                   )}
                 </View>}
-              {imagePage && <View style={tw`w-full h-fit items-center`}>
-                <TouchableOpacity style={tw`bg-white w-[50] h-[50] items-center justify-center rounded-full`}
-                  onPress={() => { pickImage() }}>
-                  <Image style={tw`w-full h-full rounded-full`} resizeMode="contain" source={imageInput ? { uri: imageInput } : DefaultProfileIMG}></Image>
-                </TouchableOpacity>
-              </View>}
+              {/* imagePage UI moved to image.tsx */}
             </View>
           </KeyboardAvoidingView>
           {/* Bottom button - fixed at bottom */}
@@ -329,8 +326,7 @@ export default function Register() {
             <TouchableOpacity
               style={[tw`bg-white rounded-full py-[10] w-full items-center`, (loading || !allFieldsFilled()) && tw`opacity-50`]}
               onPress={async () => {
-                if (!imagePage && await checkRegister()) setImagePage(true);
-                else if (imagePage) confirmRegister();
+                if (!imagePage && await checkRegister()) router.replace('/(auth)/image');
               }}
               disabled={loading || !allFieldsFilled()}
             >

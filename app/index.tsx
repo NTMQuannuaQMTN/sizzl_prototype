@@ -36,7 +36,7 @@ export default function Index() {
         if (slide < 2) {
           setSlide(slide + 1);
         } else {
-          router.replace('/(auth)/signup');
+          router.replace('/(auth)/login');
         }
         
       }}
