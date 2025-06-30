@@ -5,16 +5,18 @@ import { useState } from "react";
 import { Image, Keyboard, KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import tw from 'twrnc';
 import DefaultProfileIMG from '../../assets/images/pfp-default.png';
+import { useAuthStore } from '../store/authStore';
 
 export default function Register() {
   // Helper to check if all required fields are filled
   const allFieldsFilled = () => {
     return (
       registerInfo.username.trim().length > 0 &&
-      registerInfo.first.trim().length > 0 &&
-      registerInfo.last.trim().length > 0
+      registerInfo.firstname.trim().length > 0 &&
+      registerInfo.lastname.trim().length > 0
     );
   };
+  const { signupInfo } = useAuthStore();
   const [imagePage, setImagePage] = useState(false);
   const [focusedField, setFocusedField] = useState<null | 'username' | 'first' | 'last'>(null);
   const [loading, setLoading] = useState(false);
@@ -23,9 +25,9 @@ export default function Register() {
   const [imageInput, setImageInput] = useState('');
   const [registerInfo, setRegisterInfo] = useState({
     username: '',
-    first: '',
-    last: '',
-    image: '',
+    firstname: '',
+    lastname: '',
+    profile_image: '',
   })
 
   const pickImage = async () => {
@@ -57,14 +59,14 @@ export default function Register() {
 
     // First name validation: 2+ characters, letters and spaces only
     const nameRegex = /^[a-zA-Z\s]{2,}$/;
-    if (!nameRegex.test(registerInfo.first.trim())) {
+    if (!nameRegex.test(registerInfo.firstname.trim())) {
       setValid(false);
       setLoading(false);
       return false;
     }
 
     // Last name validation: 2+ characters, letters and spaces only
-    if (!nameRegex.test(registerInfo.last.trim())) {
+    if (!nameRegex.test(registerInfo.lastname.trim())) {
       setValid(false);
       setLoading(false);
       return false;
@@ -77,8 +79,8 @@ export default function Register() {
     // TODO: Save user data to database
     console.log('Registration data:', {
       username: registerInfo.username,
-      firstName: registerInfo.first.trim(),
-      lastName: registerInfo.last.trim()
+      firstName: registerInfo.firstname.trim(),
+      lastName: registerInfo.lastname.trim()
     });
 
     return true;
@@ -102,10 +104,10 @@ export default function Register() {
       }
 
       const { data } = await supabase.storage.from('sizzl-profileimg').getPublicUrl(filePath);
-      setRegisterInfo((regInfo) => ({ ...regInfo, image: data.publicUrl }));
+      setRegisterInfo((regInfo) => ({ ...regInfo, profile_image: data.publicUrl }));
       console.log(registerInfo);
 
-      const { error: insertError } = await supabase.from('users').insert({ registerInfo }).select().single();
+      const { error: insertError } = await supabase.from('users').insert({ ...registerInfo, ...signupInfo }).select().single();
       if (insertError) {
         console.error('Insert error', insertError);
       }
@@ -197,23 +199,23 @@ export default function Register() {
                             fontFamily: 'Nunito-Medium',
                             borderWidth: 1,
                             borderColor:
-                              showFieldErrors && !/^[a-zA-Z\s]{2,}$/.test(registerInfo.first.trim())
+                              showFieldErrors && !/^[a-zA-Z\s]{2,}$/.test(registerInfo.firstname.trim())
                                 ? '#FF1769'
                                 : focusedField === 'first'
                                   ? '#FFFFFF'
                                   : 'rgba(255, 255, 255, 0.1)',
                             textAlign: 'left',
                             color:
-                              showFieldErrors && !/^[a-zA-Z\s]{2,}$/.test(registerInfo.first.trim())
+                              showFieldErrors && !/^[a-zA-Z\s]{2,}$/.test(registerInfo.firstname.trim())
                                 ? '#FF1769'
                                 : '#FFFFFF',
                           },
                         ]}
-                        value={registerInfo.first}
+                        value={registerInfo.firstname}
                         placeholder="Sizzle"
                         placeholderTextColor={'#9CA3AF'}
                         onChangeText={newName => {
-                          setRegisterInfo(regInfo => ({ ...regInfo, first: newName }));
+                          setRegisterInfo(regInfo => ({ ...regInfo, firstname: newName }));
                           setValid(true);
                           setShowFieldErrors(false);
                         }}
@@ -227,7 +229,7 @@ export default function Register() {
                           {
                             fontFamily: 'Nunito-Medium',
                             color:
-                              showFieldErrors && !/^[a-zA-Z\s]{2,}$/.test(registerInfo.first.trim())
+                              showFieldErrors && !/^[a-zA-Z\s]{2,}$/.test(registerInfo.firstname.trim())
                                 ? '#FF1769'
                                 : '#FFFFFF',
                           },
@@ -245,23 +247,23 @@ export default function Register() {
                             fontFamily: 'Nunito-Medium',
                             borderWidth: 1,
                             borderColor:
-                              showFieldErrors && !/^[a-zA-Z\s]{2,}$/.test(registerInfo.last.trim())
+                              showFieldErrors && !/^[a-zA-Z\s]{2,}$/.test(registerInfo.lastname.trim())
                                 ? '#FF1769'
                                 : focusedField === 'last'
                                   ? '#FFFFFF'
                                   : 'rgba(255, 255, 255, 0.1)',
                             textAlign: 'left',
                             color:
-                              showFieldErrors && !/^[a-zA-Z\s]{2,}$/.test(registerInfo.last.trim())
+                              showFieldErrors && !/^[a-zA-Z\s]{2,}$/.test(registerInfo.lastname.trim())
                                 ? '#FF1769'
                                 : '#FFFFFF',
                           },
                         ]}
-                        value={registerInfo.last}
+                        value={registerInfo.lastname}
                         placeholder="Mingle"
                         placeholderTextColor={'#9CA3AF'}
                         onChangeText={newName => {
-                          setRegisterInfo(regInfo => ({ ...regInfo, last: newName }));
+                          setRegisterInfo(regInfo => ({ ...regInfo, lastname: newName }));
                           setValid(true);
                           setShowFieldErrors(false);
                         }}
@@ -275,7 +277,7 @@ export default function Register() {
                           {
                             fontFamily: 'Nunito-Medium',
                             color:
-                              showFieldErrors && !/^[a-zA-Z\s]{2,}$/.test(registerInfo.last.trim())
+                              showFieldErrors && !/^[a-zA-Z\s]{2,}$/.test(registerInfo.lastname.trim())
                                 ? '#FF1769'
                                 : '#FFFFFF',
                           },
