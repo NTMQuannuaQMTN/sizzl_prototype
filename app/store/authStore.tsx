@@ -1,8 +1,8 @@
-import { create } from "zustand";
-import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/utils/supabase";
+import { Session, User } from "@supabase/supabase-js";
+import { create } from "zustand";
 
-type SignupInfo = { email: string; school: string };
+type SignupInfo = { email: string; school_id: string };
 
 type AuthState = {
   user: User | null;

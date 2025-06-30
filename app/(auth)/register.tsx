@@ -45,13 +45,20 @@ export default function Register() {
     }
   }
 
-  const checkRegister = () => {
+  const checkRegister = async () => {
     setLoading(true);
     setShowFieldErrors(true);
 
     // Username validation: 4+ chars, only a-z, 0-9, _, .
     const usernameRegex = /^[a-z0-9_.]{4,}$/;
     if (!usernameRegex.test(registerInfo.username)) {
+      setValid(false);
+      setLoading(false);
+      return false;
+    }
+    const { error } = await supabase.from('users').select('*')
+      .eq('username', registerInfo.username).single();
+    if (!error) {
       setValid(false);
       setLoading(false);
       return false;
@@ -92,14 +99,21 @@ export default function Register() {
     // Convert the image URI to a Blob before uploading to Supabase
     try {
       const response = await fetch(imageInput);
+      console.log(response);
       const blob = await response.blob();
 
-      const { error } = await supabase.storage
+      const { error: updateError } = await supabase.storage
         .from('sizzl-profileimg')
-        .upload(filePath, blob);
+        .update(filePath, blob);
 
-      if (error) {
-        console.error('Upload error:', error);
+      if (updateError) {
+        console.log(updateError);
+        const { error: uploadError } = await supabase.storage
+          .from('sizzl-profileimg')
+          .upload(filePath, blob);
+        if (uploadError) {
+          console.log("Error upload/dating:", uploadError);
+        }
         return;
       }
 
@@ -107,7 +121,7 @@ export default function Register() {
       setRegisterInfo((regInfo) => ({ ...regInfo, profile_image: data.publicUrl }));
       console.log(registerInfo);
 
-      const { error: insertError } = await supabase.from('users').insert({ ...registerInfo, ...signupInfo }).select().single();
+      const { error: insertError } = await supabase.from('users').insert({ ...registerInfo, ...signupInfo, createdAt: new Date() }).select().single();
       if (insertError) {
         console.error('Insert error', insertError);
       }
@@ -306,8 +320,8 @@ export default function Register() {
           <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, marginBottom: 32 }}>
             <TouchableOpacity
               style={[tw`bg-white rounded-full py-[10] w-full items-center`, (loading || !allFieldsFilled()) && tw`opacity-50`]}
-              onPress={() => {
-                if (!imagePage && checkRegister()) setImagePage(true);
+              onPress={async () => {
+                if (!imagePage && await checkRegister()) setImagePage(true);
                 else if (imagePage) confirmRegister();
               }}
               disabled={loading || !allFieldsFilled()}

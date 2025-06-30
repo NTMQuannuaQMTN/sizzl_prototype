@@ -63,8 +63,7 @@ export default function Verify() {
         }
 
         setLoading(true);
-        console.log("Verifying code for:", signupInfo.email, "Code:", code);
-
+        
         const { data, error } = await supabase.auth.verifyOtp({
             email: signupInfo.email,
             token: code,

@@ -2,7 +2,7 @@ import { supabase } from "@/utils/supabase";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Text, TextInput, TouchableOpacity, View, Keyboard, TouchableWithoutFeedback } from "react-native";
+import { Keyboard, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import tw from 'twrnc';
 import { useAuthStore } from "../store/authStore";
 
@@ -34,7 +34,7 @@ export default function SignUp() {
         const newSchool = await getSchoolFromEmail(email);
         setValid(newSchool !== '');
         if (newSchool !== '') {
-            setSignupInfo({ email: email, school: newSchool });
+            setSignupInfo({ email: email, school_id: newSchool });
 
             const { error } = await supabase.auth.signInWithOtp({
                 email: email,
