@@ -98,6 +98,7 @@ export default function Register() {
 
   const confirmRegister = async () => {
     if (!imageInput) return;
+    console.log(imageInput);
     const { data } = await supabase.from('users').select('id').eq('username', registerInfo.username).single();
     const userID = data?.id;
 
@@ -128,7 +129,7 @@ export default function Register() {
       if (setAvatarError) {
         console.error("Set error:", setAvatarError);
       } else {
-        const {data: checkData} = await supabase.from('users').select('profile_image').eq('id', userID).single();
+        const {data: checkData} = await supabase.from('users').select('profile_image').eq('username', registerInfo.username).single();
         console.log(checkData);
         Alert.alert("Success");
       }
