@@ -88,7 +88,7 @@ export default function Verify() {
                 // Existing user: check for profile image
                 console.log("profile_image value:", userData.profile_image);
                 if (userData.profile_image && userData.profile_image.trim() !== '') {
-                    router.replace('/(auth)/home');
+                    router.replace('/home');
                 } else {
                     router.replace('/(auth)/image');
                 }
