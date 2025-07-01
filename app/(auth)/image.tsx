@@ -4,7 +4,7 @@ import { Alert, Image, Text, TouchableOpacity, View } from "react-native";
 import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import tw from 'twrnc';
-import DefaultProfileIMG from '../../assets/images/pfp-default.png';
+import DefaultProfileIMG from '../../assets/images/pfp-default2.png';
 import { supabase } from '@/utils/supabase';
 import { useAuthStore } from '../store/authStore';
 
@@ -54,8 +54,11 @@ export default function ImagePage() {
 
   return (
     <View style={tw`flex-1 items-center justify-center bg-[#080B32] px-6`}>
-      <Text style={[tw`text-white text-lg mb-6`, { fontFamily: 'Nunito-ExtraBold' }]}>Add your profile image!</Text>
-      <TouchableOpacity style={tw`bg-white w-[100] h-[100] items-center justify-center rounded-full mb-6`}
+      <View style={tw`mb-8`}>
+          <Text style={[tw`text-white text-sm text-center mb-2`, { fontFamily: 'Nunito-Medium' }]}>Add your profile image</Text>
+          <Text style={[tw`text-white text-lg text-center`, { fontFamily: 'Nunito-ExtraBold' }]}>Make it easier to find your friends 💛</Text>
+      </View>
+      <TouchableOpacity style={tw`w-32 h-32 items-center justify-center rounded-full mb-6`}
         onPress={pickImage}>
         <Image style={tw`w-full h-full rounded-full`} resizeMode="contain" source={imageInput ? { uri: imageInput } : DefaultProfileIMG} />
       </TouchableOpacity>
