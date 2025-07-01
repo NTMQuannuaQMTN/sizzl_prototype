@@ -1,7 +1,8 @@
 import { supabase } from '@/utils/supabase';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Text, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 import BotBar from '../botbar';
 import { useAuthStore } from '../store/authStore';
@@ -9,6 +10,7 @@ import { useAuthStore } from '../store/authStore';
 export default function ProfilePage() {
   const { signupInfo } = useAuthStore();
   const [firstName, setFirstName] = useState('');
+  const router = useRouter();
 
   useEffect(() => {
     const fetchFirstName = async () => {
@@ -37,6 +39,12 @@ export default function ProfilePage() {
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <Text style={[tw`text-white text-xl text-center`, { fontFamily: 'Nunito-ExtraBold' }]}>yo mtfk, this is you!</Text>
         <Text style={[tw`text-white text-lg mt-4`, { fontFamily: 'Nunito-Bold' }]}>{firstName}</Text>
+        <TouchableOpacity
+          style={tw`mt-8 bg-white rounded-full px-6 py-2`}
+          onPress={() => router.push('/(profile)/editprofile')}
+        >
+          <Text style={[tw`text-black text-base`, { fontFamily: 'Nunito-Bold' }]}>Edit Profile</Text>
+        </TouchableOpacity>
       </View>
       <BotBar currentTab="profile" />
     </LinearGradient>
