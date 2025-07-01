@@ -1,4 +1,5 @@
 import { supabase } from '@/utils/supabase';
+import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -59,33 +60,47 @@ export default function ImagePage() {
       colors={['#080B32', '#0E1241', '#291C56', '#392465', '#51286A']}
       start={{ x: 0, y: 0 }}
       end={{ x: 0, y: 1 }}
-      style={{ flex: 1, padding: 24, justifyContent: 'center', alignItems: 'center' }}
+      style={{ flex: 1, padding: 24 }}
     >
-      <View style={tw`mb-8`}>
-          <Text style={[tw`text-white text-sm text-center mb-2`, { fontFamily: 'Nunito-Medium' }]}>Add your profile image</Text>
-          <Text style={[tw`text-white text-lg text-center`, { fontFamily: 'Nunito-ExtraBold' }]}>Make it easier to find your friends 💛</Text>
+      {/* Center content */}
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <View style={tw`mb-20`}>
+            <Text style={[tw`text-white text-sm text-center mb-2`, { fontFamily: 'Nunito-Medium' }]}>Add your profile image</Text>
+            <Text style={[tw`text-white text-lg text-center`, { fontFamily: 'Nunito-ExtraBold' }]}>Make it easier to find your friends 💛</Text>
+        </View>
+        <TouchableOpacity style={tw`w-32 h-32 items-center justify-center rounded-full mb-6 relative`}
+          onPress={pickImage}>
+          {imageInput ? (
+            <Image style={tw`w-full h-full rounded-full`} resizeMode="contain" source={{ uri: imageInput }} />
+          ) : (
+            <>
+              <DefaultProfileSVG width={150} height={150} style={tw`rounded-full`} />
+              <View style={tw`absolute bottom--2 right-0 bg-white rounded-full w-8 h-8 items-center justify-center shadow-lg`}>
+                <Ionicons name="camera" size={16} color="#080B32" />
+              </View>
+            </>
+          )}
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity style={tw`w-32 h-32 items-center justify-center rounded-full mb-6`}
-        onPress={pickImage}>
-        {imageInput ? (
-          <Image style={tw`w-full h-full rounded-full`} resizeMode="contain" source={{ uri: imageInput }} />
-        ) : (
-          <DefaultProfileSVG width={128} height={128} style={tw`rounded-full`} />
-        )}
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={tw`bg-white rounded-full py-3 w-full items-center mb-4`}
-        onPress={confirmImage}
-        disabled={loading || !imageInput}
-      >
-        <Text style={[tw`text-black`, { fontFamily: 'Nunito-ExtraBold' }]}>{loading ? 'Uploading...' : "Let's start!"}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={tw`px-4 py-2 bg-transparent border border-white rounded-full`}
-        onPress={() => router.replace('/')}
-      >
-        <Text style={[tw`text-white text-sm`, { fontFamily: 'Nunito-Medium' }]}>Skip this step.</Text>
-      </TouchableOpacity>
+      
+      {/* Bottom buttons */}
+      <View style={tw`items-center`}>
+        <TouchableOpacity
+          style={tw`bg-white rounded-full py-3 w-full items-center mb-4`}
+          onPress={imageInput ? confirmImage : pickImage}
+          disabled={loading}
+        >
+          <Text style={[tw`text-black`, { fontFamily: 'Nunito-ExtraBold' }]}>
+            {loading ? 'Uploading...' : imageInput ? "Let's start!" : "Add image"}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={tw`mb-10`}
+          onPress={() => router.replace('/')}
+        >
+          <Text style={[tw`text-gray-400 text-[12px]`, { fontFamily: 'Nunito-Medium' }]}>Hmm... I'll do this later</Text>
+        </TouchableOpacity>
+      </View>
     </LinearGradient>
   );
 }
