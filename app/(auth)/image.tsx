@@ -34,21 +34,92 @@ export default function ImagePage() {
     setLoading(true);
     try {
       // Find user by email
-      const { data: userData } = await supabase.from('users').select('id').eq('email', signupInfo.email).single();
+      console.log('Looking for user with email:', signupInfo.email);
+      
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('id, email, profile_image')
+        .eq('email', signupInfo.email)
+        .single();
+      
+      if (userError) {
+        console.log('User lookup error:', userError);
+        throw userError;
+      }
+      
       const userID = userData?.id;
       if (!userID) throw new Error('User not found');
-      const filePath = `avatar/${userID}`;
-      // Read file as base64 and upload as data URL
-      const base64 = await FileSystem.readAsStringAsync(imageInput, { encoding: FileSystem.EncodingType.Base64 });
-      const dataUrl = `data:image/jpeg;base64,${base64}`;
-      const { error: uploadError } = await supabase.storage.from('sizzl-profileimg').upload(filePath, dataUrl, { contentType: 'image/jpeg', upsert: true });
-      if (uploadError) throw uploadError;
-      const { data: urlData } = await supabase.storage.from('sizzl-profileimg').getPublicUrl(filePath);
+      
+      console.log('Found user data:', userData);
+      console.log('User ID:', userID);
+      console.log('Current profile_image:', userData?.profile_image);
+
+      // Get file info and determine file extension
+      const fileUri = imageInput;
+      const fileExtension = fileUri.split('.').pop()?.toLowerCase() || 'jpg';
+      const fileName = `avatar/${userID}.${fileExtension}`;
+      
+      // Read file as ArrayBuffer for proper binary upload
+      const fileArrayBuffer = await FileSystem.readAsStringAsync(fileUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      
+      // Convert base64 to Uint8Array
+      const byteCharacters = atob(fileArrayBuffer);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const uint8Array = new Uint8Array(byteNumbers);
+
+      // Upload file as binary data
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('sizzl-profileimg')
+        .upload(fileName, uint8Array, {
+          contentType: `image/${fileExtension === 'jpg' ? 'jpeg' : fileExtension}`,
+          upsert: true
+        });
+
+      if (uploadError) {
+        console.log('Upload error:', uploadError);
+        throw uploadError;
+      }
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('sizzl-profileimg')
+        .getPublicUrl(fileName);
+      
       const publicUrl = urlData?.publicUrl;
-      await supabase.from('users').update({ 'profile_image': publicUrl }).eq('id', userID);
-      Alert.alert('Success');
+      if (!publicUrl) throw new Error('Failed to get public URL');
+
+      // Update user profile with image URL
+      console.log('Attempting to update profile_image for user:', userID);
+      console.log('New profile_image URL:', publicUrl);
+      
+      const { data: updateData, error: updateError } = await supabase
+        .from('users')
+        .update({ profile_image: publicUrl })
+        .eq('id', userID)
+        .select();
+
+      if (updateError) {
+        console.log('Database update error:', updateError);
+        throw updateError;
+      }
+
+      console.log('Update response data:', updateData);
+      console.log('Number of rows updated:', updateData?.length || 0);
+
+      if (updateData?.length === 0) {
+        throw new Error('No rows were updated - this might be a policy issue');
+      }
+
+      console.log('Profile image updated successfully:', publicUrl);
+      Alert.alert('Success', 'Profile image uploaded successfully!');
       router.replace('/');
     } catch (err) {
+      console.log('Full error:', err);
       const errorMessage = (err instanceof Error && err.message) ? err.message : String(err);
       Alert.alert('Image upload failed', errorMessage);
     }
