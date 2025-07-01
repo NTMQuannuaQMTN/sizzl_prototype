@@ -2,7 +2,7 @@ import { supabase } from "@/utils/supabase";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from 'react';
-import { Alert, Keyboard, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import { Keyboard, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import tw from 'twrnc';
 import { useAuthStore } from "../store/authStore";
 
@@ -88,7 +88,7 @@ export default function Verify() {
                 // Existing user: check for profile image
                 console.log("profile_image value:", userData.profile_image);
                 if (userData.profile_image && userData.profile_image.trim() !== '') {
-                    router.replace('/home');
+                    router.replace('/(home)/home');
                 } else {
                     router.replace('/(auth)/image');
                 }

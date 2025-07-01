@@ -1,11 +1,10 @@
 import { supabase } from '@/utils/supabase';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from "expo-linear-gradient";
-import { useState } from "react";
 import { useRouter } from 'expo-router';
-import { Alert, Image, Keyboard, KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import { useState } from 'react';
+import { Keyboard, KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import tw from 'twrnc';
-import DefaultProfileIMG from '../../assets/images/pfp-default.png';
 import { useAuthStore } from '../store/authStore';
 
 export default function Register() {
@@ -133,7 +132,6 @@ export default function Register() {
       } else {
         const {data: checkData} = await supabase.from('users').select('profile_image').eq('username', registerInfo.username).single();
         console.log(checkData);
-        Alert.alert("Success");
       }
     } catch (err) {
       console.error('Image upload failed:', err);
