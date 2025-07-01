@@ -127,10 +127,12 @@ export default function SignUp() {
                 style={tw`bg-white rounded-full py-[10] w-full items-center mb-4`}>
                 <Text style={[tw`text-black`, { fontFamily: 'Nunito-ExtraBold' }]}>Send code</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.replace('/(auth)/login')}
-                style={tw`w-full items-center mb-8`}>
-                <Text style={[tw`text-white underline`, { fontFamily: 'Nunito-Medium' }]}>Login</Text>
-            </TouchableOpacity>
+            <View style={tw`flex-row items-center justify-center mb-8`}>
+                <Text style={[tw`text-white text-[12px] mr-1`, { fontFamily: 'Nunito-Regular' }]}>Already have an account?</Text>
+                <TouchableOpacity onPress={() => router.replace('/(auth)/login')}>
+                    <Text style={[tw`text-white underline text-[12px]`, { fontFamily: 'Nunito-Medium' }]}>Login</Text>
+                </TouchableOpacity>
+            </View>
         </LinearGradient>
         </TouchableWithoutFeedback>
     );

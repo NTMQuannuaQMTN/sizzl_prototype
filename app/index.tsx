@@ -41,18 +41,21 @@ export default function Index() {
               By tapping LOGIN or SIGNUP, you are agreeing to our {'\n'}
               <Text style={{ fontFamily: 'Nunito-Bold' }}>Community Guidelines</Text>, <Text style={{ fontFamily: 'Nunito-Bold' }}>Privacy Policy</Text> and <Text style={{ fontFamily: 'Nunito-Bold' }}>Terms of Service</Text>
           </Text>
-          <TouchableOpacity
-            onPress={() => router.replace('/(auth)/login')}
-            style={tw`bg-white rounded-full py-[10] w-full items-center mb-4`}
-          >
-            <Text style={[tw`text-black text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Login</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => router.replace('/(auth)/signup')}
-            style={tw`bg-white rounded-full py-[10] w-full items-center mb-8`}
-          >
-            <Text style={[tw`text-black text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Signup</Text>
-          </TouchableOpacity>
+
+          <View style={tw`flex-row w-full justify-between mb-8`}>
+            <TouchableOpacity
+              onPress={() => router.replace('/(auth)/signup')}
+              style={tw`bg-white rounded-full py-[10] w-[48.5%] items-center`}
+            >
+              <Text style={[tw`text-black text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Signup</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => router.replace('/(auth)/login')}
+              style={tw`bg-white rounded-full py-[10] w-[48.5%] items-center`}
+            >
+              <Text style={[tw`text-black text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Login</Text>
+            </TouchableOpacity>
+          </View>
         </>
       )}
     </LinearGradient>

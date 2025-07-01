@@ -108,10 +108,12 @@ export default function Login() {
                 style={tw`bg-white rounded-full py-[10] w-full items-center mb-4`}>
                 <Text style={[tw`text-black`, { fontFamily: 'Nunito-ExtraBold' }]}>Send code</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.replace('/(auth)/signup')}
-                style={tw`w-full items-center mb-8`}>
-                <Text style={[tw`text-white underline`, { fontFamily: 'Nunito-Medium' }]}>Signup</Text>
-            </TouchableOpacity>
+            <View style={tw`flex-row items-center justify-center mb-8`}>
+                <Text style={[tw`text-white text-[12px] mr-1`, { fontFamily: 'Nunito-Regular' }]}>First time in Sizzl?</Text>
+                <TouchableOpacity onPress={() => router.replace('/(auth)/signup')}>
+                    <Text style={[tw`text-white underline text-[12px]`, { fontFamily: 'Nunito-Medium' }]}>Signup</Text>
+                </TouchableOpacity>
+            </View>
         </LinearGradient>
         </TouchableWithoutFeedback>
     );
