@@ -21,7 +21,7 @@ export default function Explore() {
     >
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <Text style={[tw`text-white text-2xl`, { fontFamily: 'Nunito-ExtraBold' }]}>hello motherfucker</Text>
-        <Text style={[tw`text-white text-2xl`, { fontFamily: 'Nunito-ExtraBold' }]}>{user?.email}</Text>
+        <Text style={[tw`text-white text-2xl`, { fontFamily: 'Nunito-ExtraBold' }]}>{user?.firstname}</Text>
       </View>
     </LinearGradient>
   );
