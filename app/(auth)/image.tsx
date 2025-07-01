@@ -117,7 +117,7 @@ export default function ImagePage() {
 
       console.log('Profile image updated successfully:', publicUrl);
       Alert.alert('Success', 'Profile image uploaded successfully!');
-      router.replace('/');
+      router.replace('/home');
     } catch (err) {
       console.log('Full error:', err);
       const errorMessage = (err instanceof Error && err.message) ? err.message : String(err);
