@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect } from 'react';
-import { Text, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 import { useUserStore } from '../../store/userStore';
 
@@ -28,18 +28,18 @@ export default function Explore() {
                         <Text style={tw`text-white text-2xl font-bold`}>sizzl</Text>
                         <Text style={tw`text-white text-xs mt-1`}>Eyy what's good what's good!</Text>
                     </View>
-                    <View style={tw`py-2`}>
+                    <TouchableOpacity style={tw`py-2`}>
                         <NotiIcon></NotiIcon>
-                    </View>
+                    </TouchableOpacity>
                 </View>
 
                 {/* Explore / Your events toggle */}
-                <View style={tw`flex-row items-center mt-4 mb-2`}>
-                    <View style={tw`flex-row bg-white/10 rounded-full p-1`}>
-                        <View style={tw`bg-white rounded-full px-6 py-1`}>
+                <View style={tw`w-full items-center mt-4 mb-2`}>
+                    <View style={tw`w-full justify-around flex-row rounded-full`}>
+                        <View style={tw`w-[50%] items-center bg-white rounded-full py-2`}>
                             <Text style={tw`text-indigo-900 font-bold`}>Explore</Text>
                         </View>
-                        <View style={tw`px-6 py-1`}>
+                        <View style={tw`w-[50%] items-center py-2`}>
                             <Text style={tw`text-white font-bold`}>Your events</Text>
                         </View>
                     </View>
@@ -47,7 +47,7 @@ export default function Explore() {
 
                 {/* Events / Feed tabs */}
                 <View style={tw`flex-row mt-3 mb-2`}>
-                    <Text style={tw`text-white font-bold mr-6`}>Events</Text>
+                    <Text style={tw`text-white border-b-2 pb-1 px-2 border-white font-bold mr-6`}>Events</Text>
                     <Text style={tw`text-white/60 font-bold`}>Feed</Text>
                 </View>
 
