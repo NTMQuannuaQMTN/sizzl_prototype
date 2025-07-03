@@ -1,7 +1,6 @@
 
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 import BotBar from '../botbar';
@@ -12,20 +11,49 @@ import FBIcon from '../../assets/icons/fb-icon.svg';
 import InstagramIcon from '../../assets/icons/insta-icon.svg';
 import SnapchatIcon from '../../assets/icons/snapchat-icon.svg';
 import XIcon from '../../assets/icons/x-icon.svg';
+import ProfileBackgroundWrapper from './background_wrapper';
 
 export default function EditProfile() {
   const router = useRouter();
   const { user, setUser } = useUserStore();
+  const [input, setInput] = useState({
+    firstname: user?.firstname || '',
+    lastname: user?.lastname || '',
+    username: user?.username || '',
+    bio: user?.bio || '',
+    facebookurl: user?.facebookurl || '',
+    instagramurl: user?.instagramurl || '',
+    snapchaturl: user?.snapchaturl || '',
+    xurl: user?.xurl || '',
+    profile_image: user?.profile_image || '',
+    background_url: user?.background_url || '',
+  });
+  const [dob, setDOB] = useState(new Date());
+  const [dobOpen, setDOBOpen] = useState(false);
+
+  useEffect(() => {
+    console.log(input);
+  }, [input]);
+
+  const resetInput = () => {
+    setInput({
+      firstname: user?.firstname || '',
+      lastname: user?.lastname || '',
+      username: user?.username || '',
+      bio: user?.bio || '',
+      facebookurl: user?.facebookurl || '',
+      instagramurl: user?.instagramurl || '',
+      snapchaturl: user?.snapchaturl || '',
+      xurl: user?.xurl || '',
+      profile_image: user?.profile_image || '',
+      background_url: user?.background_url || '',
+    })
+  }
 
   return (
-    <LinearGradient
-      colors={['#080B32', '#0E1241', '#291C56', '#392465', '#51286A']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 0, y: 1 }}
-      style={{ flex: 1 }}
-    >
+    <ProfileBackgroundWrapper self={true} imageUrl={input.background_url}>
       <View style={{ flex: 1, height: 'auto', marginVertical: 40, marginBottom: 100 }}>
-        <ScrollView style={{width: '90%', marginHorizontal: 'auto'}}>
+        <ScrollView style={{ width: '90%', marginHorizontal: 'auto' }}>
           <Text style={[tw`w-full text-center text-white text-md mb-4`, { fontFamily: 'Nunito-Bold' }]}>Edit profile</Text>
           {/* Change background button */}
           <TouchableOpacity
@@ -56,30 +84,58 @@ export default function EditProfile() {
               <View style={[tw`flex-1 mr-2`, { backgroundColor: 'rgba(0,0,0,0.25)', borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }]}>
                 <TextInput style={[tw`text-white px-4 py-2`, { fontFamily: 'Nunito-Medium', opacity: 0.7 }]}
                   placeholder='First name'
+                  value={input.firstname}
+                  onChangeText={(newName) => setInput(input => ({ ...input, firstname: newName }))}
                   placeholderTextColor={'#9CA3AF'}></TextInput>
               </View>
               <View style={[tw`flex-1 ml-2`, { backgroundColor: 'rgba(0,0,0,0.25)', borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }]}>
                 <TextInput style={[tw`text-white px-4 py-2`, { fontFamily: 'Nunito-Medium', opacity: 0.7 }]}
                   placeholder='Last name'
+                  value={input.lastname}
+                  onChangeText={(newName) => setInput(input => ({ ...input, lastname: newName }))}
                   placeholderTextColor={'#9CA3AF'}></TextInput>
               </View>
             </View>
             <View style={[tw`mb-2`, { backgroundColor: 'rgba(0,0,0,0.25)', borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }]}>
               <TextInput style={[tw`text-white px-4 py-2`, { fontFamily: 'Nunito-Medium', opacity: 0.7 }]}
                 placeholder='Username'
+                value={input.username}
+                onChangeText={(newName) => setInput(input => ({ ...input, username: newName }))}
                 placeholderTextColor={'#9CA3AF'}></TextInput>
             </View>
             <View style={[tw`mb-2`, { backgroundColor: 'rgba(0,0,0,0.25)', borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }]}>
               <TextInput style={[tw`text-white px-4 py-2`, { fontFamily: 'Nunito-Medium', opacity: 0.7 }]}
                 placeholder='Add a bio (optional)'
+                value={input.bio}
+                onChangeText={(newInp) => setInput(input => ({ ...input, bio: newInp }))}
                 placeholderTextColor={'#9CA3AF'}></TextInput>
             </View>
-            <View style={[tw`mb-1`, { backgroundColor: 'rgba(0,0,0,0.25)', borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }]}>
-              <TextInput style={[tw`text-white px-4 py-2`, { fontFamily: 'Nunito-Medium', opacity: 0.7 }]}
-                placeholder='Add your birthday (optional)'
-                placeholderTextColor={'#9CA3AF'}></TextInput>
-            </View>
+            <TouchableOpacity style={[tw`mb-1`, { backgroundColor: 'rgba(0,0,0,0.25)', borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }]}
+            onPress={() => setDOBOpen(true)}>
+              <Text style={[tw`px-4 py-2`, { fontFamily: 'Nunito-Medium', opacity: 0.7, color: (dob ? '#FFFFFF' : '#9CA3AF')}]}>
+                Add your birthday (optional)
+              </Text>
+            </TouchableOpacity>
+            {/* 
+              To avoid the "Invariant Violation: `new NativeEventEmitter()` requires a non-null argument" warning,
+              ensure you are importing and using a DatePicker component that does not rely on NativeEventEmitter without a valid native module.
+              If you are using @react-native-community/datetimepicker, use it as shown below:
 
+              import DateTimePicker from '@react-native-community/datetimepicker';
+
+              {dobOpen && (
+                <DateTimePicker
+                  value={dob || new Date()}
+                  mode="date"
+                  display="default"
+                  onChange={(event, selectedDate) => {
+                    setDOBOpen(false);
+                    if (selectedDate) setDOB(selectedDate);
+                  }}
+                  maximumDate={new Date()}
+                />
+              )}
+            */}
             <Text style={[tw`text-white mb-2`, { fontFamily: 'Nunito-Medium', fontSize: 14 }]}>
               Add social media (optional)
             </Text>
@@ -93,8 +149,9 @@ export default function EditProfile() {
                 <TextInput
                   style={[tw`text-white ml-3 flex-1`, { fontFamily: 'Nunito-Medium', opacity: 0.7 }]}
                   placeholder="username"
+                  value={input.instagramurl}
+                  onChangeText={(newInp) => setInput(input => ({ ...input, instagramurl: newInp }))}
                   placeholderTextColor="#9CA3AF"
-                // value={} onChangeText={}
                 />
               </View>
               {/* X (Twitter) */}
@@ -106,6 +163,8 @@ export default function EditProfile() {
                 <TextInput
                   style={[tw`text-white ml-3 flex-1`, { fontFamily: 'Nunito-Medium', opacity: 0.7 }]}
                   placeholder="username"
+                  value={input.xurl}
+                  onChangeText={(newInp) => setInput(input => ({ ...input, xurl: newInp }))}
                   placeholderTextColor="#9CA3AF"
                 // value={} onChangeText={}
                 />
@@ -119,6 +178,8 @@ export default function EditProfile() {
                 <TextInput
                   style={[tw`text-white ml-3 flex-1`, { fontFamily: 'Nunito-Medium', opacity: 0.7 }]}
                   placeholder="username"
+                  value={input.snapchaturl}
+                  onChangeText={(newInp) => setInput(input => ({ ...input, snapchaturl: newInp }))}
                   placeholderTextColor="#9CA3AF"
                 // value={} onChangeText={}
                 />
@@ -132,6 +193,8 @@ export default function EditProfile() {
                 <TextInput
                   style={[tw`text-white ml-3 flex-1`, { fontFamily: 'Nunito-Medium', opacity: 0.7 }]}
                   placeholder="username"
+                  value={input.facebookurl}
+                  onChangeText={(newInp) => setInput(input => ({ ...input, facebookurl: newInp }))}
                   placeholderTextColor="#9CA3AF"
                 // value={} onChangeText={}
                 />
@@ -166,6 +229,6 @@ export default function EditProfile() {
         </ScrollView>
       </View>
       <BotBar currentTab="profile" />
-    </LinearGradient>
+    </ProfileBackgroundWrapper>
   );
 }
