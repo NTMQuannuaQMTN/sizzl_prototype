@@ -32,6 +32,6 @@
     "expo-env.d.ts",
     "babel.config.js",
     "types/**/*.d.ts"
-, "app/(home)/home/explore.tsx/events.tscx", "app/(home)/home/explore"  ],
+, "app/(home)/home/explore.tsx/events.tscx", "app/(home)/home/explore", "app/(profile)/background_wrapper.tx"  ],
   "extends": "expo/tsconfig.base"
 }

@@ -3,10 +3,17 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ImageBackground, Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
+import Edit from '../../assets/icons/edit-icon.svg';
+import FBIcon from '../../assets/icons/fb-icon.svg';
+import InstagramIcon from '../../assets/icons/insta-icon.svg';
+import Share from '../../assets/icons/share-icon.svg';
+import SnapchatIcon from '../../assets/icons/snapchat-icon.svg';
+import XIcon from '../../assets/icons/x-icon.svg';
 import BotBar from '../botbar';
 import { useUserStore } from '../store/userStore';
 import ProfileBackgroundWrapper from './background_wrapper';
 
+import { navigate } from 'expo-router/build/global-state/routing';
 import SettingIcon from '../../assets/icons/setting.svg';
 
 export default function ProfilePage() {
@@ -40,7 +47,7 @@ export default function ProfilePage() {
           <Text style={tw`text-white font-bold text-base`}>@{user.username}</Text>
           <TouchableOpacity>
             {/* Placeholder for settings icon */}
-            <SettingIcon style={tw`p-2`} />
+            <SettingIcon style={tw`m-2`} />
           </TouchableOpacity>
         </View>
 
@@ -55,51 +62,58 @@ export default function ProfilePage() {
         </View>
 
         {/* Name, username, friends count */}
-        <Text style={tw`text-white font-bold text-lg mt-2`}>{user.firstname} {user.lastname}</Text>
-        <View style={tw`flex-row items-center mb-1`}>
+        <Text style={tw`text-white font-bold text-lg`}>{user.firstname} {user.lastname}</Text>
+        <View style={tw`flex-row items-center mb-2`}>
           <Text style={tw`text-white/80 text-base`}>@{user.username}</Text>
           <Text style={tw`text-white/40 mx-2`}>•</Text>
           <Text style={tw`text-white/80 text-base`}>100 friends</Text>
         </View>
 
         {/* Bio */}
-        <Text style={tw`text-white bg-green-600/80 px-3 py-1 rounded-full mb-2`}>{user.bio}</Text>
+        {user.bio && <Text style={tw`text-white px-3 py-1 mb-2`}>{user.bio}</Text>}
 
         {/* Edit and Share profile buttons */}
-        <View style={tw`flex-row w-full justify-center mb-2`}>
-          <TouchableOpacity style={tw`bg-white/20 px-5 py-2 rounded-full mr-2`}>
+        <View style={tw`flex-row w-full justify-around px-6 mb-2`}>
+          <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-white/20 flex-1 py-2 rounded-xl mr-2`}
+          onPress={() => {router.push('/(profile)/editprofile')}}>
+            <Edit></Edit>
             <Text style={tw`text-white font-bold`}>Edit profile</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={tw`bg-white/20 px-5 py-2 rounded-full ml-2`}>
+          <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-white/20 flex-1 py-2 rounded-xl ml-2`}>
+            <Share></Share>
             <Text style={tw`text-white font-bold`}>Share profile</Text>
           </TouchableOpacity>
         </View>
 
         {/* Birthday and zodiac */}
-        <View style={tw`flex-row items-center mb-2`}>
-          <Text style={tw`text-white text-base mr-2`}>🎂 {user.birthdate}</Text>
+        {user.birthdate && <View style={tw`flex-row items-center mb-2`}>
+          <Text style={tw`text-white text-base mr-2`}>🎂{user.birthdate}</Text>
           <Text style={tw`text-white/40 mx-2`}>•</Text>
           <Text style={tw`text-white text-base`}>...</Text>
-        </View>
+        </View>}
 
         {/* Social icons row */}
         <View style={tw`flex-row items-center justify-center`}>
           {/* Instagram */}
-          <TouchableOpacity style={tw`mx-2`}>
-            <Text style={tw`text-white text-2xl`}>📷</Text>
-          </TouchableOpacity>
+          {user.instagramurl && <TouchableOpacity style={tw`mx-2`}
+          onPress={() => {navigate(user.instagramurl)}}>
+            <InstagramIcon></InstagramIcon>
+          </TouchableOpacity>}
           {/* X (Twitter) */}
-          <TouchableOpacity style={tw`mx-2`}>
-            <Text style={tw`text-white text-2xl`}>𝕏</Text>
-          </TouchableOpacity>
+          {user.xurl && <TouchableOpacity style={tw`mx-2`}
+          onPress={() => {navigate(user.xurl)}}>
+            <XIcon></XIcon>
+          </TouchableOpacity>}
           {/* Snapchat */}
-          <TouchableOpacity style={tw`mx-2`}>
-            <Text style={tw`text-white text-2xl`}>👻</Text>
-          </TouchableOpacity>
+          {user.snapchaturl && <TouchableOpacity style={tw`mx-2`}
+          onPress={() => {navigate(user.snapchaturl)}}>
+            <SnapchatIcon></SnapchatIcon>
+          </TouchableOpacity>}
           {/* Facebook */}
-          <TouchableOpacity style={tw`mx-2`}>
-            <Text style={tw`text-white text-2xl`}>📘</Text>
-          </TouchableOpacity>
+          {user.facebookurl && <TouchableOpacity style={tw`mx-2`}
+          onPress={() => {navigate(user.facebookurl)}}>
+            <FBIcon></FBIcon>
+          </TouchableOpacity>}
         </View>
       </View>
       <BotBar currentTab="profile" />
