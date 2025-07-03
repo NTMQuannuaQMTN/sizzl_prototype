@@ -15,6 +15,7 @@ export default function BotBar({ currentTab = 'home' }: { currentTab?: 'home' | 
   const router = useRouter();
   const { user, setUser } = useUserStore();
   const [avatarUri, setAvatarUri] = useState(user?.profile_image || '');
+  const [userID, setUserID] = useState('');
 
   useEffect(() => {
     // Always fetch the latest user profile from Supabase on mount
@@ -26,6 +27,7 @@ export default function BotBar({ currentTab = 'home' }: { currentTab?: 'home' | 
         if (!error && data) {
           setUser(data);
           setAvatarUri(data.profile_image || '');
+          setUserID(data.id || '');
         }
       }
     };
@@ -51,7 +53,10 @@ export default function BotBar({ currentTab = 'home' }: { currentTab?: 'home' | 
           {currentTab === 'create' ? <CreateTabActive width={24} height={24} /> : <CreateTab width={24} height={24} />}
         </TouchableOpacity>
         {/* Profile Tab */}
-        <TouchableOpacity onPress={() => router.replace('/profile')} style={tw`flex-1 items-center justify-center`}>
+        <TouchableOpacity
+          onPress={() => router.replace({ pathname: '/(profile)/[user_id]', params: { user_id: userID } })}
+          style={tw`flex-1 items-center justify-center`}
+        >
           <Image
             source={{ uri: avatarUri }}
             style={{
