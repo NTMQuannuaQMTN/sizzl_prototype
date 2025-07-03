@@ -3,7 +3,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Keyboard, KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import { ImageBackground, Keyboard, KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import tw from 'twrnc';
 import { useAuthStore } from '../store/authStore';
 
@@ -162,38 +162,46 @@ export default function Register() {
                 <View style={tw`w-full h-fit`}>
                   {/* Form */}
                   <Text style={[tw`text-white mb-1.5 text-[13px]`, { fontFamily: 'Nunito-SemiBold' }]}>Username</Text>
-                  <View style={tw`w-full relative items-center`}>
-                    <TextInput
-                      style={[
-                        tw`h-10 bg-white bg-opacity-5 w-full rounded-[2] px-3 py-2 text-[13px]`,
-                        {
-                          fontFamily: 'Nunito-Medium',
-                          borderWidth: 1,
-                          borderColor:
-                            showFieldErrors && !/^[a-z0-9_.]{4,}$/.test(registerInfo.username)
-                              ? '#FF1769'
-                              : focusedField === 'username'
-                                ? '#FFFFFF'
-                                : 'rgba(255, 255, 255, 0.1)',
-                          textAlign: 'left',
-                          color:
-                            showFieldErrors && !/^[a-z0-9_.]{4,}$/.test(registerInfo.username)
-                              ? '#FF1769'
-                              : '#FFFFFF',
-                        },
-                      ]}
-                      value={registerInfo.username}
-                      placeholder="choppedpartythrower"
-                      placeholderTextColor={'#9CA3AF'}
-                      onChangeText={newUsername => {
-                        setRegisterInfo(regInfo => ({ ...regInfo, username: newUsername }));
-                        setValid(true);
-                        setShowFieldErrors(false);
-                      }}
-                      onFocus={() => setFocusedField('username')}
-                      onBlur={() => setFocusedField(null)}
-                      caretHidden={focusedField !== 'username'}
-                    />
+                  <View style={{ borderRadius: 8, overflow: 'hidden', width: '100%' }}>
+                    <ImageBackground
+                      source={require('../../assets/images/galaxy.jpg')}
+                      imageStyle={{ borderRadius: 8, opacity: focusedField === 'username' ? 0.3 : 0 }}
+                      style={tw`w-full rounded-[2]`}
+                    >
+                      <TextInput
+                        style={[
+                          tw`h-10 w-full px-3 py-2 text-[13px]`,
+                          {
+                            fontFamily: 'Nunito-Medium',
+                            borderWidth: 1,
+                            borderColor:
+                              showFieldErrors && !/^[a-z0-9_.]{4,}$/.test(registerInfo.username)
+                                ? '#FF1769'
+                                : focusedField === 'username'
+                                  ? '#FFFFFF'
+                                  : 'rgba(255, 255, 255, 0.1)',
+                            backgroundColor: focusedField === 'username' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.05)',
+                            borderRadius: 8,
+                            textAlign: 'left',
+                            color:
+                              showFieldErrors && !/^[a-z0-9_.]{4,}$/.test(registerInfo.username)
+                                ? '#FF1769'
+                                : '#FFFFFF',
+                          },
+                        ]}
+                        value={registerInfo.username}
+                        placeholder="choppedpartythrower"
+                        placeholderTextColor={'#9CA3AF'}
+                        onChangeText={newUsername => {
+                          setRegisterInfo(regInfo => ({ ...regInfo, username: newUsername }));
+                          setValid(true);
+                          setShowFieldErrors(false);
+                        }}
+                        onFocus={() => setFocusedField('username')}
+                        onBlur={() => setFocusedField(null)}
+                        caretHidden={focusedField !== 'username'}
+                      />
+                    </ImageBackground>
                   </View>
                   <Text
                     style={[
@@ -214,37 +222,47 @@ export default function Register() {
                   <View style={tw`flex-row w-full gap-0.5 mt-2`}>
                     <View style={tw`flex-1`}>
                       <Text style={[tw`text-white mb-1.5 text-[13px]`, { fontFamily: 'Nunito-SemiBold' }]}>First name</Text>
-                      <TextInput
-                        style={[
-                          tw`h-10 bg-white bg-opacity-5 w-full rounded-[2] px-3 py-2 text-[13px]`,
-                          {
-                            fontFamily: 'Nunito-Medium',
-                            borderWidth: 1,
-                            borderColor:
-                              showFieldErrors && !/^[a-zA-Z\s]{2,}$/.test(registerInfo.firstname.trim())
-                                ? '#FF1769'
-                                : focusedField === 'first'
-                                  ? '#FFFFFF'
-                                  : 'rgba(255, 255, 255, 0.1)',
-                            textAlign: 'left',
-                            color:
-                              showFieldErrors && !/^[a-zA-Z\s]{2,}$/.test(registerInfo.firstname.trim())
-                                ? '#FF1769'
-                                : '#FFFFFF',
-                          },
-                        ]}
-                        value={registerInfo.firstname}
-                        placeholder="Sizzle"
-                        placeholderTextColor={'#9CA3AF'}
-                        onChangeText={newName => {
-                          setRegisterInfo(regInfo => ({ ...regInfo, firstname: newName }));
-                          setValid(true);
-                          setShowFieldErrors(false);
-                        }}
-                        onFocus={() => setFocusedField('first')}
-                        onBlur={() => setFocusedField(null)}
-                        caretHidden={focusedField !== 'first'}
-                      />
+                      <View style={{ borderRadius: 8, overflow: 'hidden', width: '100%' }}>
+                        <ImageBackground
+                          source={require('../../assets/images/galaxy.jpg')}
+                          imageStyle={{ borderRadius: 8, opacity: focusedField === 'first' ? 0.3 : 0 }}
+                          style={tw`w-full rounded-[2]`}
+                        >
+                          <TextInput
+                            style={[
+                              tw`h-10 w-full px-3 py-2 text-[13px]`,
+                              {
+                                fontFamily: 'Nunito-Medium',
+                                borderWidth: 1,
+                                borderColor:
+                                  showFieldErrors && !/^[a-zA-Z\s]{2,}$/.test(registerInfo.firstname.trim())
+                                    ? '#FF1769'
+                                    : focusedField === 'first'
+                                      ? '#FFFFFF'
+                                      : 'rgba(255, 255, 255, 0.1)',
+                                backgroundColor: focusedField === 'first' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.05)',
+                                borderRadius: 8,
+                                textAlign: 'left',
+                                color:
+                                  showFieldErrors && !/^[a-zA-Z\s]{2,}$/.test(registerInfo.firstname.trim())
+                                    ? '#FF1769'
+                                    : '#FFFFFF',
+                              },
+                            ]}
+                            value={registerInfo.firstname}
+                            placeholder="Sizzle"
+                            placeholderTextColor={'#9CA3AF'}
+                            onChangeText={newName => {
+                              setRegisterInfo(regInfo => ({ ...regInfo, firstname: newName }));
+                              setValid(true);
+                              setShowFieldErrors(false);
+                            }}
+                            onFocus={() => setFocusedField('first')}
+                            onBlur={() => setFocusedField(null)}
+                            caretHidden={focusedField !== 'first'}
+                          />
+                        </ImageBackground>
+                      </View>
                       <Text
                         style={[
                           tw`text-[10px] text-left mt-1.5 mb-2.5 leading-[1.2]`,
@@ -262,37 +280,47 @@ export default function Register() {
                     </View>
                     <View style={tw`flex-1 ml-2`}>
                       <Text style={[tw`text-white mb-1.5 text-[13px]`, { fontFamily: 'Nunito-SemiBold' }]}>Last name</Text>
-                      <TextInput
-                        style={[
-                          tw`h-10 bg-white bg-opacity-5 w-full rounded-[2] px-3 py-2 text-[13px]`,
-                          {
-                            fontFamily: 'Nunito-Medium',
-                            borderWidth: 1,
-                            borderColor:
-                              showFieldErrors && !/^[a-zA-Z\s]{2,}$/.test(registerInfo.lastname.trim())
-                                ? '#FF1769'
-                                : focusedField === 'last'
-                                  ? '#FFFFFF'
-                                  : 'rgba(255, 255, 255, 0.1)',
-                            textAlign: 'left',
-                            color:
-                              showFieldErrors && !/^[a-zA-Z\s]{2,}$/.test(registerInfo.lastname.trim())
-                                ? '#FF1769'
-                                : '#FFFFFF',
-                          },
-                        ]}
-                        value={registerInfo.lastname}
-                        placeholder="Mingle"
-                        placeholderTextColor={'#9CA3AF'}
-                        onChangeText={newName => {
-                          setRegisterInfo(regInfo => ({ ...regInfo, lastname: newName }));
-                          setValid(true);
-                          setShowFieldErrors(false);
-                        }}
-                        onFocus={() => setFocusedField('last')}
-                        onBlur={() => setFocusedField(null)}
-                        caretHidden={focusedField !== 'last'}
-                      />
+                      <View style={{ borderRadius: 8, overflow: 'hidden', width: '100%' }}>
+                        <ImageBackground
+                          source={require('../../assets/images/galaxy.jpg')}
+                          imageStyle={{ borderRadius: 8, opacity: focusedField === 'last' ? 0.3 : 0 }}
+                          style={tw`w-full rounded-[2]`}
+                        >
+                          <TextInput
+                            style={[
+                              tw`h-10 w-full px-3 py-2 text-[13px]`,
+                              {
+                                fontFamily: 'Nunito-Medium',
+                                borderWidth: 1,
+                                borderColor:
+                                  showFieldErrors && !/^[a-zA-Z\s]{2,}$/.test(registerInfo.lastname.trim())
+                                    ? '#FF1769'
+                                    : focusedField === 'last'
+                                      ? '#FFFFFF'
+                                      : 'rgba(255, 255, 255, 0.1)',
+                                backgroundColor: focusedField === 'last' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.05)',
+                                borderRadius: 8,
+                                textAlign: 'left',
+                                color:
+                                  showFieldErrors && !/^[a-zA-Z\s]{2,}$/.test(registerInfo.lastname.trim())
+                                    ? '#FF1769'
+                                    : '#FFFFFF',
+                              },
+                            ]}
+                            value={registerInfo.lastname}
+                            placeholder="Mingle"
+                            placeholderTextColor={'#9CA3AF'}
+                            onChangeText={newName => {
+                              setRegisterInfo(regInfo => ({ ...regInfo, lastname: newName }));
+                              setValid(true);
+                              setShowFieldErrors(false);
+                            }}
+                            onFocus={() => setFocusedField('last')}
+                            onBlur={() => setFocusedField(null)}
+                            caretHidden={focusedField !== 'last'}
+                          />
+                        </ImageBackground>
+                      </View>
                       <Text
                         style={[
                           tw`text-[10px] text-left mt-1.5 mb-2 leading-[1.2]`,

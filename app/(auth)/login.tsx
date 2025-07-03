@@ -2,7 +2,7 @@ import { supabase } from "@/utils/supabase";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Keyboard, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import { ImageBackground, Keyboard, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import tw from 'twrnc';
 import { useAuthStore } from "../store/authStore";
 
@@ -76,23 +76,31 @@ export default function Login() {
                 {/* Form */}
                 <View style={tw`w-full`}>
                     <Text style={[tw`text-white mb-1.5 text-[13px]`, { fontFamily: 'Nunito-SemiBold' }]}>College email</Text>
-                    <TextInput 
+                    <ImageBackground
+                      source={require('../../assets/images/galaxy.jpg')}
+                      imageStyle={{ borderRadius: 8, opacity: isFocused ? 0.3 : 0 }}
+                      style={tw`w-full rounded-[2]`}
+                    >
+                      <TextInput
                         style={[
-                            tw`h-10 bg-white bg-opacity-5 w-full rounded-[2] px-3 py-2 text-white text-[13px]`,
-                            {
-                                fontFamily: 'Nunito-Medium',
-                                borderWidth: 1,
-                                borderColor: isFocused ? '#FFFFFF' : 'rgba(255, 255, 255, 0.1)',
-                            }
+                          tw`h-10 w-full px-3 py-2 text-white text-[13px]`,
+                          {
+                            fontFamily: 'Nunito-Medium',
+                            borderWidth: 1,
+                            borderColor: isFocused ? '#FFFFFF' : 'rgba(255, 255, 255, 0.1)',
+                            backgroundColor: isFocused ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.05)',
+                            borderRadius: 8,
+                          }
                         ]}
                         placeholder="hello@yourcollege.edu"
                         placeholderTextColor={'#9CA3AF'}
-                        value={email} 
+                        value={email}
                         onChangeText={(newVal) => { setEmail(newVal); setValid(true); }}
                         onFocus={() => setIsFocused(true)}
                         onBlur={() => setIsFocused(false)}
                         caretHidden={!isFocused}
-                    />
+                      />
+                    </ImageBackground>
                 </View>
 
                 {/* Error */}

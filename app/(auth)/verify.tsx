@@ -2,7 +2,7 @@ import { supabase } from "@/utils/supabase";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from 'react';
-import { Keyboard, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import { ImageBackground, Keyboard, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import tw from 'twrnc';
 import { useAuthStore } from "../store/authStore";
 
@@ -120,36 +120,45 @@ export default function Verify() {
                 {/* Form */}
                 <View style={tw`w-full`}>
                     <Text style={[tw`text-white mb-1.5 text-[13px]`, { fontFamily: 'Nunito-SemiBold' }]}>Verification code</Text>
-                    <View style={tw`w-full relative items-center`}>
-                        <TextInput 
-                            style={[tw`text-center h-10 bg-white bg-opacity-5 w-full rounded-[2] px-3 py-2 text-[13px]`,
-                                {
-                                    fontFamily: 'Nunito-Medium',
-                                    borderWidth: 1,
-                                    borderColor: isFocused ? '#FFFFFF' : 'rgba(255, 255, 255, 0.1)',
-                                    color: 'transparent', // Make the actual text invisible
-                                    textAlign: 'center',
-                                }
-                            ]}
-                            value={code}
-                            onChangeText={newCode => { 
-                                setCode(newCode); 
-                                setValid(true); 
-                            }}
-                            onFocus={() => setIsFocused(true)}
-                            onBlur={() => setIsFocused(false)}
-                            maxLength={MAXLENGTH}
-                            caretHidden={true} // Always hide the cursor since we have overlay
-                            keyboardType="numeric"
-                            autoComplete="one-time-code"
-                            selectionColor="transparent" // Hide text selection
-                        />
-                        <View style={tw`w-full h-10 py-2 items-center justify-center absolute top-0`}>
-                            <Text style={[tw`${code.length > 0 ? 'text-white' : 'text-gray-400'} text-md tracking-[2]`, { fontFamily: 'Nunito-Medium' }]}>
-                                {code + '_'.repeat(MAXLENGTH - code.length)}
-                            </Text>
+                    <ImageBackground
+                        source={require('../../assets/images/galaxy.jpg')}
+                        imageStyle={{ borderRadius: 8, opacity: isFocused ? 0.3 : 0 }}
+                        style={tw`w-full rounded-[2]`}
+                    >
+                        <View style={tw`w-full relative items-center`}>
+                            <TextInput 
+                                style={[
+                                    tw`text-center h-10 w-full px-3 py-2 text-[13px]`,
+                                    {
+                                        fontFamily: 'Nunito-Medium',
+                                        borderWidth: 1,
+                                        borderColor: isFocused ? '#FFFFFF' : 'rgba(255, 255, 255, 0.1)',
+                                        color: 'transparent', // Make the actual text invisible
+                                        backgroundColor: isFocused ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.05)',
+                                        borderRadius: 8,
+                                        textAlign: 'center',
+                                    }
+                                ]}
+                                value={code}
+                                onChangeText={newCode => { 
+                                    setCode(newCode); 
+                                    setValid(true); 
+                                }}
+                                onFocus={() => setIsFocused(true)}
+                                onBlur={() => setIsFocused(false)}
+                                maxLength={MAXLENGTH}
+                                caretHidden={true} // Always hide the cursor since we have overlay
+                                keyboardType="numeric"
+                                autoComplete="one-time-code"
+                                selectionColor="transparent" // Hide text selection
+                            />
+                            <View style={tw`w-full h-10 py-2 items-center justify-center absolute top-0`}>
+                                <Text style={[tw`${code.length > 0 ? 'text-white' : 'text-gray-400'} text-md tracking-[2]`, { fontFamily: 'Nunito-Medium' }]}> 
+                                    {code + '_'.repeat(MAXLENGTH - code.length)}
+                                </Text>
+                            </View>
                         </View>
-                    </View>
+                    </ImageBackground>
                 </View>
 
                 {/* Error */}
