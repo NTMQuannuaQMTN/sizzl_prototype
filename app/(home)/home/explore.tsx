@@ -1,11 +1,12 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, View } from 'react-native';
 import tw from 'twrnc';
 import { useUserStore } from '../../store/userStore';
 import EventCard from './eventcard';
 
-import NotiIcon from '../../../assets/icons/noti_icon.svg';
+
+import TopBar from '../../topbar';
 
 export default function Explore() {
     const { session, user } = useUserStore();
@@ -24,15 +25,7 @@ export default function Explore() {
         >
             <View style={tw`px-4 pt-12 flex-1`}>
                 {/* Header */}
-                <View style={tw`flex-row items-start justify-between mb-2`}>
-                    <View>
-                        <Text style={tw`text-white text-2xl font-bold`}>sizzl</Text>
-                        <Text style={tw`text-white text-xs mt-1`}>Eyy what's good what's good!</Text>
-                    </View>
-                    <TouchableOpacity style={tw`py-2`}>
-                        <NotiIcon></NotiIcon>
-                    </TouchableOpacity>
-                </View>
+                <TopBar />
 
                 {/* Explore / Your events toggle */}
                 <View style={tw`w-full items-center mt-4 mb-2`}>
