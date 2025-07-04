@@ -1,5 +1,6 @@
-
+// Handle "Save changes" button press: confirm avatar and background image, and update all fields
 import DateTimePicker from '@react-native-community/datetimepicker';
+import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -19,17 +20,17 @@ export default function EditProfile() {
   const router = useRouter();
   const { user, setUser } = useUserStore();
   const [input, setInput] = useState({
-    firstname: user?.firstname || '',
-    lastname: user?.lastname || '',
-    username: user?.username || '',
-    bio: user?.bio || '',
-    facebookurl: user?.facebookurl || '',
-    instagramurl: user?.instagramurl || '',
-    snapchaturl: user?.snapchaturl || '',
-    xurl: user?.xurl || '',
+    firstname: user?.firstname || null,
+    lastname: user?.lastname || null,
+    username: user?.username || null,
+    bio: user?.bio || null,
+    facebookurl: user?.facebookurl || null,
+    instagramurl: user?.instagramurl || null,
+    snapchaturl: user?.snapchaturl || null,
+    xurl: user?.xurl || null,
   });
-  const [dob, setDOB] = useState(user?.birthdate || new Date());
-  const [dobInput, setDOBInput] = useState(user?.birthdate || new Date());
+  const [dob, setDOB] = useState(user?.birthdate ? new Date(user?.birthdate) : new Date());
+  const [dobInput, setDOBInput] = useState(user?.birthdate ? new Date(user?.birthdate) : new Date());
   const [dobAvail, setDOBAvail] = useState(user?.birthdate ? true : false);
   const [dobOpen, setDOBOpen] = useState(false);
   const [bgInput, setBgInput] = useState(user?.background_url || '');
@@ -44,10 +45,16 @@ export default function EditProfile() {
     }
   }
 
-  const formatDate = (date) => {
-    let year = date.getFullYear();
-    let month = date.getMonth();
-    let day = date.getDate();
+  const formatDate = (date: any) => {
+    if (!date) return '';
+    let d = date;
+    if (typeof date === 'string') {
+      d = new Date(date);
+    }
+    if (!(d instanceof Date) || isNaN(d.getTime())) return '';
+    let year = d.getFullYear();
+    let month = d.getMonth();
+    let day = d.getDate();
 
     const monthToWord = [
       'January',
@@ -65,7 +72,7 @@ export default function EditProfile() {
     ];
 
     return `${monthToWord[month]} ${day}, ${year}`;
-  }
+  };
 
   useEffect(() => {
     console.log(input);
@@ -96,99 +103,116 @@ export default function EditProfile() {
     }
   };
 
-  const confirmAvt = async () => {
-    if (!avtInput) return;
+  const handleSave = async () => {
     setLoading(true);
     try {
-      // Find user by email
-      console.log('Looking for user with email:', user?.email);
-      
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('id, email, profile_image')
-        .eq('email', user?.email)
-        .single();
-      
-      if (userError) {
-        console.log('User lookup error:', userError);
-        throw userError;
-      }
-      
-      const userID = userData?.id;
-      if (!userID) throw new Error('User not found');
-      
-      console.log('Found user data:', userData);
-      console.log('User ID:', userID);
-      console.log('Current profile_image:', userData?.profile_image);
+      const userID = user?.user_id || user?.id;
+      if (!userID) throw new Error('User ID not found');
 
-      // Get file info and determine file extension
-      const fileUri = avtInput;
-      const fileExtension = fileUri.split('.').pop()?.toLowerCase() || 'jpg';
-      const fileName = `avatar/${userID}.${fileExtension}`;
-      // Read file as binary for proper upload
-      const fileBinary = await FileSystem.readAsStringAsync(fileUri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
+      // Prepare avatar and background upload promises
+      const avatarNeedsUpload = avtInput && avtInput !== user?.profile_image && avtInput.startsWith('file');
+      const backgroundNeedsUpload = bgInput && bgInput !== user?.background_url && bgInput.startsWith('file');
 
-      const byteCharacters = atob(fileBinary);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const uint8Array = new Uint8Array(byteNumbers);
-
-      // Upload file as binary data
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('sizzl-profileimg')
-        .upload(fileName, uint8Array, {
-          contentType: `image/${fileExtension === 'jpg' ? 'jpeg' : fileExtension}`,
-          upsert: true
+      // Helper for uploading an image
+      const uploadImage = async (fileUri: string, type: 'avatar' | 'background') => {
+        const fileExtension = fileUri.split('.').pop()?.toLowerCase() || 'jpg';
+        const fileName = `${type === 'avatar' ? 'avatar' : 'background'}/${userID}.${fileExtension}`;
+        const fileArrayBuffer = await FileSystem.readAsStringAsync(fileUri, {
+          encoding: FileSystem.EncodingType.Base64,
         });
+        // Convert base64 to Uint8Array
+        const byteCharacters = atob(fileArrayBuffer);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const uint8Array = new Uint8Array(byteNumbers);
+        // Upload to Supabase Storage
+        const { error: uploadError } = await supabase.storage
+          .from('sizzl-profileimg')
+          .upload(fileName, uint8Array, {
+            contentType: `image/${fileExtension === 'jpg' ? 'jpeg' : fileExtension}`,
+            upsert: true,
+          });
+        if (uploadError) throw uploadError;
+        // Get public URL
+        const { data: urlData } = supabase.storage
+          .from('sizzl-profileimg')
+          .getPublicUrl(fileName);
+        if (!urlData?.publicUrl) throw new Error(`Failed to get ${type} public URL`);
+        return urlData.publicUrl;
+      };
 
-      if (uploadError) {
-        console.log('Upload error:', uploadError);
-        throw uploadError;
+      // Run uploads in parallel
+      const [avatarResult, backgroundResult] = await Promise.allSettled([
+        avatarNeedsUpload ? uploadImage(avtInput, 'avatar') : Promise.resolve(avtInput),
+        backgroundNeedsUpload ? uploadImage(bgInput, 'background') : Promise.resolve(bgInput),
+      ]);
+
+      let profileImageUrl = avtInput;
+      let backgroundUrl = bgInput;
+
+      if (avatarResult.status === 'rejected') {
+        Alert.alert('Avatar Upload Error', avatarResult.reason?.message || 'Failed to upload avatar image.');
+        setLoading(false);
+        return;
+      } else if (avatarResult.status === 'fulfilled') {
+        profileImageUrl = avatarResult.value;
       }
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('sizzl-profileimg')
-        .getPublicUrl(fileName);
-      
-      const publicUrl = urlData?.publicUrl;
-      if (!publicUrl) throw new Error('Failed to get public URL');
+      if (backgroundResult.status === 'rejected') {
+        Alert.alert('Background Upload Error', backgroundResult.reason?.message || 'Failed to upload background image.');
+        setLoading(false);
+        return;
+      } else if (backgroundResult.status === 'fulfilled') {
+        backgroundUrl = backgroundResult.value;
+      }
 
-      // Update user profile with image URL
-      console.log('Attempting to update profile_image for user:', userID);
-      console.log('New profile_image URL:', publicUrl);
-      
+      // 3. Update user fields in Supabase
+      // Ensure birthdate is a string in YYYY-MM-DD format for Supabase date type
+      let birthdate: string | null = null;
+      if (dob instanceof Date && !isNaN(dob.getTime()) && dobAvail) {
+        // Format as YYYY-MM-DD
+        birthdate = dob.toISOString().split('T')[0];
+      } else if (typeof dob === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dob) && dobAvail) {
+        birthdate = dob;
+      } else {
+        birthdate = null;
+      }
+
+      const updateFields = {
+        firstname: input.firstname,
+        lastname: input.lastname,
+        username: input.username,
+        bio: input.bio,
+        facebookurl: input.facebookurl,
+        instagramurl: input.instagramurl,
+        snapchaturl: input.snapchaturl,
+        xurl: input.xurl,
+        birthdate: birthdate,
+        profile_image: profileImageUrl,
+        background_url: backgroundUrl,
+      };
       const { data: updateData, error: updateError } = await supabase
         .from('users')
-        .update({ profile_image: publicUrl })
+        .update(updateFields)
         .eq('id', userID)
         .select();
+      if (updateError) throw updateError;
 
-      if (updateError) {
-        console.log('Database update error:', updateError);
-        throw updateError;
-      }
+      // 4. Update local user store
+      setUser({
+        ...user,
+        ...updateFields,
+      });
 
-      console.log('Update response data:', updateData);
-      console.log('Number of rows updated:', updateData?.length || 0);
-
-      if (updateData?.length === 0) {
-        throw new Error('No rows were updated - this might be a policy issue');
-      }
-
-      console.log('Profile image updated successfully:', publicUrl);
-      Alert.alert('Success', 'Profile image uploaded successfully!');
-      router.replace('/(home)/home/explore');
-    } catch (err) {
-      console.log('Full error:', err);
-      const errorMessage = (err instanceof Error && err.message) ? err.message : String(err);
-      Alert.alert('Image upload failed', errorMessage);
+      Alert.alert('Success', 'Profile updated successfully!');
+      router.replace({ pathname: '/(profile)/[user_id]', params: { user_id: userID } });
+    } catch (err: any) {
+      Alert.alert('Error', err?.message || 'Failed to update profile.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -211,7 +235,7 @@ export default function EditProfile() {
         </TouchableOpacity>
         {/* Profile picture */}
         <TouchableOpacity style={[tw`mb-4`, { alignItems: 'center' }]}
-        onPress={pickAvatar}>
+          onPress={pickAvatar}>
           <View style={[tw`rounded-full border-2 border-white`, { width: 100, height: 100, overflow: 'hidden', backgroundColor: '#222' }]}>
             <Image
               source={{ uri: avtInput }}
@@ -255,7 +279,7 @@ export default function EditProfile() {
             <TextInput style={[tw`text-white px-4 py-2`, { fontFamily: 'Nunito-Medium', opacity: 0.7 }]}
               placeholder='Add your birthday (optional)'
               value={dobAvail ? formatDate(dobInput) : ''}
-              onChangeText={setDOBInput}
+              onChangeText={(text) => setDOBInput(new Date(text))}
               placeholderTextColor={'#9CA3AF'}
               editable={false}
               onPressIn={() => setDOBOpen(true)}></TextInput>
@@ -376,7 +400,7 @@ export default function EditProfile() {
               alignItems: 'center',
               marginBottom: 16,
             }}
-            // onPress={handleSave}
+            onPress={handleSave}
             activeOpacity={0.85}
           >
             <Text style={[tw`text-black font-bold`, { fontFamily: 'Nunito-Bold', fontSize: 16 }]}>
@@ -386,7 +410,7 @@ export default function EditProfile() {
           {/* Not now */}
           <TouchableOpacity
             style={{ alignItems: 'center', marginBottom: 8 }}
-            onPress={() => router.replace({ pathname: '/(profile)/[user_id]', params: { user_id: user?.user_id } })}
+            onPress={() => router.back()}
           >
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-Medium', fontSize: 14, opacity: 0.7 }]}>
               Not now

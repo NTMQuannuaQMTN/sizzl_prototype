@@ -36,10 +36,81 @@ export default function ProfilePage() {
   useEffect(() => {
     if (user && user.id) {
       setSelf(user_id === user.id);
+      console.log(user);
     }
   }, [user_id, user]);
 
+  const formatDate = (date: any) => {
+    if (!date) return '';
+    let d = date;
+    if (typeof date === 'string') {
+      d = new Date(date);
+    }
+    if (!(d instanceof Date) || isNaN(d.getTime())) return '';
+    let year = d.getFullYear();
+    let month = d.getMonth();
+    let day = d.getDate();
+
+    const monthToWord = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
+    ];
+
+    return `${monthToWord[month]} ${day}, ${year}`;
+  };
+
+  const dateToZodiac = (date: any) => {
+    if (!date) return '';
+    let d = date;
+    if (typeof date === 'string') {
+      d = new Date(date);
+    }
+    if (!(d instanceof Date) || isNaN(d.getTime())) return '';
+    let month = d.getMonth();
+    let day = d.getDate();
+
+    // Convert the day and month to zodiac sign
+    // Returns a string like "Aries", "Taurus", etc.
+    const zodiacSigns = [
+      { sign: "♑ Capricorn", from: { month: 0, day: 1 }, to: { month: 0, day: 19 } },
+      { sign: "♒ Aquarius", from: { month: 0, day: 20 }, to: { month: 1, day: 18 } },
+      { sign: "♓ Pisces", from: { month: 1, day: 19 }, to: { month: 2, day: 20 } },
+      { sign: "♈ Aries", from: { month: 2, day: 21 }, to: { month: 3, day: 19 } },
+      { sign: "♉ Taurus", from: { month: 3, day: 20 }, to: { month: 4, day: 20 } },
+      { sign: "♊ Gemini", from: { month: 4, day: 21 }, to: { month: 5, day: 20 } },
+      { sign: "♋ Cancer", from: { month: 5, day: 21 }, to: { month: 6, day: 22 } },
+      { sign: "♌ Leo", from: { month: 6, day: 23 }, to: { month: 7, day: 22 } },
+      { sign: "♍ Virgo", from: { month: 7, day: 23 }, to: { month: 8, day: 22 } },
+      { sign: "♎ Libra", from: { month: 8, day: 23 }, to: { month: 9, day: 22 } },
+      { sign: "♏ Scorpio", from: { month: 9, day: 23 }, to: { month: 10, day: 21 } },
+      { sign: "♐ Sagittarius", from: { month: 10, day: 22 }, to: { month: 11, day: 21 } },
+      { sign: "♑ Capricorn", from: { month: 11, day: 22 }, to: { month: 11, day: 31 } },
+    ];
+
+    for (let i = 0; i < zodiacSigns.length; i++) {
+      const { sign, from, to } = zodiacSigns[i];
+      if (
+        (month === from.month && day >= from.day) ||
+        (month === to.month && day <= to.day)
+      ) {
+        return sign;
+      }
+    }
+    return '';
+  }
+
   return (
+    
     <ProfileBackgroundWrapper self={self} imageUrl={user.background_url}>
       <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'center', marginVertical: 16, height: 'auto' }}>
         {/* Top bar: username and settings icon */}
@@ -70,12 +141,12 @@ export default function ProfilePage() {
         </View>
 
         {/* Bio */}
-        {user.bio && <Text style={tw`text-white px-3 py-1 mb-2`}>{user.bio}</Text>}
+        {user.bio && <Text style={tw`text-white px-3 mb-2`}>{user.bio}</Text>}
 
         {/* Edit and Share profile buttons */}
         <View style={tw`flex-row w-full justify-around px-6 mb-2`}>
           <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-white/20 flex-1 py-2 rounded-xl mr-2`}
-          onPress={() => {router.push('/(profile)/editprofile')}}>
+            onPress={() => { router.push('/(profile)/editprofile') }}>
             <Edit></Edit>
             <Text style={tw`text-white font-bold`}>Edit profile</Text>
           </TouchableOpacity>
@@ -87,31 +158,31 @@ export default function ProfilePage() {
 
         {/* Birthday and zodiac */}
         {user.birthdate && <View style={tw`flex-row items-center mb-2`}>
-          <Text style={tw`text-white text-base mr-2`}>🎂{user.birthdate}</Text>
-          <Text style={tw`text-white/40 mx-2`}>•</Text>
-          <Text style={tw`text-white text-base`}>...</Text>
+          <Text style={tw`text-white text-base mr-2`}>🎂 {formatDate(user.birthdate)}</Text>
+          <Text style={tw`text-white/40 -ml-1 mr-1`}>•</Text>
+          <Text style={tw`text-white text-base`}>{dateToZodiac(user.birthdate)}</Text>
         </View>}
 
         {/* Social icons row */}
         <View style={tw`flex-row items-center justify-center`}>
           {/* Instagram */}
           {user.instagramurl && <TouchableOpacity style={tw`mx-2`}
-          onPress={() => {navigate(user.instagramurl)}}>
+            onPress={() => { navigate(`https://instagram.com/${user.instagramurl}`); }}>
             <InstagramIcon></InstagramIcon>
           </TouchableOpacity>}
           {/* X (Twitter) */}
           {user.xurl && <TouchableOpacity style={tw`mx-2`}
-          onPress={() => {navigate(user.xurl)}}>
+            onPress={() => { navigate(`https://x.com/${user.xurl}`); }}>
             <XIcon></XIcon>
           </TouchableOpacity>}
           {/* Snapchat */}
           {user.snapchaturl && <TouchableOpacity style={tw`mx-2`}
-          onPress={() => {navigate(user.snapchaturl)}}>
+            onPress={() => { navigate(`https://snapchat.com/add/${user.snapchaturl}`) }}>
             <SnapchatIcon></SnapchatIcon>
           </TouchableOpacity>}
           {/* Facebook */}
           {user.facebookurl && <TouchableOpacity style={tw`mx-2`}
-          onPress={() => {navigate(user.facebookurl)}}>
+            onPress={() => { navigate(`https://facebook.com/${user.facebookurl}`) }}>
             <FBIcon></FBIcon>
           </TouchableOpacity>}
         </View>
