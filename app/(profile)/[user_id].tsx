@@ -1,3 +1,4 @@
+import { supabase } from '@/utils/supabase';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -20,10 +21,40 @@ export default function ProfilePage() {
   const router = useRouter();
   const { user_id } = useLocalSearchParams();
   const [self, setSelf] = useState(false);
-  const user = useUserStore((state) => state.user);
-  const Wrapper = self && user.background_url ? ImageBackground : LinearGradient;
-  const WrapperProps = self && user.background_url ? {
-    source: { uri: user.background_url },
+  const { user } = useUserStore();
+  const [userView, setUserView] = useState(null);
+
+  useEffect(() => {
+  // INSERT_YOUR_CODE
+  // Fetch user data from Supabase 'users' table and set user view
+  async function fetchUser() {
+    try {
+      // Dynamically import supabase client to avoid import at top
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user_id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user:', error);
+        setUserView(null);
+      } else {
+        setUserView(data);
+        console.log(data);
+      }
+    } catch (err) {
+      console.error('Unexpected error fetching user:', err);
+      setUserView(null);
+    }
+  }
+
+  fetchUser();
+  }, []);
+
+  const Wrapper = self && userView?.background_url ? ImageBackground : LinearGradient;
+  const WrapperProps = self && userView?.background_url ? {
+    source: { uri: userView?.background_url },
     resizeMode: 'cover',
     style: { flex: 1 },
   } : {
@@ -36,9 +67,9 @@ export default function ProfilePage() {
   useEffect(() => {
     if (user && user.id) {
       setSelf(user_id === user.id);
-      console.log(user);
+      console.log('User', user);
     }
-  }, [user_id, user]);
+  }, []);
 
   const formatDate = (date: any) => {
     if (!date) return '';
@@ -111,11 +142,11 @@ export default function ProfilePage() {
 
   return (
     
-    <ProfileBackgroundWrapper self={self} imageUrl={user.background_url}>
+    <ProfileBackgroundWrapper self={self} imageUrl={userView?.background_url}>
       <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'center', marginVertical: 16, height: 'auto' }}>
         {/* Top bar: username and settings icon */}
         <View style={tw`absolute top-6 left-0 right-0 flex-row justify-between items-center px-6`}>
-          <Text style={tw`text-white font-bold text-base`}>@{user.username}</Text>
+          <Text style={tw`text-white font-bold text-base`}>@{userView?.username}</Text>
           <TouchableOpacity>
             {/* Placeholder for settings icon */}
             <SettingIcon style={tw`m-2`} />
@@ -126,22 +157,22 @@ export default function ProfilePage() {
         <View style={tw`mt-16 mb-2`}>
           <View style={[tw`rounded-full border-2 border-white`, { width: 100, height: 100, overflow: 'hidden' }]}>
             <ImageBackground
-              source={{ uri: user.profile_image }}
+              source={{ uri: userView?.profile_image }}
               style={{ width: 100, height: 100 }}
             />
           </View>
         </View>
 
         {/* Name, username, friends count */}
-        <Text style={tw`text-white font-bold text-lg`}>{user.firstname} {user.lastname}</Text>
+        <Text style={tw`text-white font-bold text-lg`}>{userView?.firstname} {userView?.lastname}</Text>
         <View style={tw`flex-row items-center mb-2`}>
-          <Text style={tw`text-white/80 text-base`}>@{user.username}</Text>
+          <Text style={tw`text-white/80 text-base`}>@{userView?.username}</Text>
           <Text style={tw`text-white/40 mx-2`}>•</Text>
           <Text style={tw`text-white/80 text-base`}>100 friends</Text>
         </View>
 
         {/* Bio */}
-        {user.bio && <Text style={tw`text-white px-3 mb-2`}>{user.bio}</Text>}
+        {userView?.bio && <Text style={tw`text-white px-3 mb-2`}>{userView?.bio}</Text>}
 
         {/* Edit and Share profile buttons */}
         <View style={tw`flex-row w-full justify-around px-6 mb-2`}>
@@ -157,32 +188,32 @@ export default function ProfilePage() {
         </View>
 
         {/* Birthday and zodiac */}
-        {user.birthdate && <View style={tw`flex-row items-center mb-2`}>
-          <Text style={tw`text-white text-base mr-2`}>🎂 {formatDate(user.birthdate)}</Text>
+        {userView?.birthdate && <View style={tw`flex-row items-center mb-2`}>
+          <Text style={tw`text-white text-base mr-2`}>🎂 {formatDate(userView?.birthdate)}</Text>
           <Text style={tw`text-white/40 -ml-1 mr-1`}>•</Text>
-          <Text style={tw`text-white text-base`}>{dateToZodiac(user.birthdate)}</Text>
+          <Text style={tw`text-white text-base`}>{dateToZodiac(userView?.birthdate)}</Text>
         </View>}
 
         {/* Social icons row */}
         <View style={tw`flex-row items-center justify-center`}>
           {/* Instagram */}
-          {user.instagramurl && <TouchableOpacity style={tw`mx-2`}
-            onPress={() => { navigate(`https://instagram.com/${user.instagramurl}`); }}>
+          {userView?.instagramurl && <TouchableOpacity style={tw`mx-2`}
+            onPress={() => { navigate(`https://instagram.com/${userView?.instagramurl}`); }}>
             <InstagramIcon></InstagramIcon>
           </TouchableOpacity>}
           {/* X (Twitter) */}
-          {user.xurl && <TouchableOpacity style={tw`mx-2`}
-            onPress={() => { navigate(`https://x.com/${user.xurl}`); }}>
+          {userView?.xurl && <TouchableOpacity style={tw`mx-2`}
+            onPress={() => { navigate(`https://x.com/${userView?.xurl}`); }}>
             <XIcon></XIcon>
           </TouchableOpacity>}
           {/* Snapchat */}
-          {user.snapchaturl && <TouchableOpacity style={tw`mx-2`}
-            onPress={() => { navigate(`https://snapchat.com/add/${user.snapchaturl}`) }}>
+          {userView?.snapchaturl && <TouchableOpacity style={tw`mx-2`}
+            onPress={() => { navigate(`https://snapchat.com/add/${userView?.snapchaturl}`) }}>
             <SnapchatIcon></SnapchatIcon>
           </TouchableOpacity>}
           {/* Facebook */}
-          {user.facebookurl && <TouchableOpacity style={tw`mx-2`}
-            onPress={() => { navigate(`https://facebook.com/${user.facebookurl}`) }}>
+          {userView?.facebookurl && <TouchableOpacity style={tw`mx-2`}
+            onPress={() => { navigate(`https://facebook.com/${userView?.facebookurl}`) }}>
             <FBIcon></FBIcon>
           </TouchableOpacity>}
         </View>
