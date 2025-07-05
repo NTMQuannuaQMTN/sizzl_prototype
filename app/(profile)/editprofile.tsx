@@ -37,8 +37,8 @@ export default function EditProfile() {
   const [avtInput, setAvtInput] = useState(user?.profile_image || '');
   const [loading, setLoading] = useState(false);
 
-  const onChangeDOB = ({ type }, selectedDate) => {
-    if (type == 'set') {
+  const onChangeDOB = (event: any, selectedDate?: Date) => {
+    if (event.type === 'set' && selectedDate) {
       setDOB(selectedDate);
     } else {
       setDOBOpen(false);
@@ -207,7 +207,7 @@ export default function EditProfile() {
       });
 
       Alert.alert('Success', 'Profile updated successfully!');
-      router.replace({ pathname: '/(profile)/[user_id]', params: { user_id: userID } });
+      router.replace({ pathname: '/(profile)/profile', params: { user_id: userID } });
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Failed to update profile.');
     } finally {

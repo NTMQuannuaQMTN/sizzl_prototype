@@ -22,7 +22,22 @@ export default function ProfilePage() {
   const { user_id } = useLocalSearchParams();
   const [self, setSelf] = useState(false);
   const { user } = useUserStore();
-  const [userView, setUserView] = useState(null);
+  type UserView = {
+    id: string;
+    username?: string;
+    firstname?: string;
+    lastname?: string;
+    profile_image?: string;
+    background_url?: string;
+    bio?: string;
+    birthdate?: string;
+    instagramurl?: string;
+    xurl?: string;
+    snapchaturl?: string;
+    facebookurl?: string;
+    // add other fields as needed
+  };
+  const [userView, setUserView] = useState<UserView | null>(null);
 
   useEffect(() => {
   // INSERT_YOUR_CODE
