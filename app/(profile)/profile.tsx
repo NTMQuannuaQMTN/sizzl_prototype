@@ -7,6 +7,7 @@ import tw from 'twrnc';
 import Edit from '../../assets/icons/edit-icon.svg';
 import FBIcon from '../../assets/icons/fb-icon.svg';
 import InstagramIcon from '../../assets/icons/insta-icon.svg';
+import SettingIcon from '../../assets/icons/setting.svg';
 import Share from '../../assets/icons/share-icon.svg';
 import SnapchatIcon from '../../assets/icons/snapchat-icon.svg';
 import XIcon from '../../assets/icons/x-icon.svg';
@@ -15,7 +16,8 @@ import { useUserStore } from '../store/userStore';
 import ProfileBackgroundWrapper from './background_wrapper';
 
 import { navigate } from 'expo-router/build/global-state/routing';
-import SettingIcon from '../../assets/icons/setting.svg';
+
+import PfpDefault from '../../assets/icons/pfpdefault.svg';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -153,18 +155,22 @@ export default function ProfilePage() {
         <View style={tw`absolute top-6 left-0 right-0 flex-row justify-between items-center px-6`}>
           <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>@{userView?.username}</Text>
           <TouchableOpacity>
-            {/* Placeholder for settings icon */}
             <SettingIcon width={20} height={20} style={tw`m-2`} />
           </TouchableOpacity>
         </View>
 
-        {/* Profile picture */}
+        {/* Profile picture with SVG fallback if no image */}
         <View style={tw`mt-24 mb-2`}>
-          <View style={[tw`rounded-full border-2 border-white`, { width: 120, height: 120, overflow: 'hidden' }]}> 
-            <ImageBackground
-              source={{ uri: userView?.profile_image ? `${userView.profile_image}?t=${Date.now()}` : undefined }}
-              style={{ width: 120, height: 120 }}
-            />
+          <View style={[tw`rounded-full border-2 border-white items-center justify-center bg-white/10`, { width: 120, height: 120, overflow: 'hidden', position: 'relative' }]}> 
+            {userView?.profile_image ? (
+              <ImageBackground
+                source={{ uri: `${userView.profile_image}?t=${Date.now()}` }}
+                style={{ width: 120, height: 120 }}
+                imageStyle={{ borderRadius: 60, width: 120, height: 120 }}
+              />
+            ) : (
+              <PfpDefault width={120} height={120} />
+            )}
           </View>
         </View>
 
