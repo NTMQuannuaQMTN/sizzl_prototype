@@ -1,4 +1,5 @@
 import { supabase } from '@/utils/supabase';
+import { useFocusEffect } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ImageBackground, Text, TouchableOpacity, View } from 'react-native';
@@ -38,33 +39,35 @@ export default function ProfilePage() {
   };
   const [userView, setUserView] = useState<UserView | null>(null);
 
-  useEffect(() => {
-  // INSERT_YOUR_CODE
   // Fetch user data from Supabase 'users' table and set user view
-  async function fetchUser() {
-    try {
-      // Dynamically import supabase client to avoid import at top
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user_id)
-        .single();
-
-      if (error) {
-        console.error('Error fetching user:', error);
-        setUserView(null);
-      } else {
-        setUserView(data);
-        console.log(data);
+  useFocusEffect(
+    React.useCallback(() => {
+      let isMounted = true;
+      async function fetchUser() {
+        try {
+          const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', user_id)
+            .single();
+          if (error) {
+            console.error('Error fetching user:', error);
+            if (isMounted) setUserView(null);
+          } else {
+            if (isMounted) setUserView(data);
+            console.log(data);
+          }
+        } catch (err) {
+          console.error('Unexpected error fetching user:', err);
+          if (isMounted) setUserView(null);
+        }
       }
-    } catch (err) {
-      console.error('Unexpected error fetching user:', err);
-      setUserView(null);
-    }
-  }
-
-  fetchUser();
-  }, []);
+      fetchUser();
+      return () => {
+        isMounted = false;
+      };
+    }, [user_id])
+  );
 
   useEffect(() => {
     if (user && user.id) {
@@ -148,29 +151,29 @@ export default function ProfilePage() {
       <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'center', marginVertical: 16, height: 'auto' }}>
         {/* Top bar: username and settings icon */}
         <View style={tw`absolute top-6 left-0 right-0 flex-row justify-between items-center px-6`}>
-          <Text style={tw`text-white font-bold text-base`}>@{userView?.username}</Text>
+          <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>@{userView?.username}</Text>
           <TouchableOpacity>
             {/* Placeholder for settings icon */}
-            <SettingIcon style={tw`m-2`} />
+            <SettingIcon width={20} height={20} style={tw`m-2`} />
           </TouchableOpacity>
         </View>
 
         {/* Profile picture */}
-        <View style={tw`mt-16 mb-2`}>
-          <View style={[tw`rounded-full border-2 border-white`, { width: 100, height: 100, overflow: 'hidden' }]}>
+        <View style={tw`mt-24 mb-2`}>
+          <View style={[tw`rounded-full border-2 border-white`, { width: 120, height: 120, overflow: 'hidden' }]}> 
             <ImageBackground
-              source={{ uri: userView?.profile_image }}
-              style={{ width: 100, height: 100 }}
+              source={{ uri: userView?.profile_image ? `${userView.profile_image}?t=${Date.now()}` : undefined }}
+              style={{ width: 120, height: 120 }}
             />
           </View>
         </View>
 
         {/* Name, username, friends count */}
-        <Text style={tw`text-white font-bold text-lg`}>{userView?.firstname} {userView?.lastname}</Text>
+        <Text style={[tw`text-white text-lg`, { fontFamily: 'Nunito-ExtraBold' }]}>{userView?.firstname} {userView?.lastname}</Text>
         <View style={tw`flex-row items-center mb-2`}>
-          <Text style={tw`text-white/80 text-base`}>@{userView?.username}</Text>
-          <Text style={tw`text-white/40 mx-2`}>•</Text>
-          <Text style={tw`text-white/80 text-base`}>100 friends</Text>
+            <Text style={[tw`text-gray-400 text-[14px]`, { fontFamily: 'Nunito-Medium' }]}>@{userView?.username}</Text>
+            <Text style={[tw`text-gray-400 mx-1.5 text-[10px]`, { fontFamily: 'Nunito-Medium' }]}>•</Text>
+            <Text style={[tw`text-gray-400 text-[14px]`, { fontFamily: 'Nunito-Medium' }]}>#quanbebe friends</Text>
         </View>
 
         {/* Bio */}

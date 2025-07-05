@@ -73,7 +73,7 @@ export default function BotBar({ currentTab = 'home' }: { currentTab?: 'home' | 
           disabled={currentTab === 'profile'}
         >
           <Image
-            source={{ uri: avatarUri }}
+            source={{ uri: avatarUri ? `${avatarUri}?t=${Date.now()}` : undefined }}
             style={{
               width: 26,
               height: 26,
