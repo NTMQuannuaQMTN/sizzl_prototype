@@ -105,7 +105,36 @@ export default function EditProfile() {
 
   const handleSave = async () => {
     setLoading(true);
+
     try {
+      const usernameRegex = /^[a-z0-9_.]{4,}$/;
+      if (!usernameRegex.test(input.username)) {
+        Alert.alert('Username must have a-z, 0-9, at least 4 letters.');
+        setLoading(false);
+        return;
+      }
+
+      const { error } = await supabase.from('users').select('*')
+        .eq('username', input.username).single();
+      if (!error && user.username !== input.username) {
+        Alert.alert('There is someone with this username bro, too late.');
+        setLoading(false);
+        return false;
+      }
+
+      const nameRegex = /^[a-zA-Z\s]{2,}$/;
+      if (!nameRegex.test(input.firstname.trim())) {
+        Alert.alert('The first name must be at least two letters and no other symbols than alphabets.');
+        setLoading(false);
+        return false;
+      }
+
+      if (!nameRegex.test(input.lastname.trim())) {
+        Alert.alert('The last name must be at least two letters and no other symbols than alphabets.');
+        setLoading(false);
+        return false;
+      }
+
       const userID = user?.user_id || user?.id;
       if (!userID) throw new Error('User ID not found');
 
