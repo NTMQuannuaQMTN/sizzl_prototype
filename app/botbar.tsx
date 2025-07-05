@@ -45,17 +45,32 @@ export default function BotBar({ currentTab = 'home' }: { currentTab?: 'home' | 
     >
       <View style={tw`flex-row flex-1 items-center justify-around bg-black/60 rounded-3xl h-full`}>
         {/* Home Tab */}
-        <TouchableOpacity onPress={() => router.replace('/home/explore')} style={tw`flex-1 items-center justify-center`}>
+        <TouchableOpacity
+          onPress={() => {
+            if (currentTab !== 'home') router.replace('/home/explore');
+          }}
+          style={tw`flex-1 items-center justify-center`}
+          disabled={currentTab === 'home'}
+        >
           {currentTab === 'home' ? <HomeTabActive width={24} height={24} /> : <HomeTab width={24} height={24} />}
         </TouchableOpacity>
         {/* Center Add Button */}
-        <TouchableOpacity onPress={() => router.replace('/(create)/create')} style={tw`flex-1 items-center justify-center`}>
+        <TouchableOpacity
+          onPress={() => {
+            if (currentTab !== 'create') router.replace('/(create)/create');
+          }}
+          style={tw`flex-1 items-center justify-center`}
+          disabled={currentTab === 'create'}
+        >
           {currentTab === 'create' ? <CreateTabActive width={24} height={24} /> : <CreateTab width={24} height={24} />}
         </TouchableOpacity>
         {/* Profile Tab */}
         <TouchableOpacity
-          onPress={() => router.replace({ pathname: '/(profile)/profile', params: { user_id: userID } })}
+          onPress={() => {
+            if (currentTab !== 'profile') router.replace({ pathname: '/(profile)/profile', params: { user_id: userID } });
+          }}
           style={tw`flex-1 items-center justify-center`}
+          disabled={currentTab === 'profile'}
         >
           <Image
             source={{ uri: avatarUri }}
