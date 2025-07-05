@@ -236,7 +236,7 @@ export default function EditProfile() {
       });
 
       Alert.alert('Success', 'Profile updated successfully!');
-      router.replace({ pathname: '/(profile)/profile', params: { user_id: userID } });
+      router.back();
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Failed to update profile.');
     } finally {
@@ -311,51 +311,6 @@ export default function EditProfile() {
               editable={false}
               onPressIn={() => setDOBOpen(true)}></TextInput>
           </View>
-          {dobOpen && (
-            <View style={tw`w-full h-24 flex justify-center overflow-hidden`}>
-              <DateTimePicker
-                value={dob}
-                mode="date"
-                display="spinner"
-                onChange={onChangeDOB}
-                maximumDate={new Date()}
-                style={{ marginTop: -10 }}
-                textColor='#FFF'
-              />
-            </View>
-          )}
-
-          {dobOpen && Platform.OS === 'ios' && (
-            <View style={tw`flex-row justify-around`}>
-              <TouchableOpacity
-                style={[
-                  tw`px-4 py-2 mb-2 flex-1 justify-center rounded-full`,
-                  { backgroundColor: '#6B7280', marginRight: 8 }
-                ]}
-                onPress={() => {
-                  if (dobInput) {
-                    setDOB(dobInput);
-                  }
-                  setDOBOpen(false);
-                }}
-              >
-                <Text style={[tw`text-white w-full text-center text-bold`, { fontFamily: 'Nunito-Medium' }]}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  tw`px-4 py-2 mb-2 flex-1 justify-center rounded-full`,
-                  { backgroundColor: '#2563EB' }
-                ]}
-                onPress={() => {
-                  setDOBInput(dob);
-                  setDOBAvail(true);
-                  setDOBOpen(false);
-                }}
-              >
-                <Text style={[tw`text-white w-full text-center text-bold`, { fontFamily: 'Nunito-Medium' }]}>Set</Text>
-              </TouchableOpacity>
-            </View>
-          )}
 
           <Text style={[tw`text-white mb-2`, { fontFamily: 'Nunito-Medium', fontSize: 14 }]}>
             Add social media (optional)
@@ -445,6 +400,63 @@ export default function EditProfile() {
           </TouchableOpacity>
         </View>
       </View>
+      {dobOpen && (
+        <TouchableOpacity style={tw`absolute top-0 left-0 flex-col-reverse w-full h-full bg-black bg-opacity-60 z-[99]`}
+          onPress={() => {
+            if (dobInput) {
+              setDOB(dobInput);
+            }
+            setDOBOpen(false);
+          }}>
+          <View
+            style={[
+              tw`bg-black w-full h-85 flex-col items-center justify-end overflow-hidden`
+            ]}
+          >
+            <DateTimePicker
+              value={dob}
+              mode="date"
+              display="spinner"
+              onChange={onChangeDOB}
+              maximumDate={new Date()}
+              style={{ height: 30, marginTop: -10 }}
+              textColor='#FFF'
+            />
+
+            {Platform.OS === 'ios' && (
+              <View style={tw`flex-row mb-16 justify-center gap-1`}>
+                <TouchableOpacity
+                  style={[
+                    tw`px-4 py-2 mb-2 w-40 justify-center rounded-full`,
+                    { backgroundColor: '#6B7280', marginRight: 8 }
+                  ]}
+                  onPress={() => {
+                    if (dobInput) {
+                      setDOB(dobInput);
+                    }
+                    setDOBOpen(false);
+                  }}
+                >
+                  <Text style={[tw`text-white w-full text-center text-bold`, { fontFamily: 'Nunito-Medium' }]}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    tw`px-4 py-2 mb-2 w-40 justify-center rounded-full`,
+                    { backgroundColor: '#2563EB' }
+                  ]}
+                  onPress={() => {
+                    setDOBInput(dob);
+                    setDOBAvail(true);
+                    setDOBOpen(false);
+                  }}
+                >
+                  <Text style={[tw`text-white w-full text-center text-bold`, { fontFamily: 'Nunito-Medium' }]}>Set</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </TouchableOpacity>
+      )}
     </ProfileBackgroundWrapper>
   );
 }

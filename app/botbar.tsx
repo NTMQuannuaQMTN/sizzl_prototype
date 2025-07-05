@@ -53,7 +53,7 @@ export default function BotBar({ currentTab = 'home' }: { currentTab?: 'home' | 
         {/* Home Tab */}
         <TouchableOpacity
           onPress={() => {
-            if (currentTab !== 'home') router.replace('/home/explore');
+            if (currentTab !== 'home') router.push('/home/explore');
           }}
           style={tw`flex-1 items-center justify-center`}
           disabled={currentTab === 'home'}
@@ -63,7 +63,7 @@ export default function BotBar({ currentTab = 'home' }: { currentTab?: 'home' | 
         {/* Center Add Button */}
         <TouchableOpacity
           onPress={() => {
-            if (currentTab !== 'create') router.replace('/(create)/create');
+            if (currentTab !== 'create') router.push('/(create)/create');
           }}
           style={tw`flex-1 items-center justify-center`}
           disabled={currentTab === 'create'}
@@ -73,7 +73,7 @@ export default function BotBar({ currentTab = 'home' }: { currentTab?: 'home' | 
         {/* Profile Tab */}
         <TouchableOpacity
           onPress={() => {
-            if (currentTab !== 'profile') router.replace({ pathname: '/(profile)/profile', params: { user_id: userID } });
+            if (currentTab !== 'profile') router.push({ pathname: '/(profile)/profile', params: { user_id: userID } });
           }}
           style={tw`flex-1 items-center justify-center`}
           disabled={currentTab === 'profile'}
