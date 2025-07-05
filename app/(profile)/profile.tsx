@@ -146,7 +146,7 @@ export default function ProfilePage() {
   }
 
   return (
-    
+
     <ProfileBackgroundWrapper self={self} imageUrl={userView?.background_url}>
       <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'center', marginVertical: 16, height: 'auto' }}>
         {/* Top bar: username and settings icon */}
