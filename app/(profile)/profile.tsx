@@ -173,7 +173,7 @@ export default function ProfilePage() {
         <View style={tw`flex-row items-center mb-2`}>
             <Text style={[tw`text-gray-400 text-[14px]`, { fontFamily: 'Nunito-Medium' }]}>@{userView?.username}</Text>
             <Text style={[tw`text-gray-400 mx-1.5 text-[10px]`, { fontFamily: 'Nunito-Medium' }]}>•</Text>
-            <Text style={[tw`text-gray-400 text-[14px]`, { fontFamily: 'Nunito-Medium' }]}>#quanbebe friends</Text>
+            <Text style={[tw`text-gray-400 text-[14px]`, { fontFamily: 'Nunito-Medium' }]}>#wingay friends</Text>
         </View>
 
         {/* Bio */}
