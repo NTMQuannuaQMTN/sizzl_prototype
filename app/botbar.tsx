@@ -54,7 +54,7 @@ export default function BotBar({ currentTab = 'home' }: { currentTab?: 'home' | 
         </TouchableOpacity>
         {/* Profile Tab */}
         <TouchableOpacity
-          onPress={() => router.replace({ pathname: '/(profile)/[user_id]', params: { user_id: userID } })}
+          onPress={() => router.replace({ pathname: '/(profile)/profile', params: { user_id: userID } })}
           style={tw`flex-1 items-center justify-center`}
         >
           <Image
