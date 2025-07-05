@@ -140,9 +140,9 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ThemeProvider>
         <Stack screenOptions={{ headerShown: false }}>
-          {user != null || <Stack.Screen name="index" options={{ headerShown: false }}></Stack.Screen>}
-          {user != null || <Stack.Screen name="(auth)" options={{ headerShown: false }}></Stack.Screen>}
-          {user != null && <Stack.Screen name="(home)" options={{ headerShown: false }}></Stack.Screen>}
+          {/* {user != null || <Stack.Screen name="index" options={{ headerShown: false }}></Stack.Screen>}
+          {user != null || <Stack.Screen name="(auth)" options={{ headerShown: false }}></Stack.Screen>} */}
+          <Stack.Screen name="(home)" options={{ headerShown: false }}></Stack.Screen>
         </Stack>
       </ThemeProvider>
     </SafeAreaProvider>
