@@ -4,6 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { createContext, useContext, useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { useUserStore } from './store/userStore';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -17,7 +18,7 @@ export const theme = {
     gradient3: '#291C56',
     gradient4: '#392465',
     gradient5: '#51286A',
-    
+
     // Functional colors
     gray400: '#9CA3AF',
     red1: '#FF1769',
@@ -28,7 +29,7 @@ export const theme = {
     notgoing: '#E11D48',
     viewevent: '#CAE6DF',
     hostevent: '#0A66C2',
-    
+
     // Opacity colors
     white5: 'rgba(255, 255, 255, 0.05)',
     white10: 'rgba(255, 255, 255, 0.1)',
@@ -123,6 +124,8 @@ export default function RootLayout() {
     'Nunito-Medium': require('../assets/fonts/Nunito-Medium.ttf'),
   });
 
+  const { user } = useUserStore();
+
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
@@ -137,9 +140,9 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ThemeProvider>
         <Stack screenOptions={{ headerShown: false }}>
-          {/* <Stack.Screen name="index" options={{ headerShown: false }}></Stack.Screen>
-          <Stack.Screen name="(auth)" options={{ headerShown: false }}></Stack.Screen> */}
-          <Stack.Screen name="(home)" options={{ headerShown: false }}></Stack.Screen>
+          {user != null || <Stack.Screen name="index" options={{ headerShown: false }}></Stack.Screen>}
+          {user != null || <Stack.Screen name="(auth)" options={{ headerShown: false }}></Stack.Screen>}
+          {user != null && <Stack.Screen name="(home)" options={{ headerShown: false }}></Stack.Screen>}
         </Stack>
       </ThemeProvider>
     </SafeAreaProvider>
