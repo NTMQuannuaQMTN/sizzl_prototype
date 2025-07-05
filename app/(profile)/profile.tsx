@@ -200,11 +200,17 @@ export default function ProfilePage() {
         </View>
 
         {/* Birthday and zodiac */}
-        {userView?.birthdate && <View style={tw`flex-row items-center mb-2`}>
-          <Text style={tw`text-white text-base mr-2`}>🎂 {formatDate(userView?.birthdate)}</Text>
-          <Text style={tw`text-white/40 -ml-1 mr-1`}>•</Text>
-          <Text style={tw`text-white text-base`}>{dateToZodiac(userView?.birthdate)}</Text>
-        </View>}
+        {userView?.birthdate && (
+          <View style={tw`flex-row items-center gap-x-2 mb-3.5`}>
+            <Text style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-Medium' }]}>
+              🎂  {formatDate(userView?.birthdate)}
+            </Text>
+            <Text style={[tw`text-white text-[10px]`, { fontFamily: 'Nunito-Medium' }]}>•</Text>
+            <Text style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-Medium' }]}>
+              {dateToZodiac(userView?.birthdate)}
+            </Text>
+          </View>
+        )}
 
         {/* Social icons row */}
         <View style={tw`flex-row gap-x-4 items-center justify-center`}>
