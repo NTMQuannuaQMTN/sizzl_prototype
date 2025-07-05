@@ -2,7 +2,7 @@ import { supabase } from '@/utils/supabase';
 import { useFocusEffect } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ImageBackground, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 import Edit from '../../assets/icons/edit-icon.svg';
 import FBIcon from '../../assets/icons/fb-icon.svg';
@@ -159,14 +159,15 @@ export default function ProfilePage() {
           </TouchableOpacity>
         </View>
 
-        {/* Profile picture with SVG fallback if no image */}
+        {/* Profile picture: show image if present, otherwise SVG fallback, fast like BotBar */}
         <View style={tw`mt-24 mb-2`}>
-          <View style={[tw`rounded-full border-2 border-white items-center justify-center bg-white/10`, { width: 120, height: 120, overflow: 'hidden', position: 'relative' }]}> 
+          <View style={[tw`rounded-full border-2 border-white items-center justify-center bg-white/10`, { width: 120, height: 120, overflow: 'hidden' }]}> 
             {userView?.profile_image ? (
-              <ImageBackground
-                source={{ uri: `${userView.profile_image}?t=${Date.now()}` }}
-                style={{ width: 120, height: 120 }}
-                imageStyle={{ borderRadius: 60, width: 120, height: 120 }}
+              <Image
+                source={{ uri: userView.profile_image }}
+                style={{ width: 120, height: 120, borderRadius: 60 }}
+                defaultSource={require('../../assets/icons/pfpdefault.svg')}
+                onError={() => {}}
               />
             ) : (
               <PfpDefault width={120} height={120} />
@@ -176,25 +177,25 @@ export default function ProfilePage() {
 
         {/* Name, username, friends count */}
         <Text style={[tw`text-white text-lg`, { fontFamily: 'Nunito-ExtraBold' }]}>{userView?.firstname} {userView?.lastname}</Text>
-        <View style={tw`flex-row items-center mb-2`}>
+        <View style={tw`flex-row items-center mb-2.5`}>
             <Text style={[tw`text-gray-400 text-[14px]`, { fontFamily: 'Nunito-Medium' }]}>@{userView?.username}</Text>
             <Text style={[tw`text-gray-400 mx-1.5 text-[10px]`, { fontFamily: 'Nunito-Medium' }]}>•</Text>
             <Text style={[tw`text-gray-400 text-[14px]`, { fontFamily: 'Nunito-Medium' }]}>#wingay friends</Text>
         </View>
 
         {/* Bio */}
-        {userView?.bio && <Text style={tw`text-white px-3 mb-2`}>{userView?.bio}</Text>}
+        {userView?.bio && <Text style={[tw`text-white px-3 mb-4`, { fontFamily: 'Nunito-Medium' }]}>{userView?.bio}</Text>}
 
         {/* Edit and Share profile buttons */}
-        <View style={tw`flex-row w-full justify-around px-6 mb-2`}>
-          <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-white/20 flex-1 py-2 rounded-xl mr-2`}
+        <View style={tw`flex-row gap-x-2.5 px-10 mb-4`}>
+          <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-white/5 border border-white/10 flex-1 py-2 rounded-xl`}
             onPress={() => { router.push('/(profile)/editprofile') }}>
-            <Edit></Edit>
-            <Text style={tw`text-white font-bold`}>Edit profile</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-white/20 flex-1 py-2 rounded-xl ml-2`}>
-            <Share></Share>
-            <Text style={tw`text-white font-bold`}>Share profile</Text>
+            <Edit width={20} height={20} />
+            <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Edit profile</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-white/5 border border-white/10 flex-1 py-2 rounded-xl`}>
+            <Share width={20} height={20} />
+            <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Share profile</Text>
           </TouchableOpacity>
         </View>
 
