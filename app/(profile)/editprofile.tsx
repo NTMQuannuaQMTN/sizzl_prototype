@@ -237,7 +237,7 @@ export default function EditProfile() {
         <TouchableOpacity style={[tw`mb-2 rounded-full border-2 border-white mx-auto`, { width: 100, height: 100, overflow: 'hidden', backgroundColor: '#222' }]}
           onPress={pickAvatar}>
           <Image
-            source={{ uri: avtInput }}
+            source={{ uri: avtInput ? `${avtInput}?t=${Date.now()}` : undefined }}
             style={{ width: 100, height: 100 }}
           />
         </TouchableOpacity>
