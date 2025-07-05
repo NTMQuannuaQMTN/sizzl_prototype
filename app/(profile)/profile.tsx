@@ -207,27 +207,35 @@ export default function ProfilePage() {
         </View>}
 
         {/* Social icons row */}
-        <View style={tw`flex-row items-center justify-center`}>
+        <View style={tw`flex-row gap-x-4 items-center justify-center`}>
           {/* Instagram */}
-          {userView?.instagramurl && <TouchableOpacity style={tw`mx-2`}
-            onPress={() => { navigate(`https://instagram.com/${userView?.instagramurl}`); }}>
-            <InstagramIcon></InstagramIcon>
-          </TouchableOpacity>}
+          {userView?.instagramurl && (
+            <TouchableOpacity style={tw``}
+              onPress={() => { navigate(`https://instagram.com/${userView?.instagramurl}`); }}>
+              <InstagramIcon width={24} height={24} />
+            </TouchableOpacity>
+          )}
           {/* X (Twitter) */}
-          {userView?.xurl && <TouchableOpacity style={tw`mx-2`}
-            onPress={() => { navigate(`https://x.com/${userView?.xurl}`); }}>
-            <XIcon></XIcon>
-          </TouchableOpacity>}
+          {userView?.xurl && (
+            <TouchableOpacity style={tw``}
+              onPress={() => { navigate(`https://x.com/${userView?.xurl}`); }}>
+              <XIcon width={24} height={24} />
+            </TouchableOpacity>
+          )}
           {/* Snapchat */}
-          {userView?.snapchaturl && <TouchableOpacity style={tw`mx-2`}
-            onPress={() => { navigate(`https://snapchat.com/add/${userView?.snapchaturl}`) }}>
-            <SnapchatIcon></SnapchatIcon>
-          </TouchableOpacity>}
+          {userView?.snapchaturl && (
+            <TouchableOpacity style={tw``}
+              onPress={() => { navigate(`https://snapchat.com/add/${userView?.snapchaturl}`) }}>
+              <SnapchatIcon width={24} height={24} />
+            </TouchableOpacity>
+          )}
           {/* Facebook */}
-          {userView?.facebookurl && <TouchableOpacity style={tw`mx-2`}
-            onPress={() => { navigate(`https://facebook.com/${userView?.facebookurl}`) }}>
-            <FBIcon></FBIcon>
-          </TouchableOpacity>}
+          {userView?.facebookurl && (
+            <TouchableOpacity style={tw``}
+              onPress={() => { navigate(`https://facebook.com/${userView?.facebookurl}`) }}>
+              <FBIcon width={24} height={24} />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
       <BotBar currentTab="profile" />
