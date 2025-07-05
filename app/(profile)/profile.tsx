@@ -39,31 +39,28 @@ export default function ProfilePage() {
   const [userView, setUserView] = useState<UserView | null>(null);
 
   useEffect(() => {
-  // INSERT_YOUR_CODE
-  // Fetch user data from Supabase 'users' table and set user view
-  async function fetchUser() {
-    try {
-      // Dynamically import supabase client to avoid import at top
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user_id)
-        .single();
+    async function fetchUser() {
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', user_id)
+          .single();
 
-      if (error) {
-        console.error('Error fetching user:', error);
+        if (error) {
+          console.error('Error fetching user:', error);
+          setUserView(null);
+        } else {
+          setUserView(data);
+          console.log(data);
+        }
+      } catch (err) {
+        console.error('Unexpected error fetching user:', err);
         setUserView(null);
-      } else {
-        setUserView(data);
-        console.log(data);
       }
-    } catch (err) {
-      console.error('Unexpected error fetching user:', err);
-      setUserView(null);
     }
-  }
 
-  fetchUser();
+    fetchUser();
   }, []);
 
   useEffect(() => {
@@ -143,7 +140,7 @@ export default function ProfilePage() {
   }
 
   return (
-    
+
     <ProfileBackgroundWrapper self={self} imageUrl={userView?.background_url}>
       <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'center', marginVertical: 16, height: 'auto' }}>
         {/* Top bar: username and settings icon */}
