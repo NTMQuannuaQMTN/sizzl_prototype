@@ -246,7 +246,7 @@ export default function EditProfile() {
   return (
     <ProfileBackgroundWrapper self={true} imageUrl={bgInput}>
       <View style={{ flex: 1, height: 'auto', marginVertical: 40, marginHorizontal: 'auto', marginBottom: 100, width: '90%' }}>
-        <Text style={[tw`w-full text-center text-white text-md mb-4`, { fontFamily: 'Nunito-Bold' }]}>Edit profile</Text>
+        <Text style={[tw`w-full text-center text-white text-md mb-4`, { fontFamily: 'Nunito-ExtraBold' }]}>Edit profile</Text>
         {/* Change background button */}
         <TouchableOpacity
           style={[
@@ -264,10 +264,22 @@ export default function EditProfile() {
         {/* Profile picture */}
         <TouchableOpacity style={[tw`mb-2 rounded-full border-2 border-white mx-auto`, { width: 100, height: 100, overflow: 'hidden', backgroundColor: '#222' }]}
           onPress={pickAvatar}>
-          <Image
-            source={{ uri: avtInput ? `${avtInput}?t=${Date.now()}` : undefined }}
-            style={{ width: 100, height: 100 }}
-          />
+          {/* Fast loading profile image with fallback and cache busting */}
+          {avtInput ? (
+            <Image
+              source={{ uri: avtInput + (avtInput.startsWith('file') ? '' : `?cb=${user?.id || ''}`) }}
+              style={{ width: 100, height: 100 }}
+              resizeMode="cover"
+              defaultSource={require('../../assets/icons/pfpdefault.svg')}
+              onError={() => {}}
+            />
+          ) : (
+            <Image
+              source={require('../../assets/icons/pfpdefault.svg')}
+              style={{ width: 100, height: 100 }}
+              resizeMode="cover"
+            />
+          )}
         </TouchableOpacity>
         {/* Input fields */}
         <View style={{ width: '100%' }}>
