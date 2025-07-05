@@ -1,10 +1,10 @@
 // Handle "Save changes" button press: confirm avatar and background image, and update all fields
-import DateTimePicker from '@react-native-community/datetimepicker';
 import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, Image, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import DateTimePicker from 'react-native-modal-datetime-picker';
 import tw from 'twrnc';
 import { useUserStore } from '../store/userStore';
 
@@ -37,11 +37,10 @@ export default function EditProfile() {
   const [avtInput, setAvtInput] = useState(user?.profile_image || '');
   const [loading, setLoading] = useState(false);
 
-  const onChangeDOB = (event: any, selectedDate?: Date) => {
-    if (event.type === 'set' && selectedDate) {
-      setDOB(selectedDate);
-    } else {
-      setDOBOpen(false);
+  // For modal picker, just set dobInput on change
+  const onChangeDOB = (selectedDate?: Date) => {
+    if (selectedDate) {
+      setDOBInput(selectedDate);
     }
   }
 
@@ -302,15 +301,22 @@ export default function EditProfile() {
               onChangeText={(newInp) => setInput(input => ({ ...input, bio: newInp }))}
               placeholderTextColor={'#9CA3AF'}></TextInput>
           </View>
-          <View style={[tw`mb-2`, { backgroundColor: 'rgba(0,0,0,0.25)', borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }]}>
-            <TextInput style={[tw`text-white px-4 py-2`, { fontFamily: 'Nunito-Medium', opacity: 0.7 }]}
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => setDOBOpen(true)}
+            style={[tw`mb-2`, { backgroundColor: 'rgba(0,0,0,0.25)', borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }]}
+            accessibilityRole="button"
+            accessibilityLabel="Add your birthday"
+          >
+            <TextInput
+              style={[tw`text-white px-4 py-2`, { fontFamily: 'Nunito-Medium', opacity: 0.7 }]}
               placeholder='Add your birthday (optional)'
               value={dobAvail ? formatDate(dobInput) : ''}
-              onChangeText={(text) => setDOBInput(new Date(text))}
-              placeholderTextColor={'#9CA3AF'}
               editable={false}
-              onPressIn={() => setDOBOpen(true)}></TextInput>
-          </View>
+              pointerEvents="none"
+              placeholderTextColor={'#9CA3AF'}
+            />
+          </TouchableOpacity>
 
           <Text style={[tw`text-white mb-2`, { fontFamily: 'Nunito-Medium', fontSize: 14 }]}>
             Add social media (optional)
@@ -400,63 +406,23 @@ export default function EditProfile() {
           </TouchableOpacity>
         </View>
       </View>
-      {dobOpen && (
-        <TouchableOpacity style={tw`absolute top-0 left-0 flex-col-reverse w-full h-full bg-black bg-opacity-60 z-[99]`}
-          onPress={() => {
-            if (dobInput) {
-              setDOB(dobInput);
-            }
-            setDOBOpen(false);
-          }}>
-          <View
-            style={[
-              tw`bg-black w-full h-85 flex-col items-center justify-end overflow-hidden`
-            ]}
-          >
-            <DateTimePicker
-              value={dob}
-              mode="date"
-              display="spinner"
-              onChange={onChangeDOB}
-              maximumDate={new Date()}
-              style={{ height: 30, marginTop: -10 }}
-              textColor='#FFF'
-            />
-
-            {Platform.OS === 'ios' && (
-              <View style={tw`flex-row mb-16 justify-center gap-1`}>
-                <TouchableOpacity
-                  style={[
-                    tw`px-4 py-2 mb-2 w-40 justify-center rounded-full`,
-                    { backgroundColor: '#6B7280', marginRight: 8 }
-                  ]}
-                  onPress={() => {
-                    if (dobInput) {
-                      setDOB(dobInput);
-                    }
-                    setDOBOpen(false);
-                  }}
-                >
-                  <Text style={[tw`text-white w-full text-center text-bold`, { fontFamily: 'Nunito-Medium' }]}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    tw`px-4 py-2 mb-2 w-40 justify-center rounded-full`,
-                    { backgroundColor: '#2563EB' }
-                  ]}
-                  onPress={() => {
-                    setDOBInput(dob);
-                    setDOBAvail(true);
-                    setDOBOpen(false);
-                  }}
-                >
-                  <Text style={[tw`text-white w-full text-center text-bold`, { fontFamily: 'Nunito-Medium' }]}>Set</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        </TouchableOpacity>
-      )}
+      <DateTimePicker
+        isVisible={dobOpen}
+        mode="date"
+        display="spinner"
+        date={dobInput}
+        maximumDate={new Date()}
+        onConfirm={(date) => {
+          setDOB(date);
+          setDOBInput(date);
+          setDOBAvail(true);
+          setDOBOpen(false);
+        }}
+        onCancel={() => {
+          setDOBInput(dob); // reset temp value
+          setDOBOpen(false);
+        }}
+      />
     </ProfileBackgroundWrapper>
   );
 }

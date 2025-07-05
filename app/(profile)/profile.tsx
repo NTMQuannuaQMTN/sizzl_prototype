@@ -78,6 +78,7 @@ export default function ProfilePage() {
     }
   }, []);
 
+  // Only show month and day (no year)
   const formatDate = (date: any) => {
     if (!date) return '';
     let d = date;
@@ -85,7 +86,6 @@ export default function ProfilePage() {
       d = new Date(date);
     }
     if (!(d instanceof Date) || isNaN(d.getTime())) return '';
-    let year = d.getFullYear();
     let month = d.getMonth();
     let day = d.getDate();
 
@@ -104,7 +104,7 @@ export default function ProfilePage() {
       'December'
     ];
 
-    return `${monthToWord[month]} ${day}, ${year}`;
+    return `${monthToWord[month]} ${day}`;
   };
 
   const dateToZodiac = (date: any) => {
