@@ -1,5 +1,4 @@
 import { supabase } from '@/utils/supabase';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ImageBackground, Text, TouchableOpacity, View } from 'react-native';
@@ -66,18 +65,6 @@ export default function ProfilePage() {
 
   fetchUser();
   }, []);
-
-  const Wrapper = self && userView?.background_url ? ImageBackground : LinearGradient;
-  const WrapperProps = self && userView?.background_url ? {
-    source: { uri: userView?.background_url },
-    resizeMode: 'cover',
-    style: { flex: 1 },
-  } : {
-    colors: ['#080B32', '#0E1241', '#291C56', '#392465', '#51286A'],
-    start: { x: 0, y: 0 },
-    end: { x: 0, y: 1 },
-    style: { flex: 1 },
-  };
 
   useEffect(() => {
     if (user && user.id) {

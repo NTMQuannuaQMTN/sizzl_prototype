@@ -234,14 +234,12 @@ export default function EditProfile() {
           </View>
         </TouchableOpacity>
         {/* Profile picture */}
-        <TouchableOpacity style={[tw`mb-4`, { alignItems: 'center' }]}
+        <TouchableOpacity style={[tw`mb-2 rounded-full border-2 border-white mx-auto`, { width: 100, height: 100, overflow: 'hidden', backgroundColor: '#222' }]}
           onPress={pickAvatar}>
-          <View style={[tw`rounded-full border-2 border-white`, { width: 100, height: 100, overflow: 'hidden', backgroundColor: '#222' }]}>
-            <Image
-              source={{ uri: avtInput }}
-              style={{ width: 100, height: 100 }}
-            />
-          </View>
+          <Image
+            source={{ uri: avtInput }}
+            style={{ width: 100, height: 100 }}
+          />
         </TouchableOpacity>
         {/* Input fields */}
         <View style={{ width: '100%' }}>
