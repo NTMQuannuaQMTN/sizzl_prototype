@@ -234,7 +234,7 @@ export default function EditProfile() {
       });
 
       Alert.alert('Success', 'Profile updated successfully!');
-      router.back();
+      router.replace({ pathname: '/(profile)/profile', params: { user_id: user?.id } });
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Failed to update profile.');
     } finally {
@@ -414,7 +414,7 @@ export default function EditProfile() {
           {/* Not now */}
           <TouchableOpacity
             style={{ alignItems: 'center', marginBottom: 8 }}
-            onPress={() => router.back()}
+            onPress={() => router.replace({ pathname: '/(profile)/profile', params: { user_id: user?.id } })}
           >
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-Medium', fontSize: 14, opacity: 0.7 }]}>
               Not now
@@ -439,19 +439,19 @@ export default function EditProfile() {
             </DateTimePicker>
             <View style={tw`flex-row justify-center gap-8`}>
               <TouchableOpacity style={tw`px-4 py-2 bg-white rounded-full`}
-              onPress={() => {
-                setDOBOpen(false);
-                setDOBInput(dob);
-              }}>
-                <Text style={[tw`text-[4]`, {fontFamily: 'Nunito-Bold'}]}>Cancel</Text>
+                onPress={() => {
+                  setDOBOpen(false);
+                  setDOBInput(dob);
+                }}>
+                <Text style={[tw`text-[4]`, { fontFamily: 'Nunito-Bold' }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity style={tw`px-4 py-2 bg-[#392465] rounded-full`}
-              onPress={() => {
-                setDOB(dobInput);
-                setDOBAvail(true);
-                setDOBOpen(false);
-              }}>
-                <Text style={[tw`text-[4] text-white`, {fontFamily: 'Nunito-Bold'}]}>Save</Text>
+                onPress={() => {
+                  setDOB(dobInput);
+                  setDOBAvail(true);
+                  setDOBOpen(false);
+                }}>
+                <Text style={[tw`text-[4] text-white`, { fontFamily: 'Nunito-Bold' }]}>Save</Text>
               </TouchableOpacity>
             </View>
           </View>

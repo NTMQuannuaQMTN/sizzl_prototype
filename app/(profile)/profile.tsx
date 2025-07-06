@@ -189,7 +189,7 @@ export default function ProfilePage() {
         {/* Edit and Share profile buttons */}
         <View style={tw`flex-row gap-x-2.5 px-10 mb-4`}>
           <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-white/5 border border-white/10 flex-1 py-2 rounded-xl`}
-            onPress={() => { router.push('/(profile)/editprofile') }}>
+            onPress={() => { router.replace('/(profile)/editprofile') }}>
             <Edit width={20} height={20} />
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Edit profile</Text>
             </TouchableOpacity>
