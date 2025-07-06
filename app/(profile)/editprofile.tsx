@@ -1,10 +1,10 @@
 // Handle "Save changes" button press: confirm avatar and background image, and update all fields
+import DateTimePicker from '@react-native-community/datetimepicker';
 import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import WheelPickerExpo from 'react-native-wheel-picker-expo';
+import { Alert, Image, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 import { useUserStore } from '../store/userStore';
 
@@ -36,13 +36,11 @@ export default function EditProfile() {
   const [bgInput, setBgInput] = useState(user?.background_url || '');
   const [avtInput, setAvtInput] = useState(user?.profile_image || '');
   const [loading, setLoading] = useState(false);
-  const CITIES = 'Jakarta,Bandung,Sumbawa,Taliwang,Lombok,Bima'.split(',');
 
   // For modal picker, just set dobInput on change
-  const onChangeDOB = (selectedDate?: Date) => {
-    if (selectedDate) {
-      setDOBInput(selectedDate);
-    }
+  const onChangeDOB = ({ type }, date) => {
+    if (type == 'set') { setDOBInput(date) }
+    else { setDOBOpen(false) }
   }
 
   const formatDate = (date: any) => {
@@ -244,6 +242,11 @@ export default function EditProfile() {
     }
   };
 
+  const handleConfirm = (selectedDate: Date) => {
+    setDOBInput(selectedDate);
+    setDOBAvail(true);
+  };
+
   return (
     <ProfileBackgroundWrapper self={true} imageUrl={bgInput}>
       <View style={{ flex: 1, height: 'auto', marginVertical: 40, marginHorizontal: 'auto', marginBottom: 100, width: '90%' }}>
@@ -324,7 +327,7 @@ export default function EditProfile() {
             <TextInput
               style={[tw`text-white px-4 py-2`, { fontFamily: 'Nunito-Medium', opacity: 0.7 }]}
               placeholder='Add your birthday (optional)'
-              value={dobAvail ? formatDate(dobInput) : ''}
+              value={dobAvail ? formatDate(dob) : ''}
               editable={false}
               pointerEvents="none"
               placeholderTextColor={'#9CA3AF'}
@@ -419,72 +422,40 @@ export default function EditProfile() {
           </TouchableOpacity>
         </View>
       </View>
-      {/* <DateTimePicker
-        isVisible={dobOpen}
-        mode="date"
-        display="spinner"
-        date={dobInput}
-        maximumDate={new Date()}
-        onConfirm={(date) => {
-          setDOB(date);
-          setDOBInput(date);
-          setDOBAvail(true);
-          setDOBOpen(false);
-        }}
-        onCancel={() => {
-          setDOBInput(dob); // reset temp value
-          setDOBOpen(false);
-        }}
-      /> */}
-      {dobOpen && <TouchableOpacity style={tw`w-full h-full bg-black bg-opacity-60 absolute z-[99] bottom-0 left-0 flex-col-reverse`}
-        onPress={() => {
-          setDOBInput(dob);
-          setDOBOpen(false);
-        }}>
-        <View style={tw`w-full h-80 pb-20 bg-white flex-row justify-evenly items-center`}>
-          <WheelPickerExpo
-            height={200}
-            width={150}
-            initialSelectedIndex={dobInput.getMonth()}
-            items={[
-              { label: 'January', value: 0 },
-              { label: 'February', value: 1 },
-              { label: 'March', value: 2 },
-              { label: 'April', value: 3 },
-              { label: 'May', value: 4 },
-              { label: 'June', value: 5 },
-              { label: 'July', value: 6 },
-              { label: 'August', value: 7 },
-              { label: 'September', value: 8 },
-              { label: 'October', value: 9 },
-              { label: 'November', value: 10 },
-              { label: 'December', value: 11 },
-            ]}
-            onChange={({ item, index }) => {
-              // Update month, keep day and year
-              const newDate = new Date(dobInput);
-              newDate.setMonth(index);
-              setDOBInput(newDate);
-            }}
-          />
-          <WheelPickerExpo
-            height={200}
-            width={60}
-            initialSelectedIndex={dobInput.getDate() - 1}
-            items={Array.from({ length: 31 }, (_, i) => ({
-              label: `${i + 1}`,
-              value: i + 1,
-            }))}
-            onChange={({ item, index }) => {
-              // Update day, keep month and year
-              const newDate = new Date(dobInput);
-              newDate.setDate(index + 1);
-              setDOBInput(newDate);
-            }}
-          />
-        </View>
-      </TouchableOpacity>
-      }
+      {dobOpen && Platform.OS == 'ios' &&
+        <TouchableOpacity style={tw`w-full h-full flex-col-reverse absolute top-0 left-0 bg-black bg-opacity-60 z-[99]`}
+          onPress={() => {
+            setDOB(dobInput);
+            setDOBOpen(false);
+          }}>
+          <View style={tw`bg-black w-full h-80 flex-col p-4 absolute left-0 bottom-0`}>
+            <DateTimePicker
+              mode='date'
+              display='spinner'
+              value={dob}
+              onChange={onChangeDOB}
+              textColor='#FFFFFF'>
+
+            </DateTimePicker>
+            <View style={tw`flex-row justify-center gap-8`}>
+              <TouchableOpacity style={tw`px-4 py-2 bg-white rounded-full`}
+              onPress={() => {
+                setDOBOpen(false);
+                setDOBInput(dob);
+              }}>
+                <Text style={[tw`text-[4]`, {fontFamily: 'Nunito-Bold'}]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={tw`px-4 py-2 bg-[#392465] rounded-full`}
+              onPress={() => {
+                setDOB(dobInput);
+                setDOBAvail(true);
+                setDOBOpen(false);
+              }}>
+                <Text style={[tw`text-[4] text-white`, {fontFamily: 'Nunito-Bold'}]}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>}
     </ProfileBackgroundWrapper>
   );
 }
