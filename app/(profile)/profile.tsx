@@ -2,16 +2,19 @@ import { supabase } from '@/utils/supabase';
 import { useFocusEffect } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
+import AddFriend from '../../assets/icons/add_friend.svg';
 import Edit from '../../assets/icons/edit-icon.svg';
 import FBIcon from '../../assets/icons/fb-icon.svg';
+import Waiting from '../../assets/icons/hourglass.svg';
 import InstagramIcon from '../../assets/icons/insta-icon.svg';
 import SettingIcon from '../../assets/icons/setting.svg';
 import Share from '../../assets/icons/share-icon.svg';
 import SnapchatIcon from '../../assets/icons/snapchat-icon.svg';
 import XIcon from '../../assets/icons/x-icon.svg';
 import BotBar from '../botbar';
+
 import { useUserStore } from '../store/userStore';
 import ProfileBackgroundWrapper from './background_wrapper';
 
@@ -24,6 +27,7 @@ export default function ProfilePage() {
   const { user_id } = useLocalSearchParams();
   const [self, setSelf] = useState(false);
   const { user } = useUserStore();
+  const [friendStat, setFriendStat] = useState('');
   type UserView = {
     id: string;
     username?: string;
@@ -71,12 +75,76 @@ export default function ProfilePage() {
     }, [user_id])
   );
 
+  const handleAddRequest = async (id) => {
+    console.log(user.id, id);
+    const { error } = await supabase.from('requests')
+      .insert({ user_id: user.id, requestee: id });
+    if (error) {
+      console.error(error.message);
+    } else {
+      Alert.alert('Added');
+    }
+  }
+
+  const handleRemoveRequest = async (id) => {
+    const {data: listData, error: listErr} = await supabase
+    .from('requests')
+    .select('*')
+    .eq('user_id', user.id)
+    .eq('requestee', id)
+    .single();
+
+    console.log(listData);
+
+    const { data, error } = await supabase
+      .from('requests')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('requestee', id)
+      .select(); // Add this to return the deleted rows
+    if (error) {
+      console.error(error.message);
+    } else {
+      Alert.alert('Request removed');
+      console.log(data);
+    }
+  }
+
+  const checkRequest = async (id) => {
+    const { error: requestingError } = await supabase.from('requests')
+      .select('*').eq('user_id', user.id).eq('requestee', id).single();
+    if (requestingError) {
+      console.log('No requesting');
+    } else {
+      setFriendStat('requesting');
+      return;
+    }
+
+    const { error: requestedError } = await supabase.from('requests')
+      .select('*').eq('user_id', id).eq('requestee', user.id).single();
+    if (requestedError) {
+      console.log('No requesting');
+    } else {
+      setFriendStat('requested');
+      return;
+    }
+
+    setFriendStat('');
+  }
+
+  useEffect(() => {
+    if (user_id && user?.id) {
+      checkRequest(user_id);
+    }
+  }, []);
+
   useEffect(() => {
     if (user && user.id) {
       setSelf(user_id === user.id);
       console.log('User', user);
     }
   }, []);
+
 
   // Only show month and day (no year)
   const formatDate = (date: any) => {
@@ -148,7 +216,6 @@ export default function ProfilePage() {
   }
 
   return (
-
     <ProfileBackgroundWrapper self={self} imageUrl={userView?.background_url}>
       <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'center', marginVertical: 16, height: 'auto' }}>
         {/* Top bar: username and settings icon */}
@@ -161,13 +228,13 @@ export default function ProfilePage() {
 
         {/* Profile picture: show image if present, otherwise SVG fallback, fast like BotBar */}
         <View style={tw`mt-24 mb-2`}>
-          <View style={[tw`rounded-full border-2 border-white items-center justify-center bg-white/10`, { width: 120, height: 120, overflow: 'hidden' }]}> 
+          <View style={[tw`rounded-full border-2 border-white items-center justify-center bg-white/10`, { width: 120, height: 120, overflow: 'hidden' }]}>
             {userView?.profile_image ? (
               <Image
                 source={{ uri: userView.profile_image }}
                 style={{ width: 120, height: 120, borderRadius: 60 }}
                 defaultSource={require('../../assets/icons/pfpdefault.svg')}
-                onError={() => {}}
+                onError={() => { }}
               />
             ) : (
               <PfpDefault width={120} height={120} />
@@ -178,9 +245,9 @@ export default function ProfilePage() {
         {/* Name, username, friends count */}
         <Text style={[tw`text-white text-lg`, { fontFamily: 'Nunito-ExtraBold' }]}>{userView?.firstname} {userView?.lastname}</Text>
         <View style={tw`flex-row items-center mb-2.5`}>
-            <Text style={[tw`text-gray-400 text-[14px]`, { fontFamily: 'Nunito-Medium' }]}>@{userView?.username}</Text>
-            <Text style={[tw`text-gray-400 mx-1.5 text-[10px]`, { fontFamily: 'Nunito-Medium' }]}>•</Text>
-            <Text style={[tw`text-gray-400 text-[14px]`, { fontFamily: 'Nunito-Medium' }]}>#wingay friends</Text>
+          <Text style={[tw`text-gray-400 text-[14px]`, { fontFamily: 'Nunito-Medium' }]}>@{userView?.username}</Text>
+          <Text style={[tw`text-gray-400 mx-1.5 text-[10px]`, { fontFamily: 'Nunito-Medium' }]}>•</Text>
+          <Text style={[tw`text-gray-400 text-[14px]`, { fontFamily: 'Nunito-Medium' }]}>#wingay friends</Text>
         </View>
 
         {/* Bio */}
@@ -188,12 +255,26 @@ export default function ProfilePage() {
 
         {/* Edit and Share profile buttons */}
         <View style={tw`flex-row gap-x-2.5 px-10 mb-4`}>
-          <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-white/5 border border-white/10 flex-1 py-2 rounded-xl`}
+          {self && <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-white/5 border border-white/10 flex-1 py-2 rounded-xl`}
             onPress={() => { router.replace('/(profile)/editprofile') }}>
             <Edit width={20} height={20} />
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Edit profile</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-white/5 border border-white/10 flex-1 py-2 rounded-xl`}>
+          </TouchableOpacity>}
+          {(!self && friendStat === '') && <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-black border border-white/10 flex-1 py-2 rounded-xl`}
+            onPress={() => {
+              handleAddRequest(userView?.id);
+            }}>
+            <AddFriend width={20} height={20} />
+            <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Add friend</Text>
+          </TouchableOpacity>}
+          {(!self && friendStat === 'requesting') && <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-white/5 border border-white/10 flex-1 py-2 rounded-xl`}
+            onPress={() => {
+              handleRemoveRequest(userView?.id);
+            }}>
+            <Waiting width={20} height={20} />
+            <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Requested</Text>
+          </TouchableOpacity>}
+          <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-white/5 border border-white/10 flex-1 py-2 rounded-xl`}>
             <Share width={20} height={20} />
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Share profile</Text>
           </TouchableOpacity>

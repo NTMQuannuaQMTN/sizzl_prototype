@@ -13,8 +13,6 @@ export default function HomeLayout() {
                 }}
             >
                 <Tabs.Screen name="home" options={{ headerShown: false }} />
-                <Tabs.Screen name="create" options={{ headerShown: false }} />
-                <Tabs.Screen name="profile" options={{ headerShown: false }} />
             </Tabs>
             <BotBar />
         </>
