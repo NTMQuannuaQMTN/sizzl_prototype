@@ -17,6 +17,7 @@ import XIcon from '../../assets/icons/x-icon.svg';
 import ProfileBackgroundWrapper from './background_wrapper';
 
 export default function EditProfile() {
+  const [showSuccess, setShowSuccess] = useState(false);
   // Focus state for each input
   const [focus, setFocus] = useState({
     firstname: false,
@@ -48,6 +49,9 @@ export default function EditProfile() {
   const [bgInput, setBgInput] = useState(user?.background_url || '');
   const [avtInput, setAvtInput] = useState(user?.profile_image || '');
   const [loading, setLoading] = useState(false);
+  const [firstNameError, setFirstNameError] = useState<string | null>(null);
+  const [lastNameError, setLastNameError] = useState<string | null>(null);
+  const [usernameError, setUsernameError] = useState<string | null>(null);
 
   // For modal picker, just set dobInput on change
   const onChangeDOB = (
@@ -120,33 +124,43 @@ export default function EditProfile() {
   };
 
   const handleSave = async () => {
-    setLoading(true);
 
+    setLoading(true);
+    setFirstNameError(null);
+    setLastNameError(null);
+    setUsernameError(null);
     try {
       const usernameRegex = /^[a-z0-9_.]{4,}$/;
+      let hasError = false;
+      let usernameErr = null;
+      // Username validation (now inline)
       if (!usernameRegex.test(input.username)) {
-        Alert.alert('Username must have a-z, 0-9, at least 4 letters.');
-        setLoading(false);
-        return;
-      }
-
-      const { error } = await supabase.from('users').select('*')
-        .eq('username', input.username).single();
-      if (!error && user.username !== input.username) {
-        Alert.alert('There is someone with this username bro, too late.');
-        setLoading(false);
-        return false;
+        usernameErr = 'Username can only contain a-z, 0-9, "_", ".", and has at least 4 letters.';
+        hasError = true;
+      } else {
+        const { error } = await supabase.from('users').select('*')
+          .eq('username', input.username).single();
+        if (!error && user.username !== input.username) {
+          usernameErr = 'Dang someone has got this username already, too bad!';
+          hasError = true;
+        }
       }
 
       const nameRegex = /^[a-zA-Z\s]{2,}$/;
+      let firstNameErr = null;
+      let lastNameErr = null;
       if (!nameRegex.test(input.firstname.trim())) {
-        Alert.alert('The first name must be at least two letters and no other symbols than alphabets.');
-        setLoading(false);
-        return false;
+        firstNameErr = 'The first name must be at least two letters and no other symbols than alphabets.';
+        hasError = true;
       }
-
       if (!nameRegex.test(input.lastname.trim())) {
-        Alert.alert('The last name must be at least two letters and no other symbols than alphabets.');
+        lastNameErr = 'The last name must be at least two letters and no other symbols than alphabets.';
+        hasError = true;
+      }
+      setFirstNameError(firstNameErr);
+      setLastNameError(lastNameErr);
+      setUsernameError(usernameErr);
+      if (hasError) {
         setLoading(false);
         return false;
       }
@@ -254,8 +268,11 @@ export default function EditProfile() {
         ...updateFields,
       });
 
-      Alert.alert('Success', 'Profile updated successfully!');
-      router.replace({ pathname: '/(profile)/profile', params: { user_id: user?.id } });
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        router.replace({ pathname: '/(profile)/profile', params: { user_id: user?.id } });
+      }, 1200);
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Failed to update profile.');
     } finally {
@@ -269,6 +286,7 @@ export default function EditProfile() {
   };
 
   return (
+    <>
     <TouchableWithoutFeedback
       onPress={() => {
         Keyboard.dismiss();
@@ -281,7 +299,7 @@ export default function EditProfile() {
     >
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
         <ProfileBackgroundWrapper imageUrl={bgInput}>
@@ -364,12 +382,18 @@ export default function EditProfile() {
                         ]}
                         placeholder='First name'
                         value={input.firstname}
-                        onChangeText={(newName) => setInput(input => ({ ...input, firstname: newName }))}
+                        onChangeText={(newName) => {
+                          setInput(input => ({ ...input, firstname: newName }));
+                          if (firstNameError) setFirstNameError(null);
+                        }}
                         placeholderTextColor={'#9CA3AF'}
                         onFocus={() => setFocus(f => ({ ...f, firstname: true }))}
                         onBlur={() => setFocus(f => ({ ...f, firstname: false }))}
                       />
                     </ImageBackground>
+                    {firstNameError && (
+                      <Text style={[tw`text-rose-500 text-xs mt-1 leading-1.2`, { fontFamily: 'Nunito-Medium' }]}>{firstNameError}</Text>
+                    )}
                   </View>
                   {/* Last name */}
                   <View style={tw`flex-1 ml-2`}>
@@ -392,12 +416,18 @@ export default function EditProfile() {
                         ]}
                         placeholder='Last name'
                         value={input.lastname}
-                        onChangeText={(newName) => setInput(input => ({ ...input, lastname: newName }))}
+                        onChangeText={(newName) => {
+                          setInput(input => ({ ...input, lastname: newName }));
+                          if (lastNameError) setLastNameError(null);
+                        }}
                         placeholderTextColor={'#9CA3AF'}
                         onFocus={() => setFocus(f => ({ ...f, lastname: true }))}
                         onBlur={() => setFocus(f => ({ ...f, lastname: false }))}
                       />
                     </ImageBackground>
+                    {lastNameError && (
+                      <Text style={[tw`text-rose-500 text-xs mt-1 leading-1.2`, { fontFamily: 'Nunito-Medium' }]}>{lastNameError}</Text>
+                    )}
                   </View>
                 </View>
                 <View style={tw`mb-2`}>
@@ -420,12 +450,18 @@ export default function EditProfile() {
                       ]}
                       placeholder='Username'
                       value={input.username}
-                      onChangeText={(newName) => setInput(input => ({ ...input, username: newName }))}
+                      onChangeText={(newName) => {
+                        setInput(input => ({ ...input, username: newName }));
+                        if (usernameError) setUsernameError(null);
+                      }}
                       placeholderTextColor={'#9CA3AF'}
                       onFocus={() => setFocus(f => ({ ...f, username: true }))}
                       onBlur={() => setFocus(f => ({ ...f, username: false }))}
                     />
                   </ImageBackground>
+                  {usernameError && (
+                    <Text style={[tw`text-rose-500 text-xs mt-1 leading-1.2`, { fontFamily: 'Nunito-Medium' }]}>{usernameError}</Text>
+                  )}
                 </View>
                 <View style={tw`mb-2`}>
                   <ImageBackground
@@ -686,6 +722,21 @@ export default function EditProfile() {
             </View>
           </ScrollView>
         </ProfileBackgroundWrapper>
+        {/* Success Toast Modal */}
+        {showSuccess && (
+          <View style={{
+            position: 'absolute',
+            top: 60,
+            left: 0,
+            right: 0,
+            alignItems: 'center',
+            zIndex: 999,
+          }} pointerEvents="none">
+            <View style={[tw`bg-[#080B32] px-6 py-2 rounded-full shadow-lg`, { flexDirection: 'row', alignItems: 'center', gap: 8 }]}>
+              <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Profile updated successfully!</Text>
+            </View>
+          </View>
+        )}
         {/* Overlay for date picker (iOS & Android) */}
         {dobOpen && (
           <View style={tw`w-full h-full flex-col-reverse absolute top-0 left-0 bg-black bg-opacity-60 z-[99]`} pointerEvents="box-none">
@@ -738,6 +789,7 @@ export default function EditProfile() {
         )}
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback >
+    </>
   );
 }
 
