@@ -1,5 +1,6 @@
 // Handle "Save changes" button press: confirm avatar and background image, and update all fields
 import DateTimePicker from '@react-native-community/datetimepicker';
+import CustomDatePicker from './customdatepicker';
 import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
@@ -683,8 +684,8 @@ export default function EditProfile() {
             </View>
           </ScrollView>
         </ProfileBackgroundWrapper>
-        {/* Overlay for iOS date picker */}
-        {dobOpen && Platform.OS == 'ios' && (
+        {/* Overlay for date picker (iOS & Android) */}
+        {dobOpen && (
           <View style={tw`w-full h-full flex-col-reverse absolute top-0 left-0 bg-black bg-opacity-60 z-[99]`} pointerEvents="box-none">
             <TouchableWithoutFeedback
               onPress={() => {
@@ -696,33 +697,14 @@ export default function EditProfile() {
             >
               <View style={tw`w-full h-full`} />
             </TouchableWithoutFeedback>
-            <View style={tw`bg-black w-full h-80 flex-col p-4 absolute left-0 bottom-0`}>
-              <DateTimePicker
-                mode='date'
-                display='spinner'
-                value={dob}
-                onChange={onChangeDOB}
+            <View style={tw`bg-black w-full h-80 flex-col p-4 absolute left-0 bottom-50`}>
+              <CustomDatePicker
+                initialDate={dob}
+                onDateChange={setDOBInput}
                 textColor='#FFFFFF'
                 maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() - 18))}
                 minimumDate={new Date(new Date().setFullYear(new Date().getFullYear() - 100))}
               />
-              <View style={tw`flex-row justify-center gap-8`}>
-                <TouchableOpacity style={tw`px-4 py-2 bg-white rounded-full`}
-                  onPress={() => {
-                    setDOBOpen(false);
-                    setDOBInput(dob);
-                  }}>
-                  <Text style={[tw`text-[4]`, { fontFamily: 'Nunito-Bold' }]}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={tw`px-4 py-2 bg-[#392465] rounded-full`}
-                  onPress={() => {
-                    setDOB(dobInput);
-                    setDOBAvail(true);
-                    setDOBOpen(false);
-                  }}>
-                  <Text style={[tw`text-[4] text-white`, { fontFamily: 'Nunito-Bold' }]}>Save</Text>
-                </TouchableOpacity>
-              </View>
             </View>
           </View>
         )}
