@@ -201,7 +201,7 @@ export default function ProfilePage() {
     // Update the friend_count in the database for the other user as well
     const { error: updateOtherUserErr } = await supabase
       .from('users')
-      .update({ friend_count: (userView?.friend_count ?? 1) })
+      .update({ friend_count: (userView?.friend_count ?? 0) + 1 })
       .eq('id', id);
 
     if (updateOtherUserErr) {
@@ -211,7 +211,7 @@ export default function ProfilePage() {
     // Update the friend_count in the database for the current user
     const { error: updateUserErr } = await supabase
       .from('users')
-      .update({ friend_count: (user.friend_count ?? 1) })
+      .update({ friend_count: (user.friend_count ?? 0) + 1 })
       .eq('id', user.id);
 
     if (updateUserErr) {
