@@ -1,8 +1,8 @@
+// Imports
 import { supabase } from '@/utils/supabase';
-import { useFocusEffect } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, Animated, Easing, Image, ImageBackground, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, Easing, Image, ImageBackground, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 import Requested from '../../assets/icons/accept_question.svg';
 import Friend from '../../assets/icons/accepted.svg';
@@ -25,6 +25,7 @@ import { navigate } from 'expo-router/build/global-state/routing';
 import PfpDefault from '../../assets/icons/pfpdefault.svg';
 
 export default function ProfilePage() {
+  // Variables
   const router = useRouter();
   const { user_id } = useLocalSearchParams();
   const [self, setSelf] = useState(false);
@@ -32,6 +33,7 @@ export default function ProfilePage() {
   const [friendStat, setFriendStat] = useState('');
   const [userView, setUserView] = useState<UserView | null>(null);
   const [friendRequest, setFriendRequest] = useState(0);
+
   // Animation state for friend request modal
   const [showFriendModal, setShowFriendModal] = useState(false);
   const friendModalAnim = React.useRef(new Animated.Value(1)).current; // 1 = hidden, 0 = visible
@@ -97,8 +99,26 @@ export default function ProfilePage() {
     friend_count?: number;
   };
 
+  // Define fetchUser outside useEffect
+  const fetchUser = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user_id)
+        .single();
+      if (error) {
+        setUserView(null);
+      } else {
+        setUserView(data);
+      }
+    } catch (err) {
+      setUserView(null);
+    }
+  };
+
   // Fetch user data from Supabase 'users' table and set user view
-  useFocusEffect(
+  useEffect(
     React.useCallback(() => {
       let isMounted = true;
       async function fetchUser() {
@@ -123,7 +143,7 @@ export default function ProfilePage() {
       return () => {
         isMounted = false;
       };
-    }, [user_id])
+    }, [])
   );
 
   const handleAddRequest = async (id: string | string[] | undefined) => {
@@ -196,29 +216,9 @@ export default function ProfilePage() {
       Alert.alert('Added');
     }
 
-    setUserView((userView) => userView ? { ...userView, friend_count: (userView.friend_count ?? 0) + 1 } : userView);
-    setUser((user: any) => ({ ...user, friend_count: (user.friend_count ?? 0) + 1 }));
-    // Update the friend_count in the database for the other user as well
-    const { error: updateOtherUserErr } = await supabase
-      .from('users')
-      .update({ friend_count: (userView?.friend_count ?? 0) + 1 })
-      .eq('id', id);
-
-    if (updateOtherUserErr) {
-      console.error('Failed to update friend count for other user:', updateOtherUserErr.message);
-    }
-
-    // Update the friend_count in the database for the current user
-    const { error: updateUserErr } = await supabase
-      .from('users')
-      .update({ friend_count: (user.friend_count ?? 0) + 1 })
-      .eq('id', user.id);
-
-    if (updateUserErr) {
-      console.error('Failed to update friend count:', updateUserErr.message);
-    }
-
     checkRequest(id);
+
+    updateCount(id);
   }
 
   const handleDeleteFriend = async (id: string) => {
@@ -240,29 +240,32 @@ export default function ProfilePage() {
       return;
     }
 
-    setUserView((userView) => userView ? { ...userView, friend_count: (userView.friend_count ?? 1) - 1 } : userView);
-    setUser((user: any) => ({ ...user, friend_count: (user.friend_count ?? 1) - 1 }));
+    checkRequest(id);
+    updateCount(id);
+  }
 
-    const { error: updateOtherUserErr } = await supabase
+  const updateCount = async (id: string | string[]) => {
+    await supabase
       .from('users')
-      .update({ friend_count: (userView?.friend_count ?? 0) })
-      .eq('id', id);
-
-    if (updateOtherUserErr) {
-      console.error('Failed to update friend count for other user:', updateOtherUserErr.message);
-    }
-
-    // Update the friend_count in the database for the current user
-    const { error: updateUserErr } = await supabase
-      .from('users')
-      .update({ friend_count: (user.friend_count ?? 0) })
+      .update({
+        friend_count: (await supabase
+          .from('friends')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+        ).count
+      })
       .eq('id', user.id);
 
-    if (updateUserErr) {
-      console.error('Failed to update friend count:', updateUserErr.message);
-    }
-
-    checkRequest(id);
+    await supabase
+      .from('users')
+      .update({
+        friend_count: (await supabase
+          .from('friends')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', id)
+        ).count
+      })
+      .eq('id', id);
   }
 
   const checkRequest = async (id: string | string[]) => {
@@ -329,11 +332,45 @@ export default function ProfilePage() {
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'friends', filter: `friend=eq.${user.id}` },
-        (payload) => {
+        async (payload) => {
           // Someone sent a friend request to me
           // Re-run checkRequest for the sender's id
           if (payload.new && payload.new.user_id) {
             checkRequest(payload.new.user_id);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    // Listen for DELETE events where either user_id or friend is the current user
+    const channel = supabase
+      .channel('public:friends:delete')
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'friends',
+          // Listen for any row where the current user is involved
+          filter: `user_id=eq.${user.id},friend=eq.${user.id}`
+        },
+        async (payload) => {
+          // If a friend relationship involving the current user is deleted, re-run checkRequest
+          // This will update the UI (e.g., setFriendRequest(-2))
+          if (user?.id) {
+            checkRequest(user_id);
+          }
+
+          if (userView?.id) {
+            checkRequest(userView?.id);
           }
         }
       )
@@ -353,7 +390,6 @@ export default function ProfilePage() {
   useEffect(() => {
     if (user && user.id) {
       setSelf(user_id === user.id);
-      console.log('User', user);
     }
   }, []);
 
@@ -429,9 +465,25 @@ export default function ProfilePage() {
 
   return (
     <ProfileBackgroundWrapper imageUrl={userView?.background_url}>
-      <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'center', marginVertical: 16, height: 'auto' }}>
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-start', alignItems: 'center', marginVertical: 16 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={false}
+            onRefresh={() => {
+              if (userView?.id) {
+                checkRequest(userView.id);
+              }
+              fetchUser();
+            }}
+            tintColor="#fff"
+          />
+        }
+        keyboardShouldPersistTaps="handled"
+        style={tw`mt-6`}
+      >
         {/* Top bar: username and settings icon */}
-        <View style={tw`absolute top-6 left-0 right-0 flex-row justify-between items-center px-6`}>
+        <View style={tw`w-full left-0 right-0 flex-row justify-between items-center px-6`}>
           <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>@{userView?.username}</Text>
           <TouchableOpacity>
             <SettingIcon width={20} height={20} style={tw`m-2`} />
@@ -439,7 +491,7 @@ export default function ProfilePage() {
         </View>
 
         {/* Profile picture: show image if present, otherwise SVG fallback, fast like BotBar */}
-        <View style={tw`mt-24 mb-2`}>
+        <View style={tw`mt-4 mb-2`}>
           <View style={[tw`rounded-full border-2 border-white items-center justify-center bg-white/10`, { width: 120, height: 120, overflow: 'hidden' }]}>
             {userView?.profile_image ? (
               <Image
@@ -557,7 +609,8 @@ export default function ProfilePage() {
             </TouchableOpacity>
           )}
         </View>
-      </View>
+        {/* BotBar should be outside ScrollView for fixed position, so not included here */}
+      </ScrollView>
       <BotBar currentTab="profile" selfView={self} />
 
       {/* Friend request modal with slide-up animation */}
