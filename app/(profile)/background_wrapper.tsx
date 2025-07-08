@@ -3,15 +3,13 @@ import React from 'react';
 import { ImageBackground, StyleSheet, View } from 'react-native';
 
 export default function ProfileBackgroundWrapper({
-  self,
   imageUrl,
   children,
 }: {
-  self: boolean;
   imageUrl?: string;
   children: React.ReactNode;
 }) {
-  if (self && imageUrl) {
+  if (imageUrl) {
     return (
       <ImageBackground
         source={{ uri: imageUrl }}

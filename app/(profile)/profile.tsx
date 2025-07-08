@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Image, Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 import Requested from '../../assets/icons/accept_question.svg';
+import Friend from '../../assets/icons/accepted.svg';
 import AddFriend from '../../assets/icons/add_friend.svg';
 import Edit from '../../assets/icons/edit-icon.svg';
 import FBIcon from '../../assets/icons/fb-icon.svg';
@@ -62,7 +63,6 @@ export default function ProfilePage() {
             if (isMounted) setUserView(null);
           } else {
             if (isMounted) setUserView(data);
-            console.log(data);
           }
         } catch (err) {
           console.error('Unexpected error fetching user:', err);
@@ -77,41 +77,42 @@ export default function ProfilePage() {
   );
 
   const handleAddRequest = async (id) => {
-    console.log(user.id, id);
     const { error } = await supabase.from('requests')
       .insert({ user_id: user.id, requestee: id });
     if (error) {
       console.error(error.message);
     } else {
-      Alert.alert('Added');
+      checkRequest(id);
     }
   }
 
-  const handleRemoveRequest = async (id) => {
-    const {data: listData, error: listErr} = await supabase
-    .from('requests')
-    .select('*')
-    .eq('user_id', user.id)
-    .eq('requestee', id)
-    .single();
-
-    console.log(listData);
-
-    const { data, error } = await supabase
+  // Make sure id is not undefined/null and user is loaded
+  const handleRemoveRequest = async (id: string) => {
+    if (!user?.id || !id) {
+      console.error('User or requestee id missing');
+      return;
+    }
+    
+    const { error: deleteErr, data: deletedRows } = await supabase
       .from('requests')
       .delete()
       .eq('user_id', user.id)
       .eq('requestee', id)
-      .select(); // Add this to return the deleted rows
-    if (error) {
-      console.error(error.message);
-    } else {
-      Alert.alert('Request removed');
-      console.log(data);
+      .select();
+
+    if (deleteErr) {
+      // If you get a 401/permission error, it's likely the policy is not matching the session user
+      console.error('Delete error:', deleteErr.message);
+      Alert.alert('Failed to remove request', deleteErr.message);
+      return;
     }
+
+    checkRequest(id);
   }
 
   const checkRequest = async (id) => {
+    if (self) return;
+
     const { error: requestingError } = await supabase.from('requests')
       .select('*').eq('user_id', user.id).eq('requestee', id).single();
     if (requestingError) {
@@ -217,7 +218,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <ProfileBackgroundWrapper self={self} imageUrl={userView?.background_url}>
+    <ProfileBackgroundWrapper imageUrl={userView?.background_url}>
       <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'center', marginVertical: 16, height: 'auto' }}>
         {/* Top bar: username and settings icon */}
         <View style={tw`absolute top-6 left-0 right-0 flex-row justify-between items-center px-6`}>
@@ -276,9 +277,14 @@ export default function ProfilePage() {
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Requested</Text>
           </TouchableOpacity>}
           {(!self && friendStat === 'requested') && <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-[#7A5CFA] border border-white/10 flex-1 py-2 rounded-xl`}
-            onPress={() => {}}>
+            onPress={() => { }}>
             <Requested width={20} height={20} />
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Accept?</Text>
+          </TouchableOpacity>}
+          {(!self && friendStat === 'friend') && <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-[#7A5CFA] border border-white/10 flex-1 py-2 rounded-xl`}
+            onPress={() => { }}>
+            <Friend width={20} height={20} />
+            <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Friends</Text>
           </TouchableOpacity>}
           <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-white/5 border border-white/10 flex-1 py-2 rounded-xl`}>
             <Share width={20} height={20} />
@@ -331,7 +337,7 @@ export default function ProfilePage() {
           )}
         </View>
       </View>
-      <BotBar currentTab="profile" />
+      <BotBar currentTab="profile" selfView={self} />
     </ProfileBackgroundWrapper>
   );
 }
