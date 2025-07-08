@@ -28,8 +28,9 @@ export default function ProfilePage() {
   const router = useRouter();
   const { user_id } = useLocalSearchParams();
   const [self, setSelf] = useState(false);
-  const { user } = useUserStore();
+  const { user, setUser } = useUserStore();
   const [friendStat, setFriendStat] = useState('');
+  const [friendRequest, setFriendRequest] = useState(0);
   type UserView = {
     id: string;
     username?: string;
@@ -43,7 +44,7 @@ export default function ProfilePage() {
     xurl?: string;
     snapchaturl?: string;
     facebookurl?: string;
-    // add other fields as needed
+    friend_count?: number;
   };
   const [userView, setUserView] = useState<UserView | null>(null);
 
@@ -94,7 +95,7 @@ export default function ProfilePage() {
       console.error('User or requestee id missing');
       return;
     }
-    
+
     const { error: deleteErr, data: deletedRows } = await supabase
       .from('requests')
       .delete()
@@ -112,29 +113,141 @@ export default function ProfilePage() {
     checkRequest(id);
   }
 
+  // Make sure id is not undefined/null and user is loaded
+  const handleAnswerRequest = async (id: string) => {
+    if (!user?.id || !id) {
+      console.error('User or requestee id missing');
+      return;
+    }
+
+    const { error: deleteErr, data: deletedRows } = await supabase
+      .from('requests')
+      .delete()
+      .eq('user_id', id)
+      .eq('requestee', user.id)
+      .select();
+
+    if (deleteErr) {
+      // If you get a 401/permission error, it's likely the policy is not matching the session user
+      console.error('Delete error:', deleteErr.message);
+      Alert.alert('Failed to remove request', deleteErr.message);
+      return;
+    }
+
+    checkRequest(id);
+  }
+
+  const handleAcceptFriend = async (id: string) => {
+    const { error: addError } = await supabase.from('friends')
+      .insert([{ user_id: user.id, friend: id }, { user_id: id, friend: user.id }]).select();
+
+    if (addError) {
+      Alert.alert('Problems in adding friend');
+    } else {
+      Alert.alert('Added');
+    }
+
+    setUserView((userView) => userView ? { ...userView, friend_count: (userView.friend_count ?? 0) + 1 } : userView);
+    setUser((user: any) => ({ ...user, friend_count: (user.friend_count ?? 0) + 1 }));
+    // Update the friend_count in the database for the other user as well
+    const { error: updateOtherUserErr } = await supabase
+      .from('users')
+      .update({ friend_count: (userView?.friend_count ?? 0) + 1 })
+      .eq('id', id);
+
+    if (updateOtherUserErr) {
+      console.error('Failed to update friend count for other user:', updateOtherUserErr.message);
+    }
+
+    // Update the friend_count in the database for the current user
+    const { error: updateUserErr } = await supabase
+      .from('users')
+      .update({ friend_count: (userView?.friend_count ?? 0) + 1 })
+      .eq('id', user.id);
+
+    if (updateUserErr) {
+      console.error('Failed to update friend count:', updateUserErr.message);
+    }
+
+    checkRequest(id);
+  }
+
+  const handleDeleteFriend = async (id: string) => {
+    const { error: deleteErr1 } = await supabase
+      .from('friends')
+      .delete()
+      .eq('user_id', id)
+      .eq('friend', user.id);
+    const { error: deleteErr2 } = await supabase
+      .from('friends')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('friend', id);
+
+    if (deleteErr1 || deleteErr2) {
+      // If you get a 401/permission error, it's likely the policy is not matching the session user
+      console.error('Delete error');
+      Alert.alert('Failed to remove request');
+      return;
+    }
+
+    checkRequest(id);
+  }
+
   const checkRequest = async (id: string | string[]) => {
     if (self) return;
 
+    const { error: friendError } = await supabase.from('friends')
+      .select('*').eq('user_id', user.id).eq('friend', id).single();
+    if (!friendError) {
+      setFriendStat('friend');
+      return;
+    }
+
     const { error: requestingError } = await supabase.from('requests')
       .select('*').eq('user_id', user.id).eq('requestee', id).single();
-    if (requestingError) {
-      console.log('No requesting');
-    } else {
+    if (!requestingError) {
       setFriendStat('requesting');
       return;
     }
 
     const { error: requestedError } = await supabase.from('requests')
       .select('*').eq('user_id', id).eq('requestee', user.id).single();
-    if (requestedError) {
-      console.log('No requesting');
-    } else {
+    if (!requestedError) {
       setFriendStat('requested');
       return;
     }
 
     setFriendStat('');
   }
+
+  // To auto-check when someone sends a friend request to you,
+  // add a useEffect that listens for changes in the 'requests' table for the current user.
+  // For example, you can use Supabase's real-time subscription:
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    // Subscribe to real-time changes in the 'requests' table where requestee is the current user
+    const channel = supabase
+      .channel('public:requests')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'requests', filter: `requestee=eq.${user.id}` },
+        (payload) => {
+          // Someone sent a friend request to me
+          // Re-run checkRequest for the sender's id
+          if (payload.new && payload.new.user_id) {
+            checkRequest(payload.new.user_id);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   useEffect(() => {
     if (user_id && user?.id) {
@@ -251,7 +364,7 @@ export default function ProfilePage() {
         <View style={tw`flex-row items-center mb-2.5`}>
           <Text style={[tw`text-gray-400 text-[14px]`, { fontFamily: 'Nunito-Medium' }]}>@{userView?.username}</Text>
           <Text style={[tw`text-gray-400 mx-1.5 text-[10px]`, { fontFamily: 'Nunito-Medium' }]}>•</Text>
-          <Text style={[tw`text-gray-400 text-[14px]`, { fontFamily: 'Nunito-Medium' }]}>#wingay friends</Text>
+          <Text style={[tw`text-gray-400 text-[14px]`, { fontFamily: 'Nunito-Medium' }]}>{userView?.friend_count} friends</Text>
         </View>
 
         {/* Bio */}
@@ -287,12 +400,12 @@ export default function ProfilePage() {
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Requested</Text>
           </TouchableOpacity>}
           {(!self && friendStat === 'requested') && <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-[#7A5CFA] border border-white/10 flex-1 py-2 rounded-xl`}
-            onPress={() => { }}>
+            onPress={() => { setFriendRequest(1) }}>
             <Requested width={20} height={20} />
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Accept?</Text>
           </TouchableOpacity>}
-          {(!self && friendStat === 'friend') && <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-[#7A5CFA] border border-white/10 flex-1 py-2 rounded-xl`}
-            onPress={() => { }}>
+          {(!self && friendStat === 'friend') && <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-white/5 border border-white/10 flex-1 py-2 rounded-xl`}
+            onPress={() => { setFriendRequest(-1) }}>
             <Friend width={20} height={20} />
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Friends</Text>
           </TouchableOpacity>}
@@ -351,6 +464,48 @@ export default function ProfilePage() {
         </View>
       </View>
       <BotBar currentTab="profile" selfView={self} />
+
+      {friendRequest === 1 && (
+        <TouchableOpacity style={tw`w-full h-full bg-black bg-opacity-60 absolute left-0 z-99`}
+          onPress={() => { setFriendRequest(0) }}>
+          <TouchableOpacity style={[tw`w-full h-fit px-6 pb-8 pt-4 gap-y-4 rounded-t-3xl bg-[#04192E] bg-opacity-80 mt-auto`]}
+            onPress={() => { }}>
+            <Text style={[tw`text-white text-lg`, { fontFamily: 'Nunito-Bold' }]}>@{userView?.username} sent you a friend request.</Text>
+            <TouchableOpacity style={tw`w-full h-12 bg-[#22C55E] rounded-full flex-row justify-center gap-x-4 items-center`}
+              onPress={() => {
+                handleAnswerRequest(userView.id);
+                handleAcceptFriend(userView.id);
+                setFriendRequest(0);
+              }}>
+              <Text style={[tw`text-white text-lg`, { fontFamily: 'Nunito-Bold' }]}>Accept</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={tw`w-full h-12 bg-[#E11D48] rounded-full flex-row justify-center gap-x-4 items-center`}
+              onPress={() => {
+                handleAnswerRequest(userView.id);
+                setFriendRequest(0);
+              }}>
+              <Text style={[tw`text-white text-lg`, { fontFamily: 'Nunito-Bold' }]}>Reject</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      )}
+
+      {friendRequest === -1 && (
+        <TouchableOpacity style={tw`w-full h-full bg-black bg-opacity-60 absolute left-0 z-99`}
+          onPress={() => { setFriendRequest(0) }}>
+          <TouchableOpacity style={[tw`w-full h-fit px-6 pb-8 pt-4 gap-y-4 rounded-t-3xl bg-[#04192E] bg-opacity-80 mt-auto`]}
+            onPress={() => { }}>
+            <Text style={[tw`text-white text-lg`, { fontFamily: 'Nunito-Bold' }]}>@{userView?.username} is now your friend.</Text>
+            <TouchableOpacity style={tw`w-full h-12 bg-[#E11D48] rounded-full flex-row justify-center gap-x-4 items-center`}
+              onPress={() => {
+                handleDeleteFriend(userView.id);
+                setFriendRequest(0);
+              }}>
+              <Text style={[tw`text-white text-lg`, { fontFamily: 'Nunito-Bold' }]}>Delete friend</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      )}
     </ProfileBackgroundWrapper>
   );
 }
