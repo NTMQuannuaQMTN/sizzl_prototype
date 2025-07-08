@@ -1,6 +1,7 @@
 
 import React, { RefObject, useEffect, useRef, useState } from 'react';
 import { Dimensions, NativeScrollEvent, NativeSyntheticEvent, ScrollView, StyleProp, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
+import tw from 'twrnc';
 
 const { width } = Dimensions.get('window');
 
@@ -74,8 +75,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
     
     setSelectedDate(newDate);
     onDateChange && onDateChange(newDate);
-  }, [selectedMonth, selectedDay, selectedYear, minimumDate, maximumDate]);
-  
+  }, [selectedMonth, selectedDay, selectedYear]);
   const renderPickerItem = (
     item: string | number,
     index: number,
@@ -88,73 +88,80 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
         height: ITEM_HEIGHT,
         justifyContent: 'center',
         alignItems: 'center',
-        opacity: isSelected ? 1 : 0.6,
+        opacity: isSelected ? 1 : 0.4,
       }}
       onPress={onPress}
       activeOpacity={0.7}
     >
       <Text style={{
         color: textColor,
-        fontSize: isSelected ? 18 : 16,
-        fontWeight: isSelected ? 'bold' : 'normal',
-        fontFamily: 'Nunito-Medium',
+        fontSize: isSelected ? 15 : 13,
+        fontFamily: isSelected ? 'Nunito-ExtraBold' : 'Nunito-Medium',
       }}>
         {item}
       </Text>
     </TouchableOpacity>
   );
-  
+
   const renderPicker = (
     data: (string | number)[],
     selectedValue: string | number,
     onValueChange: (value: any) => void,
     scrollRef: RefObject<ScrollView | null>
-  ) => (
-    <View style={{ flex: 1, height: 250 }}>
-      <ScrollView
-        ref={scrollRef}
-        showsVerticalScrollIndicator={false}
-        snapToInterval={ITEM_HEIGHT}
-        decelerationRate="fast"
-        contentContainerStyle={{
-          paddingVertical: 100,
-        }}
-        onMomentumScrollEnd={(event: NativeSyntheticEvent<NativeScrollEvent>) => {
-          const index = Math.round(event.nativeEvent.contentOffset.y / ITEM_HEIGHT);
-          const clampedIndex = Math.max(0, Math.min(index, data.length - 1));
-          onValueChange(data[clampedIndex]);
-        }}
-      >
-        {data.map((item, index) =>
-          renderPickerItem(
-            item,
-            index,
-            item === selectedValue,
-            () => {
-              onValueChange(item);
-              scrollRef.current?.scrollTo({
-                y: index * ITEM_HEIGHT,
-                animated: true,
-              });
-            }
-          )
-        )}
-      </ScrollView>
+  ) => {
+    // Track scroll position to avoid off-by-one error
+    const handleMomentumScrollEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const offsetY = event.nativeEvent.contentOffset.y;
+      // Use Math.round to avoid off-by-one error (center the item)
+      const index = Math.round(offsetY / ITEM_HEIGHT);
+      const clampedIndex = Math.max(0, Math.min(index, data.length - 1));
+      onValueChange(data[clampedIndex]);
+      // Snap to the correct position with animation for smoothness
+      scrollRef.current?.scrollTo({ y: clampedIndex * ITEM_HEIGHT, animated: true });
+    };
+    return (
+      <View style={{ flex: 1, height: 250 }}>
+        <ScrollView
+          ref={scrollRef}
+          showsVerticalScrollIndicator={false}
+          // snapToInterval removed for smoother scroll
+          decelerationRate={0.95} // slower, smoother deceleration
+          contentContainerStyle={{
+            paddingVertical: 100,
+          }}
+          onMomentumScrollEnd={handleMomentumScrollEnd}
+        >
+          {data.map((item, index) =>
+            renderPickerItem(
+              item,
+              index,
+              item === selectedValue,
+              () => {
+                onValueChange(item);
+                scrollRef.current?.scrollTo({
+                  y: index * ITEM_HEIGHT,
+                  animated: true,
+                });
+              }
+            )
+          )}
+        </ScrollView>
 
-      {/* Selection indicator */}
-      <View style={{
-        position: 'absolute',
-        top: 125,
-        left: 0,
-        right: 0,
-        height: ITEM_HEIGHT,
-        borderTopWidth: 1,
-        borderBottomWidth: 1,
-        borderColor: textColor,
-        opacity: 0.3,
-      }} />
-    </View>
-  );
+        {/* Selection indicator */}
+        <View style={{
+          position: 'absolute',
+          top: 100,
+          left: 0,
+          right: 0,
+          height: ITEM_HEIGHT,
+          borderTopWidth: 1,
+          borderBottomWidth: 1,
+          borderColor: textColor,
+          opacity: 0.3,
+        }} />
+      </View>
+    );
+  };
   
   // Initialize scroll positions when component mounts
   useEffect(() => {
@@ -180,25 +187,13 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
   return (
     <View
       style={[
-        {
-          flexDirection: 'column',
-          backgroundColor: 'rgba(30, 32, 44, 0.98)',
-          borderRadius: 24,
-          paddingHorizontal: 16,
-          paddingVertical: 18,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.18,
-          shadowRadius: 16,
-          elevation: 8,
-        },
-        style,
+        tw`flex-col bg-[#04192E] bg-opacity-95 rounded-3xl px-4 py-4`
       ]}
     >
-      <View style={{ flexDirection: 'row', height: 270 }}>
+      <View style={tw`flex-row`}>
         {/* Month Picker */}
-        <View style={{ flex: 2, marginRight: 12, alignItems: 'center' }}>
-          <Text style={{ color: textColor, fontSize: 13, marginBottom: 8, letterSpacing: 1, fontFamily: 'Nunito-Bold', opacity: 0.7 }}>MONTH</Text>
+        <View style={tw`flex-2 mr-3 items-center`}>
+          <Text style={[tw`text-[12px] mb-2`, { color: textColor, fontFamily: 'Nunito-Bold', opacity: 0.7 }]}>MONTH</Text>
           {renderPicker(
             months,
             months[selectedMonth],
@@ -211,8 +206,8 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
         </View>
 
         {/* Day Picker */}
-        <View style={{ flex: 1, marginRight: 12, alignItems: 'center' }}>
-          <Text style={{ color: textColor, fontSize: 13, marginBottom: 8, letterSpacing: 1, fontFamily: 'Nunito-Bold', opacity: 0.7 }}>DAY</Text>
+        <View style={tw`flex-1 mr-3 items-center`}>
+          <Text style={[tw`text-[12px] mb-2`, { color: textColor, fontFamily: 'Nunito-Bold', opacity: 0.7 }]}>DAY</Text>
           {renderPicker(
             days,
             selectedDay,
@@ -222,8 +217,8 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
         </View>
 
         {/* Year Picker */}
-        <View style={{ flex: 1, alignItems: 'center' }}>
-          <Text style={{ color: textColor, fontSize: 13, marginBottom: 8, letterSpacing: 1, fontFamily: 'Nunito-Bold', opacity: 0.7 }}>YEAR</Text>
+        <View style={tw`flex-1 items-center`}>
+          <Text style={[tw`text-[12px] mb-2`, { color: textColor, fontFamily: 'Nunito-Bold', opacity: 0.7 }]}>YEAR</Text>
           {renderPicker(
             years,
             selectedYear,
@@ -233,62 +228,19 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
         </View>
       </View>
 
-      {/* Decorative gradient overlay */}
-      <View
-        pointerEvents="none"
-        style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          top: 0,
-          height: 32,
-          backgroundColor: 'rgba(30,32,44,0.98)',
-          zIndex: 2,
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
-          opacity: 0.85,
-        }}
-      />
-      <View
-        pointerEvents="none"
-        style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: 32,
-          backgroundColor: 'rgba(30,32,44,0.98)',
-          zIndex: 2,
-          borderBottomLeftRadius: 24,
-          borderBottomRightRadius: 24,
-          opacity: 0.85,
-        }}
-      />
-
       {/* Action Buttons */}
-      <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 18 }}>
+      <View style={tw`flex-row justify-end mt-4`}>
         <TouchableOpacity
           onPress={onCancel}
-          style={{
-            paddingVertical: 10,
-            paddingHorizontal: 22,
-            borderRadius: 16,
-            backgroundColor: 'rgba(255,255,255,0.08)',
-            marginRight: 12,
-          }}
+          style={tw`py-2 px-5 rounded-xl bg-white/10 mr-1.5`}
         >
-          <Text style={{ color: textColor, fontFamily: 'Nunito-Bold', fontSize: 16, letterSpacing: 1 }}>Cancel</Text>
+          <Text style={[tw`text-[14px]`, { color: textColor, fontFamily: 'Nunito-ExtraBold' }]}>Cancel</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => onSave && onSave(new Date(selectedYear, selectedMonth, selectedDay))}
-          style={{
-            paddingVertical: 10,
-            paddingHorizontal: 22,
-            borderRadius: 16,
-            backgroundColor: '#6C47FF',
-          }}
+          style={tw`py-2 px-5 rounded-xl bg-[#7A5CFA]`}
         >
-          <Text style={{ color: '#fff', fontFamily: 'Nunito-Bold', fontSize: 16, letterSpacing: 1 }}>Save</Text>
+          <Text style={[tw`text-[14px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Save</Text>
         </TouchableOpacity>
       </View>
     </View>

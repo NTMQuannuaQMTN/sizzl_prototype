@@ -1,6 +1,4 @@
 // Handle "Save changes" button press: confirm avatar and background image, and update all fields
-import DateTimePicker from '@react-native-community/datetimepicker';
-import CustomDatePicker from './customdatepicker';
 import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
@@ -8,6 +6,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, Image, ImageBackground, Keyboard, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import tw from 'twrnc';
 import { useUserStore } from '../store/userStore';
+import CustomDatePicker from './customdatepicker';
 
 import { supabase } from '@/utils/supabase';
 import Camera from '../../assets/icons/camera_icon.svg';
@@ -215,11 +214,14 @@ export default function EditProfile() {
       }
 
       // 3. Update user fields in Supabase
-      // Ensure birthdate is a string in YYYY-MM-DD format for Supabase date type
+      // Ensure birthdate is a string in YYYY-MM-DD format for Supabase date type (local, not UTC)
       let birthdate: string | null = null;
       if (dob instanceof Date && !isNaN(dob.getTime()) && dobAvail) {
-        // Format as YYYY-MM-DD
-        birthdate = dob.toISOString().split('T')[0];
+        // Format as YYYY-MM-DD using local time to avoid timezone shift
+        const year = dob.getFullYear();
+        const month = String(dob.getMonth() + 1).padStart(2, '0');
+        const day = String(dob.getDate()).padStart(2, '0');
+        birthdate = `${year}-${month}-${day}`;
       } else if (typeof dob === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dob) && dobAvail) {
         birthdate = dob;
       } else {
@@ -690,21 +692,51 @@ export default function EditProfile() {
             <TouchableWithoutFeedback
               onPress={() => {
                 Keyboard.dismiss();
-                setDOB(dobInput);
                 setDOBOpen(false);
               }}
               accessible={false}
             >
               <View style={tw`w-full h-full`} />
             </TouchableWithoutFeedback>
-            <View style={tw`bg-black w-full h-80 flex-col p-4 absolute left-0 bottom-50`}>
-              <CustomDatePicker
-                initialDate={dob}
-                onDateChange={setDOBInput}
-                textColor='#FFFFFF'
-                maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() - 18))}
-                minimumDate={new Date(new Date().setFullYear(new Date().getFullYear() - 100))}
-              />
+            <View style={tw`w-full flex-col p-4 absolute left-0 bottom-50`} pointerEvents="box-none">
+              <TouchableWithoutFeedback onPress={() => {}}>
+                <View>
+                  <CustomDatePicker
+                    initialDate={dob}
+                    onDateChange={setDOBInput}
+                    onCancel={() => {
+                      setDOBInput(dob); // revert changes
+                      setDOBOpen(false);
+                    }}
+                    onSave={async (date) => {
+                      setDOB(date);
+                      setDOBAvail(true);
+                      setDOBOpen(false);
+                      // Update birthdate in database immediately
+                      try {
+                        const userID = user?.user_id || user?.id;
+                        if (!userID) throw new Error('User ID not found');
+                        const birthdate = date instanceof Date && !isNaN(date.getTime())
+                          ? date.toISOString().split('T')[0]
+                          : null;
+                        if (birthdate) {
+                          await supabase
+                            .from('users')
+                            .update({ birthdate })
+                            .eq('id', userID);
+                          setUser({ ...user, birthdate });
+                        }
+                      } catch (err) {
+                        // Optionally show error
+                        Alert.alert('Error', 'Failed to update birthdate.');
+                      }
+                    }}
+                    textColor="#FFFFFF"
+                    maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() - 18))}
+                    minimumDate={new Date(new Date().setFullYear(new Date().getFullYear() - 100))}
+                  />
+                </View>
+              </TouchableWithoutFeedback>
             </View>
           </View>
         )}
