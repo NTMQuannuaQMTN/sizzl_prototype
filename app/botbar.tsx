@@ -11,7 +11,7 @@ import HomeTab from '../assets/icons/hometab.svg';
 import HomeTabActive from '../assets/icons/hometab_active.svg';
 import DefaultAvatar from '../assets/icons/pfpdefault.svg';
 
-export default function BotBar({ currentTab = 'home' }: { currentTab?: 'home' | 'create' | 'profile' }) {
+export default function BotBar({ currentTab = 'home', selfView = false }: { currentTab?: 'home' | 'create' | 'profile', selfView?: boolean }) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { user, setUser } = useUserStore();
@@ -21,6 +21,7 @@ export default function BotBar({ currentTab = 'home' }: { currentTab?: 'home' | 
 
   // Only update avatarUri from Supabase in the background, but show local immediately
   useEffect(() => {
+    console.log(selfView);
     let isMounted = true;
     // Show local user image immediately, then update in background
     setAvatarUri(user?.profile_image || '');
@@ -73,10 +74,10 @@ export default function BotBar({ currentTab = 'home' }: { currentTab?: 'home' | 
         {/* Profile Tab */}
         <TouchableOpacity
           onPress={() => {
-            if (currentTab !== 'profile') router.replace({ pathname: '/(profile)/profile', params: { user_id: userID } });
+            router.replace({ pathname: '/(profile)/profile', params: { user_id: userID } });
           }}
           style={tw`flex-1 items-center justify-center`}
-          disabled={currentTab === 'profile'}
+          disabled={currentTab === 'profile' && selfView}
         >
           {avatarUri && avatarUri !== '' ? (
             <Image
