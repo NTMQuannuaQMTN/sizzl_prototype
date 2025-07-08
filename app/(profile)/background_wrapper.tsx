@@ -20,7 +20,7 @@ export default function ProfileBackgroundWrapper({
         <View
           style={{
             ...StyleSheet.absoluteFillObject,
-            backgroundColor: 'rgba(0,0,0,0.5)',
+            backgroundColor: 'rgba(0,0,0,0.75)',
           }}
         />
         <View style={{ flex: 1 }}>{children}</View>

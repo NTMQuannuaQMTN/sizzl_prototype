@@ -2,7 +2,7 @@ import { supabase } from '@/utils/supabase';
 import { useFocusEffect } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, Image, ImageBackground, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, Easing, Image, ImageBackground, Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 import Requested from '../../assets/icons/accept_question.svg';
 import Friend from '../../assets/icons/accepted.svg';
@@ -30,7 +30,57 @@ export default function ProfilePage() {
   const [self, setSelf] = useState(false);
   const { user, setUser } = useUserStore();
   const [friendStat, setFriendStat] = useState('');
+  const [userView, setUserView] = useState<UserView | null>(null);
   const [friendRequest, setFriendRequest] = useState(0);
+  // Animation state for friend request modal
+  const [showFriendModal, setShowFriendModal] = useState(false);
+  const friendModalAnim = React.useRef(new Animated.Value(1)).current; // 1 = hidden, 0 = visible
+  // Animation state for friend deleted modal
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const deleteModalAnim = React.useRef(new Animated.Value(1)).current;
+
+  // Animate friend request modal in/out
+  React.useEffect(() => {
+    if (friendRequest === 1 && userView) {
+      setShowFriendModal(true);
+      Animated.timing(friendModalAnim, {
+        toValue: 0,
+        duration: 300,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    } else if (showFriendModal) {
+      Animated.timing(friendModalAnim, {
+        toValue: 1,
+        duration: 250,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }).start(() => setShowFriendModal(false));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [friendRequest, userView]);
+
+  // Animate friend deleted modal in/out
+  React.useEffect(() => {
+    if (friendRequest === -1 && userView) {
+      setShowDeleteModal(true);
+      Animated.timing(deleteModalAnim, {
+        toValue: 0,
+        duration: 300,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    } else if (showDeleteModal) {
+      Animated.timing(deleteModalAnim, {
+        toValue: 1,
+        duration: 250,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }).start(() => setShowDeleteModal(false));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [friendRequest, userView]);
+
   type UserView = {
     id: string;
     username?: string;
@@ -46,7 +96,6 @@ export default function ProfilePage() {
     facebookurl?: string;
     friend_count?: number;
   };
-  const [userView, setUserView] = useState<UserView | null>(null);
 
   // Fetch user data from Supabase 'users' table and set user view
   useFocusEffect(
@@ -465,45 +514,87 @@ export default function ProfilePage() {
       </View>
       <BotBar currentTab="profile" selfView={self} />
 
-      {friendRequest === 1 && (
-        <TouchableOpacity style={tw`w-full h-full bg-black bg-opacity-60 absolute left-0 z-99`}
-          onPress={() => { setFriendRequest(0) }}>
-          <TouchableOpacity style={[tw`w-full h-fit px-6 pb-8 pt-4 gap-y-4 rounded-t-3xl bg-[#04192E] bg-opacity-80 mt-auto`]}
-            onPress={() => { }}>
-            <Text style={[tw`text-white text-lg`, { fontFamily: 'Nunito-Bold' }]}>@{userView?.username} sent you a friend request.</Text>
-            <TouchableOpacity style={tw`w-full h-12 bg-[#22C55E] rounded-full flex-row justify-center gap-x-4 items-center`}
+      {/* Friend request modal with slide-up animation */}
+      {showFriendModal && userView && (
+        <TouchableOpacity
+          style={tw`w-full h-full bg-black bg-opacity-60 absolute left-0 z-99 justify-end`}
+          activeOpacity={1}
+          onPress={() => { setFriendRequest(0); }}
+        >
+          <Animated.View
+            style={[
+              tw`w-full px-4 pt-6 pb-15 rounded-t-2xl bg-[#080B32]`,
+              {
+                borderTopLeftRadius: 24,
+                borderTopRightRadius: 24,
+                marginBottom: 0,
+                transform: [
+                  {
+                    translateY: friendModalAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0, 400],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            <Text style={[tw`text-white text-[14px] mb-4 text-center`, { fontFamily: 'Nunito-ExtraBold' }]}>@{userView.username} <Text style={{ fontFamily: 'Nunito-Medium' }}>sent you a friend request 🤝</Text></Text>
+            <TouchableOpacity style={tw`w-full h-12 bg-[#22C55E] rounded-full flex-row justify-center gap-x-4 items-center mb-2`}
               onPress={() => {
                 handleAnswerRequest(userView.id);
                 handleAcceptFriend(userView.id);
                 setFriendRequest(0);
               }}>
-              <Text style={[tw`text-white text-lg`, { fontFamily: 'Nunito-Bold' }]}>Accept</Text>
+              <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Accept</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={tw`w-full h-12 bg-[#E11D48] rounded-full flex-row justify-center gap-x-4 items-center`}
+            <TouchableOpacity style={tw`w-full h-12 bg-rose-700 rounded-full flex-row justify-center gap-x-4 items-center`}
               onPress={() => {
                 handleAnswerRequest(userView.id);
                 setFriendRequest(0);
               }}>
-              <Text style={[tw`text-white text-lg`, { fontFamily: 'Nunito-Bold' }]}>Reject</Text>
+              <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Reject</Text>
             </TouchableOpacity>
-          </TouchableOpacity>
+          </Animated.View>
         </TouchableOpacity>
       )}
 
-      {friendRequest === -1 && (
-        <TouchableOpacity style={tw`w-full h-full bg-black bg-opacity-60 absolute left-0 z-99`}
-          onPress={() => { setFriendRequest(0) }}>
-          <TouchableOpacity style={[tw`w-full h-fit px-6 pb-8 pt-4 gap-y-4 rounded-t-3xl bg-[#04192E] bg-opacity-80 mt-auto`]}
-            onPress={() => { }}>
-            <Text style={[tw`text-white text-lg`, { fontFamily: 'Nunito-Bold' }]}>@{userView?.username} is now your friend.</Text>
-            <TouchableOpacity style={tw`w-full h-12 bg-[#E11D48] rounded-full flex-row justify-center gap-x-4 items-center`}
+      {/* Friend deleted modal with slide-up animation */}
+      {showDeleteModal && userView && (
+        <TouchableOpacity style={tw`w-full h-full bg-black bg-opacity-60 absolute left-0 z-99 justify-end`}
+          activeOpacity={1}
+          onPress={() => { setFriendRequest(0); }}>
+          <Animated.View style={[
+            tw`w-full px-4 pt-6 pb-15 rounded-t-2xl bg-[#080B32]`,
+            {
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              marginBottom: 0,
+              transform: [
+                {
+                  translateY: deleteModalAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, 400],
+                  }),
+                },
+              ],
+            },
+          ]}>
+            <Text style={[tw`text-white text-[14px] mb-4 text-center`, { fontFamily: 'Nunito-Medium' }]}>
+              Rethink your decision being friend with <Text style={{ fontFamily: 'Nunito-ExtraBold' }}>@{userView.username}</Text>?
+            </Text>
+            <TouchableOpacity style={tw`w-full h-12 bg-rose-700 rounded-full flex-row justify-center gap-x-4 items-center mb-2`}
               onPress={() => {
                 handleDeleteFriend(userView.id);
                 setFriendRequest(0);
               }}>
-              <Text style={[tw`text-white text-lg`, { fontFamily: 'Nunito-Bold' }]}>Delete friend</Text>
+              <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Delete friend</Text>
             </TouchableOpacity>
-          </TouchableOpacity>
+            <TouchableOpacity style={tw`w-full h-12 bg-white/5 rounded-full flex-row justify-center gap-x-4 items-center`}
+              onPress={() => { setFriendRequest(0); }}>
+              <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Not now</Text>
+            </TouchableOpacity>
+          </Animated.View>
         </TouchableOpacity>
       )}
     </ProfileBackgroundWrapper>

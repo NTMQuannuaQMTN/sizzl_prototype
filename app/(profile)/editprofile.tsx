@@ -681,7 +681,7 @@ export default function EditProfile() {
                 style={tw`flex-row items-center justify-center mt-3`}
                 onPress={() => router.replace({ pathname: '/(profile)/profile', params: { user_id: user?.id } })}
               >
-                <Text style={[tw`text-white text-[12px]`, { fontFamily: 'Nunito-Medium' }]}>Not now</Text>
+                <Text style={[tw`text-gray-400 text-[12px]`, { fontFamily: 'Nunito-Medium' }]}>Not now</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>

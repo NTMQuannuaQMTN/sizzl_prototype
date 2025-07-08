@@ -187,7 +187,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
   return (
     <View
       style={[
-        tw`flex-col bg-[#04192E] rounded-2xl px-4 pb-15 pt-6`
+        tw`flex-col bg-[#080B32] rounded-2xl px-4 pb-15 pt-6`
       ]}
     >
       <View style={tw`flex-row justify-between px-10`}>
