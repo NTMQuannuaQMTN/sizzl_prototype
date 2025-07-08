@@ -2,8 +2,8 @@
 import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { Alert, Image, ImageBackground, Keyboard, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Alert, Animated, Easing, Image, ImageBackground, Keyboard, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import tw from 'twrnc';
 import { useUserStore } from '../store/userStore';
 import CustomDatePicker from './customdatepicker';
@@ -698,49 +698,149 @@ export default function EditProfile() {
             >
               <View style={tw`w-full h-full`} />
             </TouchableWithoutFeedback>
-            <View style={tw`w-full flex-col p-4 absolute left-0 bottom-50`} pointerEvents="box-none">
-              <TouchableWithoutFeedback onPress={() => {}}>
-                <View>
-                  <CustomDatePicker
-                    initialDate={dob}
-                    onDateChange={setDOBInput}
-                    onCancel={() => {
-                      setDOBInput(dob); // revert changes
-                      setDOBOpen(false);
-                    }}
-                    onSave={async (date) => {
-                      setDOB(date);
-                      setDOBAvail(true);
-                      setDOBOpen(false);
-                      // Update birthdate in database immediately
-                      try {
-                        const userID = user?.user_id || user?.id;
-                        if (!userID) throw new Error('User ID not found');
-                        const birthdate = date instanceof Date && !isNaN(date.getTime())
-                          ? date.toISOString().split('T')[0]
-                          : null;
-                        if (birthdate) {
-                          await supabase
-                            .from('users')
-                            .update({ birthdate })
-                            .eq('id', userID);
-                          setUser({ ...user, birthdate });
-                        }
-                      } catch (err) {
-                        // Optionally show error
-                        Alert.alert('Error', 'Failed to update birthdate.');
-                      }
-                    }}
-                    textColor="#FFFFFF"
-                    maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() - 18))}
-                    minimumDate={new Date(new Date().setFullYear(new Date().getFullYear() - 100))}
-                  />
-                </View>
-              </TouchableWithoutFeedback>
-            </View>
+            {/* Animated Date Picker Modal */}
+            <AnimatedDatePickerModal
+              visible={dobOpen}
+              onCancel={() => {
+                setDOBInput(dob);
+                setDOBOpen(false);
+              }}
+              onSave={async (date) => {
+                setDOB(date);
+                setDOBAvail(true);
+                setDOBOpen(false);
+                // Update birthdate in database immediately
+                try {
+                  const userID = user?.user_id || user?.id;
+                  if (!userID) throw new Error('User ID not found');
+                  const birthdate = date instanceof Date && !isNaN(date.getTime())
+                    ? date.toISOString().split('T')[0]
+                    : null;
+                  if (birthdate) {
+                    await supabase
+                      .from('users')
+                      .update({ birthdate })
+                      .eq('id', userID);
+                    setUser({ ...user, birthdate });
+                  }
+                } catch (err) {
+                  // Optionally show error
+                  Alert.alert('Error', 'Failed to update birthdate.');
+                }
+              }}
+              initialDate={dob}
+              onDateChange={setDOBInput}
+              textColor="#FFFFFF"
+              maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() - 15))}
+              minimumDate={new Date(new Date().setFullYear(new Date().getFullYear() - 100))}
+            />
           </View>
         )}
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback >
   );
 }
+
+// AnimatedDatePickerModal: wrapper for CustomDatePicker with slide-up animation and overlay fade
+const AnimatedDatePickerModal = ({
+  visible,
+  onCancel,
+  onSave,
+  initialDate,
+  onDateChange,
+  textColor,
+  maximumDate,
+  minimumDate
+}: {
+  visible: boolean;
+  onCancel: () => void;
+  onSave: (date: Date) => void;
+  initialDate: Date;
+  onDateChange: (date: Date) => void;
+  textColor?: string;
+  maximumDate?: Date;
+  minimumDate?: Date;
+}) => {
+  const modalHeight = 370;
+  const slideAnim = useRef(new Animated.Value(1)).current; // always start hidden
+  const overlayAnim = useRef(new Animated.Value(0)).current; // overlay opacity
+  const [shouldRender, setShouldRender] = useState(visible);
+
+  useEffect(() => {
+    if (visible) {
+      setShouldRender(true);
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 300,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(overlayAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        })
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: 1,
+          duration: 300,
+          easing: Easing.in(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(overlayAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        })
+      ]).start(() => setShouldRender(false));
+    }
+  }, [visible]);
+
+  if (!shouldRender) return null;
+
+  return (
+    <Animated.View style={[tw`w-full h-full flex-col-reverse absolute top-0 left-0 z-[99]`, { opacity: overlayAnim }]} pointerEvents={visible ? 'auto' : 'none'}>
+      <TouchableWithoutFeedback
+        onPress={onCancel}
+        accessible={false}
+      >
+        <View style={tw`w-full h-full`} />
+      </TouchableWithoutFeedback>
+      <Animated.View
+        style={[
+          tw`w-full flex-col absolute left-0`,
+          {
+            bottom: 0,
+            transform: [
+              {
+                translateY: slideAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, modalHeight],
+                }),
+              },
+            ],
+            zIndex: 100,
+          },
+        ]}
+        pointerEvents={visible ? 'auto' : 'none'}
+      >
+        <TouchableWithoutFeedback onPress={() => {}}>
+          <View>
+            <CustomDatePicker
+              initialDate={initialDate}
+              onDateChange={onDateChange}
+              onCancel={onCancel}
+              onSave={onSave}
+              textColor={textColor}
+              maximumDate={maximumDate}
+              minimumDate={minimumDate}
+            />
+          </View>
+        </TouchableWithoutFeedback>
+      </Animated.View>
+    </Animated.View>
+  );
+};

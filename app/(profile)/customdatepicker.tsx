@@ -38,7 +38,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
   const currentYear = new Date().getFullYear();
   const minYear = minimumDate ? minimumDate.getFullYear() : currentYear - 100;
   const maxYear = maximumDate ? maximumDate.getFullYear() : currentYear;
-  const years = Array.from({ length: maxYear - minYear + 1 }, (_, i) => maxYear - i);
+  const years = Array.from({ length: maxYear - minYear + 1 }, (_, i) => minYear + i);
   
   const getDaysInMonth = (month: number, year: number): number => {
     return new Date(year, month + 1, 0).getDate();
@@ -187,12 +187,12 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
   return (
     <View
       style={[
-        tw`flex-col bg-[#04192E] bg-opacity-95 rounded-3xl px-4 py-4`
+        tw`flex-col bg-[#04192E] rounded-2xl px-4 pb-15 pt-6`
       ]}
     >
-      <View style={tw`flex-row`}>
+      <View style={tw`flex-row justify-between px-10`}>
         {/* Month Picker */}
-        <View style={tw`flex-2 mr-3 items-center`}>
+        <View style={tw`items-center`}>
           <Text style={[tw`text-[12px] mb-2`, { color: textColor, fontFamily: 'Nunito-Bold', opacity: 0.7 }]}>MONTH</Text>
           {renderPicker(
             months,
@@ -206,7 +206,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
         </View>
 
         {/* Day Picker */}
-        <View style={tw`flex-1 mr-3 items-center`}>
+        <View style={tw`items-center`}>
           <Text style={[tw`text-[12px] mb-2`, { color: textColor, fontFamily: 'Nunito-Bold', opacity: 0.7 }]}>DAY</Text>
           {renderPicker(
             days,
@@ -217,7 +217,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
         </View>
 
         {/* Year Picker */}
-        <View style={tw`flex-1 items-center`}>
+        <View style={tw`items-center`}>
           <Text style={[tw`text-[12px] mb-2`, { color: textColor, fontFamily: 'Nunito-Bold', opacity: 0.7 }]}>YEAR</Text>
           {renderPicker(
             years,
@@ -229,18 +229,18 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
       </View>
 
       {/* Action Buttons */}
-      <View style={tw`flex-row justify-end mt-4`}>
+      <View style={tw`flex-row justify-center mt-4 gap-2`}> 
         <TouchableOpacity
           onPress={onCancel}
-          style={tw`py-2 px-5 rounded-xl bg-white/10 mr-1.5`}
+          style={tw`py-2.5 flex-1 rounded-xl bg-white/10`}
         >
-          <Text style={[tw`text-[14px]`, { color: textColor, fontFamily: 'Nunito-ExtraBold' }]}>Cancel</Text>
+          <Text style={[tw`text-[14px] text-center`, { color: textColor, fontFamily: 'Nunito-ExtraBold' }]}>Cancel</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => onSave && onSave(new Date(selectedYear, selectedMonth, selectedDay))}
-          style={tw`py-2 px-5 rounded-xl bg-[#7A5CFA]`}
+          style={tw`py-2.5 flex-1 rounded-xl bg-[#7A5CFA]`}
         >
-          <Text style={[tw`text-[14px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Save</Text>
+          <Text style={[tw`text-[14px] text-white text-center`, { fontFamily: 'Nunito-ExtraBold' }]}>Save</Text>
         </TouchableOpacity>
       </View>
     </View>
