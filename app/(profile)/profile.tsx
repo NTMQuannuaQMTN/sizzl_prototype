@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, Image, Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
+import Requested from '../../assets/icons/accept_question.svg';
 import AddFriend from '../../assets/icons/add_friend.svg';
 import Edit from '../../assets/icons/edit-icon.svg';
 import FBIcon from '../../assets/icons/fb-icon.svg';
@@ -273,6 +274,11 @@ export default function ProfilePage() {
             }}>
             <Waiting width={20} height={20} />
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Requested</Text>
+          </TouchableOpacity>}
+          {(!self && friendStat === 'requested') && <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-[#7A5CFA] border border-white/10 flex-1 py-2 rounded-xl`}
+            onPress={() => {}}>
+            <Requested width={20} height={20} />
+            <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Accept?</Text>
           </TouchableOpacity>}
           <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-white/5 border border-white/10 flex-1 py-2 rounded-xl`}>
             <Share width={20} height={20} />
