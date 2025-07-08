@@ -201,7 +201,7 @@ export default function ProfilePage() {
     // Update the friend_count in the database for the other user as well
     const { error: updateOtherUserErr } = await supabase
       .from('users')
-      .update({ friend_count: (userView?.friend_count ?? 0) + 1 })
+      .update({ friend_count: (userView?.friend_count ?? 1) })
       .eq('id', id);
 
     if (updateOtherUserErr) {
@@ -211,7 +211,7 @@ export default function ProfilePage() {
     // Update the friend_count in the database for the current user
     const { error: updateUserErr } = await supabase
       .from('users')
-      .update({ friend_count: (userView?.friend_count ?? 0) + 1 })
+      .update({ friend_count: (user.friend_count ?? 1) })
       .eq('id', user.id);
 
     if (updateUserErr) {
@@ -238,6 +238,28 @@ export default function ProfilePage() {
       console.error('Delete error');
       Alert.alert('Failed to remove request');
       return;
+    }
+
+    setUserView((userView) => userView ? { ...userView, friend_count: (userView.friend_count ?? 1) - 1 } : userView);
+    setUser((user: any) => ({ ...user, friend_count: (user.friend_count ?? 1) - 1 }));
+
+    const { error: updateOtherUserErr } = await supabase
+      .from('users')
+      .update({ friend_count: (userView?.friend_count ?? 0) })
+      .eq('id', id);
+
+    if (updateOtherUserErr) {
+      console.error('Failed to update friend count for other user:', updateOtherUserErr.message);
+    }
+
+    // Update the friend_count in the database for the current user
+    const { error: updateUserErr } = await supabase
+      .from('users')
+      .update({ friend_count: (user.friend_count ?? 0) })
+      .eq('id', user.id);
+
+    if (updateUserErr) {
+      console.error('Failed to update friend count:', updateUserErr.message);
     }
 
     checkRequest(id);
@@ -283,6 +305,30 @@ export default function ProfilePage() {
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'requests', filter: `requestee=eq.${user.id}` },
+        (payload) => {
+          // Someone sent a friend request to me
+          // Re-run checkRequest for the sender's id
+          if (payload.new && payload.new.user_id) {
+            checkRequest(payload.new.user_id);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    // Subscribe to real-time changes in the 'requests' table where requestee is the current user
+    const channel = supabase
+      .channel('public:friends')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'friends', filter: `friend=eq.${user.id}` },
         (payload) => {
           // Someone sent a friend request to me
           // Re-run checkRequest for the sender's id
