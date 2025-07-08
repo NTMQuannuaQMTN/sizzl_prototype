@@ -4,7 +4,7 @@ import * as FileSystem from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, Image, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, ImageBackground, Keyboard, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import tw from 'twrnc';
 import { useUserStore } from '../store/userStore';
 
@@ -17,6 +17,18 @@ import XIcon from '../../assets/icons/x-icon.svg';
 import ProfileBackgroundWrapper from './background_wrapper';
 
 export default function EditProfile() {
+  // Focus state for each input
+  const [focus, setFocus] = useState({
+    firstname: false,
+    lastname: false,
+    username: false,
+    bio: false,
+    instagramurl: false,
+    xurl: false,
+    snapchaturl: false,
+    facebookurl: false,
+    birthdate: false,
+  });
   const router = useRouter();
   const { user, setUser } = useUserStore();
   const [input, setInput] = useState({
@@ -38,7 +50,7 @@ export default function EditProfile() {
   const [loading, setLoading] = useState(false);
 
   // For modal picker, just set dobInput on change
-  const onChangeDOB = ({ type }, date) => {
+  const onChangeDOB = ({ type }, date : any) => {
     if (type == 'set') { setDOBInput(date) }
     else { setDOBOpen(false) }
   }
@@ -248,214 +260,466 @@ export default function EditProfile() {
   };
 
   return (
-    <ProfileBackgroundWrapper self={true} imageUrl={bgInput}>
-      <View style={{ flex: 1, height: 'auto', marginVertical: 40, marginHorizontal: 'auto', marginBottom: 100, width: '90%' }}>
-        <Text style={[tw`w-full text-center text-white text-md mb-4`, { fontFamily: 'Nunito-ExtraBold' }]}>Edit profile</Text>
+    <TouchableWithoutFeedback
+      onPress={() => {
+        Keyboard.dismiss();
+        if (dobOpen) {
+          setDOB(dobInput);
+          setDOBOpen(false);
+        }
+      }}
+      accessible={false}
+    >
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      >
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingBottom: 120 }}
+        >
+          <ProfileBackgroundWrapper self={true} imageUrl={bgInput}>
+            <View style={{ marginVertical: 50, marginHorizontal: 'auto', width: '90%' }}>
+        <Text style={[tw`w-full text-center text-white text-[15px] mb-4`, { fontFamily: 'Nunito-ExtraBold' }]}>Edit profile</Text>
         {/* Change background button */}
         <TouchableOpacity
           style={[
-            tw`flex-row items-center justify-center mb-4`,
-            { backgroundColor: 'white', borderRadius: 8, paddingVertical: 8, paddingHorizontal: 16 }
+            tw`flex-row items-center justify-center mb-4 bg-white`,
+            { borderRadius: 8, paddingVertical: 8, paddingHorizontal: 16 }
           ]}
           onPress={pickBackground} // Placeholder for background change logic
-          activeOpacity={0.8}
+          activeOpacity={0.7}
         >
           <View style={tw`flex-row gap-2 items-center`}>
             <Camera></Camera>
-            <Text style={[tw`text-black font-bold`, { fontFamily: 'Nunito-Bold', fontSize: 12 }]}>Change background</Text>
+            <Text style={[tw`text-black`, { fontFamily: 'Nunito-ExtraBold', fontSize: 13 }]}>Change background</Text>
           </View>
         </TouchableOpacity>
         {/* Profile picture */}
-        <TouchableOpacity style={[tw`mb-2 rounded-full border-2 border-white mx-auto`, { width: 100, height: 100, overflow: 'hidden', backgroundColor: '#222' }]}
-          onPress={pickAvatar}>
-          {/* Fast loading profile image with fallback and cache busting */}
-          {avtInput ? (
-            <Image
-              source={{ uri: avtInput + (avtInput.startsWith('file') ? '' : `?cb=${user?.id || ''}`) }}
-              style={{ width: 100, height: 100 }}
-              resizeMode="cover"
-              defaultSource={require('../../assets/icons/pfpdefault.svg')}
-              onError={() => { }}
-            />
-          ) : (
-            <Image
-              source={require('../../assets/icons/pfpdefault.svg')}
-              style={{ width: 100, height: 100 }}
-              resizeMode="cover"
-            />
-          )}
-        </TouchableOpacity>
+        <View style={{ alignItems: 'center', marginBottom: 8 }}>
+          <View style={{ width: 100, height: 100, position: 'relative' }}>
+            <TouchableOpacity
+              style={[tw`rounded-full border-2 border-white`, { width: 100, height: 100, overflow: 'hidden', backgroundColor: '#222' }]}
+              onPress={pickAvatar}
+              activeOpacity={0.7}
+            >
+              {/* Fast loading profile image with fallback and cache busting */}
+              {avtInput ? (
+                <Image
+                  source={{ uri: avtInput + (avtInput.startsWith('file') ? '' : `?cb=${user?.id || ''}`) }}
+                  style={{ width: 100, height: 100 }}
+                  resizeMode="cover"
+                  defaultSource={require('../../assets/icons/pfpdefault.svg')}
+                  onError={() => { }}
+                />
+              ) : (
+                <Image
+                  source={require('../../assets/icons/pfpdefault.svg')}
+                  style={{ width: 100, height: 100 }}
+                  resizeMode="cover"
+                />
+              )}
+            </TouchableOpacity>
+            {/* Camera icon absolutely positioned OVER the border and image */}
+            <TouchableOpacity
+              onPress={pickAvatar}
+              activeOpacity={0.7}
+              style={{ position: 'absolute', bottom: 0, right: 0, backgroundColor: 'white', borderRadius: 999, width: 30, height: 30, alignItems: 'center', justifyContent: 'center', elevation: 3, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, zIndex: 10 }}
+            >
+              <Camera width={18} height={18} />
+            </TouchableOpacity>
+          </View>
+        </View>
         {/* Input fields */}
         <View style={{ width: '100%' }}>
           <View style={tw`flex-row mb-2`}>
-            <View style={[tw`flex-1 mr-2`, { backgroundColor: 'rgba(0,0,0,0.25)', borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }]}>
-              <TextInput style={[tw`text-white px-4 py-2`, { fontFamily: 'Nunito-Medium', opacity: 0.7 }]}
-                placeholder='First name'
-                value={input.firstname}
-                onChangeText={(newName) => setInput(input => ({ ...input, firstname: newName }))}
-                placeholderTextColor={'#9CA3AF'}></TextInput>
+            {/* First name */}
+            <View style={tw`flex-1 mr-2`}>
+              <ImageBackground
+                source={require('../../assets/images/galaxy.jpg')}
+                imageStyle={{ borderRadius: 8, opacity: focus.firstname ? 0.3 : 0 }}
+                style={{ borderRadius: 8 }}
+              >
+                <TextInput
+                  style={[
+                    tw`px-4 py-2 text-center text-[13px]`,
+                    {
+                      fontFamily: 'Nunito-Medium',
+                      color: input.firstname && input.firstname.trim() ? '#fff' : '#fff',
+                      borderWidth: 1,
+                      borderColor: focus.firstname ? '#FFFFFF' : 'rgba(255,255,255,0.1)',
+                      backgroundColor: focus.firstname ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.05)',
+                      borderRadius: 8,
+                    }
+                  ]}
+                  placeholder='First name'
+                  value={input.firstname}
+                  onChangeText={(newName) => setInput(input => ({ ...input, firstname: newName }))}
+                  placeholderTextColor={'#9CA3AF'}
+                  onFocus={() => setFocus(f => ({ ...f, firstname: true }))}
+                  onBlur={() => setFocus(f => ({ ...f, firstname: false }))}
+                />
+              </ImageBackground>
             </View>
-            <View style={[tw`flex-1 ml-2`, { backgroundColor: 'rgba(0,0,0,0.25)', borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }]}>
-              <TextInput style={[tw`text-white px-4 py-2`, { fontFamily: 'Nunito-Medium', opacity: 0.7 }]}
-                placeholder='Last name'
-                value={input.lastname}
-                onChangeText={(newName) => setInput(input => ({ ...input, lastname: newName }))}
-                placeholderTextColor={'#9CA3AF'}></TextInput>
+            {/* Last name */}
+            <View style={tw`flex-1 ml-2`}>
+              <ImageBackground
+                source={require('../../assets/images/galaxy.jpg')}
+                imageStyle={{ borderRadius: 8, opacity: focus.lastname ? 0.3 : 0 }}
+                style={{ borderRadius: 8 }}
+              >
+                <TextInput
+                  style={[
+                    tw`px-4 py-2 text-center text-[13px]`,
+                    {
+                      fontFamily: 'Nunito-Medium',
+                      color: input.lastname && input.lastname.trim() ? '#fff' : '#fff',
+                      borderWidth: 1,
+                      borderColor: focus.lastname ? '#FFFFFF' : 'rgba(255,255,255,0.1)',
+                      backgroundColor: focus.lastname ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.05)',
+                      borderRadius: 8,
+                    }
+                  ]}
+                  placeholder='Last name'
+                  value={input.lastname}
+                  onChangeText={(newName) => setInput(input => ({ ...input, lastname: newName }))}
+                  placeholderTextColor={'#9CA3AF'}
+                  onFocus={() => setFocus(f => ({ ...f, lastname: true }))}
+                  onBlur={() => setFocus(f => ({ ...f, lastname: false }))}
+                />
+              </ImageBackground>
             </View>
           </View>
-          <View style={[tw`mb-2`, { backgroundColor: 'rgba(0,0,0,0.25)', borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }]}>
-            <TextInput style={[tw`text-white px-4 py-2`, { fontFamily: 'Nunito-Medium', opacity: 0.7 }]}
-              placeholder='Username'
-              value={input.username}
-              onChangeText={(newName) => setInput(input => ({ ...input, username: newName }))}
-              placeholderTextColor={'#9CA3AF'}></TextInput>
+          <View style={tw`mb-2`}>
+            <ImageBackground
+              source={require('../../assets/images/galaxy.jpg')}
+              imageStyle={{ borderRadius: 8, opacity: focus.username ? 0.3 : 0 }}
+              style={{ borderRadius: 8 }}
+            >
+              <TextInput
+                style={[
+                  tw`px-4 py-2 text-center text-[13px]`,
+                  {
+                    fontFamily: 'Nunito-Medium',
+                    color: input.username && input.username.trim() ? '#fff' : '#fff',
+                    borderWidth: 1,
+                    borderColor: focus.username ? '#FFFFFF' : 'rgba(255,255,255,0.1)',
+                    backgroundColor: focus.username ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.05)',
+                    borderRadius: 8,
+                  }
+                ]}
+                placeholder='Username'
+                value={input.username}
+                onChangeText={(newName) => setInput(input => ({ ...input, username: newName }))}
+                placeholderTextColor={'#9CA3AF'}
+                onFocus={() => setFocus(f => ({ ...f, username: true }))}
+                onBlur={() => setFocus(f => ({ ...f, username: false }))}
+              />
+            </ImageBackground>
           </View>
-          <View style={[tw`mb-2`, { backgroundColor: 'rgba(0,0,0,0.25)', borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }]}>
-            <TextInput style={[tw`text-white px-4 py-2`, { fontFamily: 'Nunito-Medium', opacity: 0.7 }]}
-              placeholder='Add a bio (optional)'
-              value={input.bio}
-              onChangeText={(newInp) => setInput(input => ({ ...input, bio: newInp }))}
-              placeholderTextColor={'#9CA3AF'}></TextInput>
+          <View style={tw`mb-2`}>
+            <ImageBackground
+              source={require('../../assets/images/galaxy.jpg')}
+              imageStyle={{ borderRadius: 8, opacity: focus.bio ? 0.3 : 0 }}
+              style={{ borderRadius: 8 }}
+            >
+              <TextInput
+                style={[
+                  tw`px-4 py-2 text-center text-[13px]`,
+                  {
+                    fontFamily: 'Nunito-Medium',
+                    color: input.bio && input.bio.trim() ? '#fff' : '#fff',
+                    borderWidth: 1,
+                    borderColor: focus.bio ? '#FFFFFF' : 'rgba(255,255,255,0.1)',
+                    backgroundColor: focus.bio ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.05)',
+                    borderRadius: 8,
+                  }
+                ]}
+                placeholder='Add a bio (optional)'
+                value={input.bio}
+                onChangeText={(newInp) => setInput(input => ({ ...input, bio: newInp }))}
+                placeholderTextColor={'#9CA3AF'}
+                onFocus={() => setFocus(f => ({ ...f, bio: true }))}
+                onBlur={() => setFocus(f => ({ ...f, bio: false }))}
+              />
+            </ImageBackground>
           </View>
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => setDOBOpen(true)}
-            style={[tw`mb-2`, { backgroundColor: 'rgba(0,0,0,0.25)', borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' }]}
+            style={tw`mb-3`}
             accessibilityRole="button"
             accessibilityLabel="Add your birthday"
           >
-            <TextInput
-              style={[tw`text-white px-4 py-2`, { fontFamily: 'Nunito-Medium', opacity: 0.7 }]}
-              placeholder='Add your birthday (optional)'
-              value={dobAvail ? formatDate(dob) : ''}
-              editable={false}
-              pointerEvents="none"
-              placeholderTextColor={'#9CA3AF'}
-            />
+            <ImageBackground
+              source={require('../../assets/images/galaxy.jpg')}
+              imageStyle={{ borderRadius: 8, opacity: focus.birthdate ? 0.3 : 0 }}
+              style={{ borderRadius: 8 }}
+            >
+              <TextInput
+                style={[
+                  tw`px-4 py-2 text-center text-[13px]`,
+                  {
+                    fontFamily: 'Nunito-Medium',
+                    color: dobAvail && dob ? '#fff' : '#fff',
+                    borderWidth: 1,
+                    borderColor: focus.birthdate ? '#FFFFFF' : 'rgba(255,255,255,0.1)',
+                    backgroundColor: focus.birthdate ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.05)',
+                    borderRadius: 8,
+                  }
+                ]}
+                placeholder='Add your birthday (optional)'
+                value={dobAvail ? formatDate(dob) : ''}
+                editable={false}
+                pointerEvents="none"
+                placeholderTextColor={'#9CA3AF'}
+                onFocus={() => setFocus(f => ({ ...f, birthdate: true }))}
+                onBlur={() => setFocus(f => ({ ...f, birthdate: false }))}
+              />
+            </ImageBackground>
           </TouchableOpacity>
 
-          <Text style={[tw`text-white mb-2`, { fontFamily: 'Nunito-Medium', fontSize: 14 }]}>
-            Add social media (optional)
+          <Text style={[tw`text-white mb-2`, { fontFamily: 'Nunito-Bold', fontSize: 14 }]}>
+            Your social media (optional)
           </Text>
           <View style={{ gap: 8, marginBottom: 16 }}>
             {/* Instagram */}
-            <View style={[
-              tw`flex-row items-center`,
-              { backgroundColor: 'rgba(0,0,0,0.25)', borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 12, height: 48 }
-            ]}>
-              <InstagramIcon width={22} height={22} />
-              <TextInput
-                style={[tw`text-white ml-3 flex-1`, { fontFamily: 'Nunito-Medium', opacity: 0.7 }]}
-                placeholder="username"
-                value={input.instagramurl}
-                onChangeText={(newInp) => setInput(input => ({ ...input, instagramurl: newInp }))}
-                placeholderTextColor="#9CA3AF"
-              />
-            </View>
+            <ImageBackground
+              source={require('../../assets/images/galaxy.jpg')}
+              imageStyle={{ borderRadius: 8, opacity: focus.instagramurl ? 0.3 : 0 }}
+              style={{ borderRadius: 8, marginBottom: 0 }}
+            >
+              <View
+                style={[
+                  tw`flex-row items-center bg-white/5 rounded-lg`,
+                  {
+                    borderWidth: 1,
+                    borderColor: focus.instagramurl ? '#fff' : 'rgba(255,255,255,0.1)',
+                    height: 48,
+                    paddingHorizontal: 12,
+                    alignItems: 'center',
+                  },
+                ]}
+              >
+                <InstagramIcon width={22} height={22} style={{ marginRight: 8, zIndex: 1 }} />
+                <TextInput
+                  style={[
+                    tw`flex-1 text-left px-2 text-[13px]`,
+                    {
+                      fontFamily: 'Nunito-Medium',
+                      color: input.instagramurl && input.instagramurl.trim() ? '#fff' : '#fff',
+                      backgroundColor: 'transparent',
+                      borderWidth: 0,
+                      height: 40,
+                      textAlignVertical: 'center',
+                      paddingVertical: 0,
+                      zIndex: 1,
+                    },
+                  ]}
+                  placeholder="username"
+                  value={input.instagramurl}
+                  onChangeText={(newInp) => setInput(input => ({ ...input, instagramurl: newInp }))}
+                  placeholderTextColor="#9CA3AF"
+                  onFocus={() => setFocus(f => ({ ...f, instagramurl: true }))}
+                  onBlur={() => setFocus(f => ({ ...f, instagramurl: false }))}
+                />
+              </View>
+            </ImageBackground>
             {/* X (Twitter) */}
-            <View style={[
-              tw`flex-row items-center`,
-              { backgroundColor: 'rgba(0,0,0,0.25)', borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 12, height: 48 }
-            ]}>
-              <XIcon width={22} height={22} />
-              <TextInput
-                style={[tw`text-white ml-3 flex-1`, { fontFamily: 'Nunito-Medium', opacity: 0.7 }]}
-                placeholder="username"
-                value={input.xurl}
-                onChangeText={(newInp) => setInput(input => ({ ...input, xurl: newInp }))}
-                placeholderTextColor="#9CA3AF"
-              />
-            </View>
+            <ImageBackground
+              source={require('../../assets/images/galaxy.jpg')}
+              imageStyle={{ borderRadius: 8, opacity: focus.xurl ? 0.3 : 0 }}
+              style={{ borderRadius: 8, marginBottom: 0 }}
+            >
+              <View
+                style={[
+                  tw`flex-row items-center bg-white/5 rounded-lg`,
+                  {
+                    borderWidth: 1,
+                    borderColor: focus.xurl ? '#fff' : 'rgba(255,255,255,0.1)',
+                    height: 48,
+                    paddingHorizontal: 12,
+                    alignItems: 'center',
+                  },
+                ]}
+              >
+                <XIcon width={22} height={22} style={{ marginRight: 8, zIndex: 1 }} />
+                <TextInput
+                  style={[
+                    tw`flex-1 text-left px-2 text-[13px]`,
+                    {
+                      fontFamily: 'Nunito-Medium',
+                      color: input.xurl && input.xurl.trim() ? '#fff' : '#fff',
+                      backgroundColor: 'transparent',
+                      borderWidth: 0,
+                      height: 40,
+                      textAlignVertical: 'center',
+                      paddingVertical: 0,
+                      zIndex: 1,
+                    },
+                  ]}
+                  placeholder="username"
+                  value={input.xurl}
+                  onChangeText={(newInp) => setInput(input => ({ ...input, xurl: newInp }))}
+                  placeholderTextColor="#9CA3AF"
+                  onFocus={() => setFocus(f => ({ ...f, xurl: true }))}
+                  onBlur={() => setFocus(f => ({ ...f, xurl: false }))}
+                />
+              </View>
+            </ImageBackground>
             {/* Snapchat */}
-            <View style={[
-              tw`flex-row items-center`,
-              { backgroundColor: 'rgba(0,0,0,0.25)', borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 12, height: 48 }
-            ]}>
-              <SnapchatIcon width={22} height={22} />
-              <TextInput
-                style={[tw`text-white ml-3 flex-1`, { fontFamily: 'Nunito-Medium', opacity: 0.7 }]}
-                placeholder="username"
-                value={input.snapchaturl}
-                onChangeText={(newInp) => setInput(input => ({ ...input, snapchaturl: newInp }))}
-                placeholderTextColor="#9CA3AF"
-              />
-            </View>
+            <ImageBackground
+              source={require('../../assets/images/galaxy.jpg')}
+              imageStyle={{ borderRadius: 8, opacity: focus.snapchaturl ? 0.3 : 0 }}
+              style={{ borderRadius: 8, marginBottom: 0 }}
+            >
+              <View
+                style={[
+                  tw`flex-row items-center bg-white/5 rounded-lg`,
+                  {
+                    borderWidth: 1,
+                    borderColor: focus.snapchaturl ? '#fff' : 'rgba(255,255,255,0.1)',
+                    height: 48,
+                    paddingHorizontal: 12,
+                    alignItems: 'center',
+                  },
+                ]}
+              >
+                <SnapchatIcon width={22} height={22} style={{ marginRight: 8, zIndex: 1 }} />
+                <TextInput
+                  style={[
+                    tw`flex-1 text-left px-2 text-[13px]`,
+                    {
+                      fontFamily: 'Nunito-Medium',
+                      color: input.snapchaturl && input.snapchaturl.trim() ? '#fff' : '#fff',
+                      backgroundColor: 'transparent',
+                      borderWidth: 0,
+                      height: 40,
+                      textAlignVertical: 'center',
+                      paddingVertical: 0,
+                      zIndex: 1,
+                    },
+                  ]}
+                  placeholder="username"
+                  value={input.snapchaturl}
+                  onChangeText={(newInp) => setInput(input => ({ ...input, snapchaturl: newInp }))}
+                  placeholderTextColor="#9CA3AF"
+                  onFocus={() => setFocus(f => ({ ...f, snapchaturl: true }))}
+                  onBlur={() => setFocus(f => ({ ...f, snapchaturl: false }))}
+                />
+              </View>
+            </ImageBackground>
             {/* Facebook */}
-            <View style={[
-              tw`flex-row items-center`,
-              { backgroundColor: 'rgba(0,0,0,0.25)', borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 12, height: 48 }
-            ]}>
-              <FBIcon width={22} height={22} />
-              <TextInput
-                style={[tw`text-white ml-3 flex-1`, { fontFamily: 'Nunito-Medium', opacity: 0.7 }]}
-                placeholder="username"
-                value={input.facebookurl}
-                onChangeText={(newInp) => setInput(input => ({ ...input, facebookurl: newInp }))}
-                placeholderTextColor="#9CA3AF"
-              />
-            </View>
+            <ImageBackground
+              source={require('../../assets/images/galaxy.jpg')}
+              imageStyle={{ borderRadius: 8, opacity: focus.facebookurl ? 0.3 : 0 }}
+              style={{ borderRadius: 8, marginBottom: 0 }}
+            >
+              <View
+                style={[
+                  tw`flex-row items-center bg-white/5 rounded-lg`,
+                  {
+                    borderWidth: 1,
+                    borderColor: focus.facebookurl ? '#fff' : 'rgba(255,255,255,0.1)',
+                    height: 48,
+                    paddingHorizontal: 12,
+                    alignItems: 'center',
+                  },
+                ]}
+              >
+                <FBIcon width={22} height={22} style={{ marginRight: 8, zIndex: 1 }} />
+                <TextInput
+                  style={[
+                    tw`flex-1 text-left px-2 text-[13px]`,
+                    {
+                      fontFamily: 'Nunito-Medium',
+                      color: input.facebookurl && input.facebookurl.trim() ? '#fff' : '#fff',
+                      backgroundColor: 'transparent',
+                      borderWidth: 0,
+                      height: 40,
+                      textAlignVertical: 'center',
+                      paddingVertical: 0,
+                      zIndex: 1,
+                    },
+                  ]}
+                  placeholder="username"
+                  value={input.facebookurl}
+                  onChangeText={(newInp) => setInput(input => ({ ...input, facebookurl: newInp }))}
+                  placeholderTextColor="#9CA3AF"
+                  onFocus={() => setFocus(f => ({ ...f, facebookurl: true }))}
+                  onBlur={() => setFocus(f => ({ ...f, facebookurl: false }))}
+                />
+              </View>
+            </ImageBackground>
           </View>
-          {/* Save changes button */}
-          <TouchableOpacity
-            style={{
-              backgroundColor: 'white',
-              borderRadius: 8,
-              paddingVertical: 4,
-              alignItems: 'center',
-              marginBottom: 16,
-            }}
-            onPress={handleSave}
-            activeOpacity={0.85}
-          >
-            <Text style={[tw`text-black font-bold`, { fontFamily: 'Nunito-Bold', fontSize: 16 }]}>
-              Save changes
-            </Text>
-          </TouchableOpacity>
-          {/* Not now */}
-          <TouchableOpacity
-            style={{ alignItems: 'center', marginBottom: 8 }}
-            onPress={() => router.replace({ pathname: '/(profile)/profile', params: { user_id: user?.id } })}
-          >
-            <Text style={[tw`text-white`, { fontFamily: 'Nunito-Medium', fontSize: 14, opacity: 0.7 }]}>
-              Not now
-            </Text>
-          </TouchableOpacity>
+          {/* Save/Not now buttons moved below */}
         </View>
       </View>
-      {dobOpen && Platform.OS == 'ios' &&
-        <TouchableOpacity style={tw`w-full h-full flex-col-reverse absolute top-0 left-0 bg-black bg-opacity-60 z-[99]`}
-          onPress={() => {
-            setDOB(dobInput);
-            setDOBOpen(false);
-          }}>
-          <View style={tw`bg-black w-full h-80 flex-col p-4 absolute left-0 bottom-0`}>
-            <DateTimePicker
-              mode='date'
-              display='spinner'
-              value={dob}
-              onChange={onChangeDOB}
-              textColor='#FFFFFF'>
-
-            </DateTimePicker>
-            <View style={tw`flex-row justify-center gap-8`}>
-              <TouchableOpacity style={tw`px-4 py-2 bg-white rounded-full`}
-                onPress={() => {
-                  setDOBOpen(false);
-                  setDOBInput(dob);
-                }}>
-                <Text style={[tw`text-[4]`, { fontFamily: 'Nunito-Bold' }]}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={tw`px-4 py-2 bg-[#392465] rounded-full`}
-                onPress={() => {
-                  setDOB(dobInput);
-                  setDOBAvail(true);
-                  setDOBOpen(false);
-                }}>
-                <Text style={[tw`text-[4] text-white`, { fontFamily: 'Nunito-Bold' }]}>Save</Text>
-              </TouchableOpacity>
+    </ProfileBackgroundWrapper>
+        </ScrollView>
+        {/* Save/Not now buttons fixed at bottom */}
+        <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, marginBottom: 32, paddingHorizontal: '5%' }}>
+          <TouchableOpacity
+            style={[
+              tw`bg-white rounded-full py-[10] w-full items-center`,
+              !(input.firstname && input.firstname.trim() && input.lastname && input.lastname.trim() && input.username && input.username.trim()) && tw`opacity-50`
+            ]}
+            onPress={handleSave}
+            activeOpacity={input.firstname && input.firstname.trim() && input.lastname && input.lastname.trim() && input.username && input.username.trim() ? 0.85 : 1}
+            disabled={!(input.firstname && input.firstname.trim() && input.lastname && input.lastname.trim() && input.username && input.username.trim())}
+          >
+            <Text style={[tw`text-black text-[14px]`, { fontFamily: 'Nunito-ExtraBold', opacity: input.firstname && input.firstname.trim() && input.lastname && input.lastname.trim() && input.username && input.username.trim() ? 1 : 0.5 }]}>Save changes</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={tw`flex-row items-center justify-center mt-3`}
+            onPress={() => router.replace({ pathname: '/(profile)/profile', params: { user_id: user?.id } })}
+          >
+            <Text style={[tw`text-white text-[12px]`, { fontFamily: 'Nunito-Medium' }]}>Not now</Text>
+          </TouchableOpacity>
+        </View>
+        {/* Overlay for iOS date picker */}
+        {dobOpen && Platform.OS == 'ios' && (
+          <View style={tw`w-full h-full flex-col-reverse absolute top-0 left-0 bg-black bg-opacity-60 z-[99]`} pointerEvents="box-none">
+            <TouchableWithoutFeedback
+              onPress={() => {
+                Keyboard.dismiss();
+                setDOB(dobInput);
+                setDOBOpen(false);
+              }}
+              accessible={false}
+            >
+              <View style={tw`w-full h-full`} />
+            </TouchableWithoutFeedback>
+            <View style={tw`bg-black w-full h-80 flex-col p-4 absolute left-0 bottom-0`}>
+              <DateTimePicker
+                mode='date'
+                display='spinner'
+                value={dob}
+                onChange={onChangeDOB}
+                textColor='#FFFFFF'
+              />
+              <View style={tw`flex-row justify-center gap-8`}>
+                <TouchableOpacity style={tw`px-4 py-2 bg-white rounded-full`}
+                  onPress={() => {
+                    setDOBOpen(false);
+                    setDOBInput(dob);
+                  }}>
+                  <Text style={[tw`text-[4]`, { fontFamily: 'Nunito-Bold' }]}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={tw`px-4 py-2 bg-[#392465] rounded-full`}
+                  onPress={() => {
+                    setDOB(dobInput);
+                    setDOBAvail(true);
+                    setDOBOpen(false);
+                  }}>
+                  <Text style={[tw`text-[4] text-white`, { fontFamily: 'Nunito-Bold' }]}>Save</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </TouchableOpacity>}
-    </ProfileBackgroundWrapper>
+        )}
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 }
