@@ -2,7 +2,7 @@ import { supabase } from '@/utils/supabase';
 import { useFocusEffect } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, Image, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, ImageBackground, Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 import Requested from '../../assets/icons/accept_question.svg';
 import Friend from '../../assets/icons/accepted.svg';
@@ -76,13 +76,15 @@ export default function ProfilePage() {
     }, [user_id])
   );
 
-  const handleAddRequest = async (id) => {
+  const handleAddRequest = async (id: string | string[] | undefined) => {
     const { error } = await supabase.from('requests')
       .insert({ user_id: user.id, requestee: id });
     if (error) {
       console.error(error.message);
     } else {
-      checkRequest(id);
+      if (id !== undefined) {
+        checkRequest(id);
+      }
     }
   }
 
@@ -110,7 +112,7 @@ export default function ProfilePage() {
     checkRequest(id);
   }
 
-  const checkRequest = async (id) => {
+  const checkRequest = async (id: string | string[]) => {
     if (self) return;
 
     const { error: requestingError } = await supabase.from('requests')
@@ -262,16 +264,24 @@ export default function ProfilePage() {
             <Edit width={20} height={20} />
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Edit profile</Text>
           </TouchableOpacity>}
-          {(!self && friendStat === '') && <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-black border border-white/10 flex-1 py-2 rounded-xl`}
+          {(!self && friendStat === '') && <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-black border border-white/10 flex-1 rounded-xl`}
             onPress={() => {
               handleAddRequest(userView?.id);
             }}>
-            <AddFriend width={20} height={20} />
-            <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Add friend</Text>
+            <ImageBackground
+              source={require('../../assets/images/galaxy.jpg')}
+              imageStyle={{ borderRadius: 12, opacity: 0.5 }}
+              style={[tw`flex-row justify-center gap-2 py-2 flex-1 rounded-xl`, { overflow: 'hidden' }]}
+            >
+              <AddFriend width={20} height={20} />
+              <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Add friend</Text>
+            </ImageBackground>
           </TouchableOpacity>}
           {(!self && friendStat === 'requesting') && <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-white/5 border border-white/10 flex-1 py-2 rounded-xl`}
             onPress={() => {
-              handleRemoveRequest(userView?.id);
+              if (userView?.id) {
+                handleRemoveRequest(userView.id);
+              }
             }}>
             <Waiting width={20} height={20} />
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Requested</Text>
@@ -295,8 +305,11 @@ export default function ProfilePage() {
         {/* Birthday and zodiac */}
         {userView?.birthdate && (
           <View style={tw`flex-row items-center gap-x-2 mb-3.5`}>
+            <Text style={[tw`text-white text-[13px] -mr-0.5`, { fontFamily: 'Nunito-Medium' }]}>
+              🎂
+            </Text>
             <Text style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-Medium' }]}>
-              🎂  {formatDate(userView?.birthdate)}
+              {formatDate(userView?.birthdate)}
             </Text>
             <Text style={[tw`text-white text-[10px]`, { fontFamily: 'Nunito-Medium' }]}>•</Text>
             <Text style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-Medium' }]}>
