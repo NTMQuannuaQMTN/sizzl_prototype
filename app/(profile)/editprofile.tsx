@@ -678,7 +678,7 @@ export default function EditProfile() {
                 <Text style={[tw`text-black text-[14px]`, { fontFamily: 'Nunito-ExtraBold', opacity: input.firstname && input.firstname.trim() && input.lastname && input.lastname.trim() && input.username && input.username.trim() ? 1 : 0.5 }]}>Save changes</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={tw`flex-row items-center justify-center mt-3`}
+                style={tw`flex-row items-center justify-center mt-4`}
                 onPress={() => router.replace({ pathname: '/(profile)/profile', params: { user_id: user?.id } })}
               >
                 <Text style={[tw`text-gray-400 text-[12px]`, { fontFamily: 'Nunito-Medium' }]}>Not now</Text>

@@ -469,7 +469,7 @@ export default function ProfilePage() {
         <View style={tw`flex-row gap-x-2.5 px-10 mb-4`}>
           {self && <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-white/5 border border-white/10 flex-1 py-2 rounded-xl`}
             onPress={() => { router.replace('/(profile)/editprofile') }}>
-            <Edit width={20} height={20} />
+            <Edit width={18} height={18} />
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Edit profile</Text>
           </TouchableOpacity>}
           {(!self && friendStat === '') && <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-black border border-white/10 flex-1 rounded-xl`}
@@ -494,18 +494,18 @@ export default function ProfilePage() {
             <Waiting width={20} height={20} />
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Requested</Text>
           </TouchableOpacity>}
-          {(!self && friendStat === 'requested') && <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-[#7A5CFA] border border-white/10 flex-1 py-2 rounded-xl`}
+          {(!self && friendStat === 'requested') && <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-yellow-600 border border-white/10 flex-1 py-2 rounded-xl`}
             onPress={() => { setFriendRequest(1) }}>
             <Requested width={20} height={20} />
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Accept?</Text>
           </TouchableOpacity>}
-          {(!self && friendStat === 'friend') && <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-white/5 border border-white/10 flex-1 py-2 rounded-xl`}
+          {(!self && friendStat === 'friend') && <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-[#7A5CFA] border border-white/10 flex-1 py-2 rounded-xl`}
             onPress={() => { setFriendRequest(-1) }}>
             <Friend width={20} height={20} />
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Friends</Text>
           </TouchableOpacity>}
           <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-white/5 border border-white/10 flex-1 py-2 rounded-xl`}>
-            <Share width={20} height={20} />
+            <Share width={18} height={18} style={tw`mt-0.5`} />
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Share profile</Text>
           </TouchableOpacity>
         </View>
@@ -627,7 +627,7 @@ export default function ProfilePage() {
             },
           ]}>
             <Text style={[tw`text-white text-[14px] mb-4 text-center`, { fontFamily: 'Nunito-Medium' }]}>
-              Rethink your decision being friend with <Text style={{ fontFamily: 'Nunito-ExtraBold' }}>@{userView.username}</Text>?
+              Regret being friend with <Text style={{ fontFamily: 'Nunito-ExtraBold' }}>@{userView.username}</Text>? 😤
             </Text>
             <TouchableOpacity style={tw`w-full h-12 bg-rose-700 rounded-full flex-row justify-center gap-x-4 items-center mb-2`}
               onPress={() => {
