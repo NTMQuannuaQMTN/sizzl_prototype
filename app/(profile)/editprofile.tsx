@@ -50,10 +50,16 @@ export default function EditProfile() {
   const [loading, setLoading] = useState(false);
 
   // For modal picker, just set dobInput on change
-  const onChangeDOB = ({ type }, date: any) => {
-    if (type == 'set') { setDOBInput(date) }
-    else { setDOBOpen(false) }
-  }
+  const onChangeDOB = (
+    event: { type: string },
+    date?: Date | undefined
+  ) => {
+    if (event.type === 'set' && date) {
+      setDOBInput(date);
+    } else {
+      setDOBOpen(false);
+    }
+  };
 
   const formatDate = (date: any) => {
     if (!date) return '';
@@ -697,6 +703,8 @@ export default function EditProfile() {
                 value={dob}
                 onChange={onChangeDOB}
                 textColor='#FFFFFF'
+                maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() - 18))}
+                minimumDate={new Date(new Date().setFullYear(new Date().getFullYear() - 100))}
               />
               <View style={tw`flex-row justify-center gap-8`}>
                 <TouchableOpacity style={tw`px-4 py-2 bg-white rounded-full`}
