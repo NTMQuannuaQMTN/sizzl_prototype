@@ -464,37 +464,11 @@ export default function EditProfile() {
                       <Text style={[tw`text-rose-500 text-xs mt-1 leading-1.2`, { fontFamily: 'Nunito-Medium' }]}>{usernameError}</Text>
                     )}
                   </View>
-                  <View style={tw`mb-2`}>
-                    <ImageBackground
-                      source={require('../../assets/images/galaxy.jpg')}
-                      imageStyle={{ borderRadius: 8, opacity: focus.bio ? 0.3 : 0 }}
-                      style={{ borderRadius: 8 }}
-                    >
-                      <TextInput
-                        style={[
-                          tw`px-4 py-2 text-center text-[13px]`,
-                          {
-                            fontFamily: 'Nunito-Medium',
-                            color: input.bio && input.bio.trim() ? '#fff' : '#fff',
-                            borderWidth: 1,
-                            borderColor: focus.bio ? '#FFFFFF' : 'rgba(255,255,255,0.1)',
-                            backgroundColor: focus.bio ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.05)',
-                            borderRadius: 8,
-                          }
-                        ]}
-                        placeholder='Add a bio (optional)'
-                        value={input.bio}
-                        onChangeText={(newInp) => setInput(input => ({ ...input, bio: newInp }))}
-                        placeholderTextColor={'#9CA3AF'}
-                        onFocus={() => setFocus(f => ({ ...f, bio: true }))}
-                        onBlur={() => setFocus(f => ({ ...f, bio: false }))}
-                      />
-                    </ImageBackground>
-                  </View>
+                  
                   <TouchableOpacity
                     activeOpacity={0.7}
                     onPress={() => setDOBOpen(true)}
-                    style={tw`mb-3`}
+                    style={tw`mb-2`}
                     accessibilityRole="button"
                     accessibilityLabel="Add your birthday"
                   >
@@ -526,7 +500,51 @@ export default function EditProfile() {
                     </ImageBackground>
                   </TouchableOpacity>
 
-                  <Text style={[tw`text-white mb-2`, { fontFamily: 'Nunito-Bold', fontSize: 14 }]}>
+                  <View style={tw`mb-1`}>
+                    <ImageBackground
+                      source={require('../../assets/images/galaxy.jpg')}
+                      imageStyle={{ borderRadius: 8, opacity: focus.bio ? 0.3 : 0 }}
+                      style={{ borderRadius: 8 }}
+                    >
+                      <TextInput
+                        style={[
+                          tw`px-4 py-2 text-[13px]`,
+                          {
+                            fontFamily: 'Nunito-Medium',
+                            color: input.bio && input.bio.trim() ? '#fff' : '#fff',
+                            borderWidth: 1,
+                            borderColor: focus.bio ? '#FFFFFF' : 'rgba(255,255,255,0.1)',
+                            backgroundColor: focus.bio ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.05)',
+                            borderRadius: 8,
+                            textAlignVertical: 'center',
+                            minHeight: 40,
+                          },
+                        ]}
+                        placeholder='Add a bio (optional)'
+                        value={input.bio}
+                        maxLength={100}
+                        onChangeText={(newInp) => setInput(input => ({ ...input, bio: newInp }))}
+                        placeholderTextColor={'#9CA3AF'}
+                        onFocus={() => setFocus(f => ({ ...f, bio: true }))}
+                        onBlur={() => setFocus(f => ({ ...f, bio: false }))}
+                        multiline={false}
+                        scrollEnabled={true}
+                        textAlign="center"
+                      />
+                    </ImageBackground>
+                    <View style={{ alignItems: 'flex-end', marginRight: 4, marginTop: 4 }}>
+                      <Text
+                        style={[
+                          tw`${(input.bio?.length || 0) === 100 ? 'text-rose-600' : 'text-gray-400'} text-[10px]`,
+                          { fontFamily: 'Nunito-Medium' }
+                        ]}
+                      >
+                        {(input.bio?.length || 0)}/100
+                      </Text>
+                    </View>
+                  </View>
+
+                  <Text style={[tw`text-white mb-3`, { fontFamily: 'Nunito-Bold', fontSize: 14 }]}>
                     Your social media (optional)
                   </Text>
                   <View style={{ gap: 8, marginBottom: 16 }}>
@@ -724,17 +742,22 @@ export default function EditProfile() {
             </ScrollView>
             {/* Success Toast Modal */}
             {showSuccess && (
-              <View style={{
+              <View
+              style={{
                 position: 'absolute',
-                top: 60,
+                top: 0,
                 left: 0,
                 right: 0,
+                bottom: 0,
                 alignItems: 'center',
+                justifyContent: 'center',
                 zIndex: 999,
-              }} pointerEvents="none">
-                <View style={[tw`bg-[#080B32] px-6 py-2 rounded-full shadow-lg`, { flexDirection: 'row', alignItems: 'center', gap: 8 }]}>
-                  <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Profile updated successfully!</Text>
-                </View>
+              }}
+              pointerEvents="none"
+              >
+              <View style={[tw`bg-[#080B32] px-6 py-2 rounded-full shadow-lg`, { flexDirection: 'row', alignItems: 'center', gap: 8 }]}>
+                <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Profile updated successfully!</Text>
+              </View>
               </View>
             )}
             {/* Overlay for date picker (iOS & Android) */}

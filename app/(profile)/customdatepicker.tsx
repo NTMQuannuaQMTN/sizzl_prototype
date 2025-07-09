@@ -232,7 +232,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({
       <View style={tw`flex-row justify-center mt-4 gap-2`}> 
         <TouchableOpacity
           onPress={onCancel}
-          style={tw`py-2.5 flex-1 rounded-xl bg-white/10`}
+          style={tw`py-2.5 flex-1 rounded-xl bg-white/5`}
         >
           <Text style={[tw`text-[14px] text-center`, { color: textColor, fontFamily: 'Nunito-ExtraBold' }]}>Cancel</Text>
         </TouchableOpacity>
