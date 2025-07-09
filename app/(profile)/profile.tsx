@@ -523,10 +523,10 @@ export default function ProfilePage() {
       >
         {/* Top bar: username and settings icon */}
         <View style={tw`w-full left-0 right-0 flex-row justify-between items-center px-6`}>
-          <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>@{userView?.username}</Text>
-          <TouchableOpacity>
+          <Text style={[tw`text-white text-[15px] ${self ? '' : 'mt-2'}`, { fontFamily: 'Nunito-ExtraBold' }]}>@{userView?.username}</Text>
+          {self && <TouchableOpacity>
             <SettingIcon width={20} height={20} style={tw`m-2`} />
-          </TouchableOpacity>
+          </TouchableOpacity>}
         </View>
 
         {/* Profile picture: show image if present, otherwise SVG fallback, fast like BotBar */}
