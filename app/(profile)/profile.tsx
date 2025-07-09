@@ -25,6 +25,34 @@ import { navigate } from 'expo-router/build/global-state/routing';
 import PfpDefault from '../../assets/icons/pfpdefault.svg';
 
 export default function ProfilePage() {
+  // State for "added" alert UI
+  const [showAddedAlert, setShowAddedAlert] = useState(false);
+  const [addedAlertVisible, setAddedAlertVisible] = useState(false);
+  const addedAlertAnim = React.useRef(new Animated.Value(0)).current; // 0 = hidden, 1 = visible
+
+  // Show/fade in the toast when showAddedAlert is set true
+  useEffect(() => {
+    if (showAddedAlert) {
+      setAddedAlertVisible(true);
+      Animated.timing(addedAlertAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+      // Fade out after 2s
+      const timer = setTimeout(() => {
+        Animated.timing(addedAlertAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }).start(() => {
+          setAddedAlertVisible(false);
+          setShowAddedAlert(false);
+        });
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [showAddedAlert]);
   // Variables
   const router = useRouter();
   const { user_id } = useLocalSearchParams();
@@ -206,6 +234,18 @@ export default function ProfilePage() {
     checkRequest(id);
   }
 
+  // State for "added" alert UI
+  // const [showAddedAlert, setShowAddedAlert] = useState(false);
+  // Auto-close the "added" toast after 2 seconds
+  useEffect(() => {
+    if (showAddedAlert) {
+      const timer = setTimeout(() => {
+        setShowAddedAlert(false);
+      }, 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [showAddedAlert]);
+
   const handleAcceptFriend = async (id: string) => {
     const { error: addError } = await supabase.from('friends')
       .insert([{ user_id: user.id, friend: id }, { user_id: id, friend: user.id }]).select();
@@ -213,11 +253,10 @@ export default function ProfilePage() {
     if (addError) {
       Alert.alert('Problems in adding friend');
     } else {
-      Alert.alert('Added');
+      setShowAddedAlert(true);
     }
 
     checkRequest(id);
-
     updateCount(id);
   }
 
@@ -698,6 +737,24 @@ export default function ProfilePage() {
           </Animated.View>
         </TouchableOpacity>
       )}
+    {/* Added Alert UI */}
+    {addedAlertVisible && userView && (
+      <Animated.View
+        style={[
+          tw`absolute w-full left-0 top-0 z-100 items-center justify-center`,
+          { height: '100%', opacity: addedAlertAnim }
+        ]}
+      >
+        <View style={[tw`absolute w-full h-full left-0 top-0`, { backgroundColor: 'rgba(0,0,0,0.5)' }]} />
+        <View style={[tw`bg-[#22C55E] px-6 py-4 rounded-2xl shadow-lg shadow-black/30 items-center`, { width: 280, maxWidth: '90%' }]}> 
+          <Image
+            source={require('../../assets/images/shakehandsmeme.jpeg')}
+            style={{ width: 120, height: 120, borderRadius: 10, marginBottom: 10, resizeMode: 'cover' }}
+          />
+          <Text style={[tw`text-white text-[15px] text-center leading-[1.25]`, { fontFamily: 'Nunito-ExtraBold' }]}>Congrats! Now you and {userView.firstname} are friends 🥳</Text>
+        </View>
+      </Animated.View>
+    )}
     </ProfileBackgroundWrapper>
   );
 }
