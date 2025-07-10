@@ -1,10 +1,11 @@
 
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Image, KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 import { useUserStore } from '../store/userStore';
 
+import { supabase } from '@/utils/supabase';
 import Back from '../../assets/icons/back.svg';
 import Camera from '../../assets/icons/camera_icon.svg';
 import Host from '../../assets/icons/host.svg';
@@ -40,6 +41,7 @@ export default function CreatePage() {
     aptSuite: '',
     notes: '',
   });
+  const [showCohostModal, setShowCohostModal] = useState(false);
 
   // Dummy locations for demonstration
   const locations = [
@@ -52,6 +54,33 @@ export default function CreatePage() {
       city: 'East Lansing, MI, 48825',
     },
   ];
+
+  // Dummy friends data for cohost modal
+  // Fetch friends from the "friends" table (replace with your actual data fetching logic)
+  const [friends, setFriends] = useState([]);
+
+  useEffect(() => {
+    // Example async fetch function, replace with your actual API/database call
+    async function fetchFriends() {
+      try {
+        let idFriend: readonly any[] | undefined = [];
+        const {data: idGet, error: idErr} = await supabase
+        .from('friends')
+        .select('friend').eq('user_id', user.id);
+        idFriend = (idGet?.map(f => f.friend));
+
+        const { data, error } = await supabase
+          .from('users')
+          .select('id, firstname, lastname, username, profile_image')
+          .in('id', Array.isArray(idFriend) ? idFriend : []);
+        if (!data) throw new Error('No data returned');
+        setFriends(data);
+      } catch (err) {
+        console.error('Failed to fetch friends:', err);
+      }
+    }
+    if (!showCohostModal) fetchFriends();
+  }, [showCohostModal]);
 
   return (
     <KeyboardAvoidingView
@@ -126,14 +155,18 @@ export default function CreatePage() {
 
         {/* Hosted by */}
         <View style={tw`px-4 mb-3`}>
-          <View style={tw`bg-white/10 rounded-xl px-4 py-3`}>
+          <TouchableOpacity
+            style={tw`bg-white/10 rounded-xl px-4 py-3`}
+            onPress={() => setShowCohostModal(true)}
+            activeOpacity={0.8}
+          >
             <View style={tw`flex-row gap-2`}>
-              <Host></Host>
+              <Host />
               <Text style={tw`text-white/70 text-xs mb-2`}>Hosted by</Text>
             </View>
             <View style={tw`flex-row items-center`}>
               {/* Host avatar */}
-              <View style={[tw`rounded-full border border-white items-center justify-center bg-white/10`, { width: 30, height: 30, overflow: 'hidden' }]}>
+              <View style={[tw`rounded-full border border-white items-center justify-center bg-white/10`, { width: 30, height: 30, overflow: 'hidden' }]}> 
                 {user?.profile_image ? (
                   <Image
                     source={{ uri: user.profile_image }}
@@ -145,11 +178,9 @@ export default function CreatePage() {
                   <PfpDefault width={30} height={30} />
                 )}
               </View>
-              <Text
-                style={tw`text-white ml-auto text-xs bg-transparent px-2 py-1`}
-              >Add cohosts (optional)</Text>
+              <Text style={tw`text-white ml-auto text-xs bg-transparent px-2 py-1`}>Add cohosts (optional)</Text>
             </View>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Location */}
@@ -376,6 +407,87 @@ export default function CreatePage() {
           </View>
         </View>
       </Modal>
+
+      {/* Cohost Modal */}
+      <Modal
+        visible={showCohostModal}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowCohostModal(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end', alignItems: 'center' }}>
+          <View style={{ width: '100%', borderTopLeftRadius: 20, borderTopRightRadius: 20, backgroundColor: '#0B1A2A', padding: 20, paddingBottom: 32 }}>
+            {/* Drag bar */}
+            <View style={{ alignItems: 'center', marginBottom: 10 }}>
+              <View style={{ width: 40, height: 5, borderRadius: 3, backgroundColor: '#fff', opacity: 0.2 }} />
+            </View>
+            <Text style={[tw`text-white text-lg font-bold`, { textAlign: 'center', marginBottom: 16 }]}>Manage hosts</Text>
+            {/* Cohost input */}
+            <View style={{ marginBottom: 18 }}>
+              <TextInput
+                style={{ backgroundColor: '#16263A', borderRadius: 8, color: 'white', paddingHorizontal: 12, paddingVertical: 14, fontSize: 15, marginBottom: 4 }}
+              placeholder="Cohosts (club, organization, person, etc.)"
+              placeholderTextColor="#FFFFFF55"
+            />
+          </View>
+          {/* Friends list */}
+          <Text style={tw`text-white font-bold mb-2`}>Your friends</Text>
+          <View style={{ marginBottom: 10 }}>
+            {friends.length > 0 ? friends.map((friend, idx) => (
+              <View key={friend?.id} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#16263A', borderRadius: 12, marginBottom: 10, padding: 10 }}>
+                {/* 
+                  The profile image may take a long time to render if:
+                  - The `profile_image` is a remote URL and the image is large or the network is slow.
+                  - The `Image` component is not optimized for caching or uses a slow source.
+                  - The `profile_image` is not a valid URI or is missing, causing fallback delays.
+                  - The image is being fetched from Supabase Storage or another remote storage with slow response.
+
+                  To improve performance:
+                  - Ensure `profile_image` is a valid, direct image URL.
+                  - Use a library like `react-native-fast-image` for better caching and loading.
+                  - Provide a default image while loading.
+                  - Preload images if possible.
+                */}
+                <Image
+                  source={
+                    friend?.profile_image
+                      ? { uri: friend.profile_image }
+                      : require('../../assets/icons/pfpdefault.svg')
+                  }
+                  style={{ width: 40, height: 40, borderRadius: 20, marginRight: 10, backgroundColor: '#222' }}
+                  resizeMode="cover"
+                  defaultSource={require('../../assets/icons/pfpdefault.svg')}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={[tw`text-white font-bold`, { fontSize: 16 }]}>{friend?.firstname} {friend?.lastname}</Text>
+                  <Text style={[tw`text-white/60`, { fontSize: 13 }]}>{friend?.username}</Text>
+                </View>
+                <TouchableOpacity style={{ backgroundColor: '#7A5CFA', borderRadius: 999, paddingHorizontal: 18, paddingVertical: 7 }}>
+                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 15 }}>Add cohost</Text>
+                </TouchableOpacity>
+              </View>
+            )) : (
+              <Text style={tw`text-white text-center mt-4 mb-2`}>Oops, you gotta add some friends before having them cohorting events with you!</Text>
+            )}
+          </View>
+          {/* Save and Cancel buttons */}
+          <TouchableOpacity
+            style={{ backgroundColor: '#7A5CFA', borderRadius: 999, paddingVertical: 12, alignItems: 'center', marginBottom: 10 }}
+            onPress={() => setShowCohostModal(false)}
+            activeOpacity={0.8}
+          >
+            <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 17 }}>Save</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{ backgroundColor: '#1A2636', borderRadius: 999, paddingVertical: 12, alignItems: 'center' }}
+            onPress={() => setShowCohostModal(false)}
+            activeOpacity={0.8}
+          >
+            <Text style={{ color: '#B0B8C1', fontWeight: 'bold', fontSize: 17 }}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
     </KeyboardAvoidingView>
   );
 }
