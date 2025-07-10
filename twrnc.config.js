@@ -12,6 +12,9 @@ module.exports = {
         'nunito-extralight': ['Nunito-ExtraLight'],
         'nunito-black': ['Nunito-Black'],
       },
+      colors: {
+        popup: '#080B32',
+      },
     },
   },
 };

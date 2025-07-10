@@ -1,8 +1,13 @@
+// Color constants
+const bgpopup = '#080B32';
+
 // Imports
 import { supabase } from '@/utils/supabase';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, Animated, Easing, Image, ImageBackground, Linking, RefreshControl, Share as RNShare, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, Easing, Image, ImageBackground, Linking, Modal, RefreshControl, Share as RNShare, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import QRCode from 'react-native-qrcode-svg';
+import QrIcon from '../../assets/icons/qr.svg';
 // ...existing code...
 import tw from 'twrnc';
 import Requested from '../../assets/icons/accept_question.svg';
@@ -63,6 +68,9 @@ export default function ProfilePage() {
   // State for loading and refreshing
   const [loading, setLoading] = useState(true); // true during initial fetch
   const [refreshing, setRefreshing] = useState(false); // for pull-to-refresh
+
+  // State for QR code modal
+  const [showQR, setShowQR] = useState(false);
 
   // State for "added" alert UI
   const [showAddedAlert, setShowAddedAlert] = useState(false);
@@ -516,7 +524,7 @@ export default function ProfilePage() {
   // Loading screen UI
   if (loading) {
     return (
-      <View style={[tw`flex-1 justify-center items-center bg-[#080B32]`, { minHeight: '100%' }]}> 
+      <View style={[tw`flex-1 justify-center items-center`, { backgroundColor: bgpopup, minHeight: '100%' }]}> 
         <Animated.View style={{ opacity: 0.8 }}>
           <PfpDefault width={100} height={100} />
         </Animated.View>
@@ -545,12 +553,19 @@ export default function ProfilePage() {
         keyboardShouldPersistTaps="handled"
         style={tw`mt-6`}
       >
-        {/* Top bar: username and settings icon */}
+        {/* Top bar: username, settings icon, and QR icon */}
         <View style={tw`w-full left-0 right-0 flex-row justify-between items-center px-6`}>
           <Text style={[tw`text-white text-[15px] ${self ? '' : 'mt-2'}`, { fontFamily: 'Nunito-ExtraBold' }]}>@{userView?.username}</Text>
-          {self && <TouchableOpacity>
-            <SettingIcon width={20} height={20} style={tw`m-2`} />
-          </TouchableOpacity>}
+          {self && (
+            <View style={tw`flex-row items-center`}>
+              <TouchableOpacity onPress={() => setShowQR(true)} style={tw`mr-2.5`} accessibilityLabel="Show QR code">
+                <QrIcon width={20} height={20} />
+              </TouchableOpacity>
+              <TouchableOpacity>
+                <SettingIcon width={20} height={20} style={tw`m-2`} />
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
 
         {/* Profile picture: show image if present, otherwise SVG fallback, fast like BotBar */}
@@ -582,7 +597,7 @@ export default function ProfilePage() {
         {/* Bio */}
         {userView?.bio && <Text style={[tw`text-white px-3 mb-4`, { fontFamily: 'Nunito-Medium' }]}>{userView?.bio}</Text>}
 
-        {/* Edit and Share profile buttons */}
+        {/* Edit and Share profile buttons (no QR button here) */}
         <View style={tw`flex-row gap-x-2.5 px-10 mb-4`}>
           {self && <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-white/5 border border-white/10 flex-1 py-2 rounded-xl`}
             onPress={() => { router.replace('/(profile)/editprofile') }}>
@@ -681,6 +696,33 @@ export default function ProfilePage() {
       </ScrollView>
       <BotBar currentTab="profile" selfView={self} />
 
+    {/* QR Code Modal */}
+    <Modal
+      visible={showQR}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setShowQR(false)}
+    >
+      <TouchableOpacity
+        style={[tw`flex-1 justify-center items-center bg-black/80`]} 
+        activeOpacity={1}
+        onPress={() => setShowQR(false)}
+      >
+        <View style={[tw`rounded-2xl p-6 items-center`, { backgroundColor: bgpopup, minWidth: 260 }]}>
+          <Text style={[tw`text-white text-lg mb-4`, { fontFamily: 'Nunito-ExtraBold' }]}>Scan to add me!</Text>
+          {userView && (
+            <QRCode
+              value={`https://sizzl.app/profile/${userView.username || userView.id}`}
+              size={200}
+              color="#fff"
+              backgroundColor="transparent"
+            />
+          )}
+          <Text style={[tw`text-white mt-4`, { fontFamily: 'Nunito-Medium', fontSize: 13 }]}>@{userView?.username}</Text>
+        </View>
+      </TouchableOpacity>
+    </Modal>
+
       {/* Friend request modal with slide-up animation */}
       {showFriendModal && userView && (
         <TouchableOpacity
@@ -690,7 +732,7 @@ export default function ProfilePage() {
         >
           <Animated.View
             style={[
-              tw`w-full px-4 pt-6 pb-15 rounded-t-2xl bg-[#080B32]`,
+              tw`w-full px-4 pt-6 pb-15 rounded-t-2xl`, { backgroundColor: bgpopup },
               {
                 borderTopLeftRadius: 24,
                 borderTopRightRadius: 24,
@@ -732,7 +774,7 @@ export default function ProfilePage() {
           activeOpacity={1}
           onPress={() => { setFriendRequest(0); }}>
           <Animated.View style={[
-            tw`w-full px-4 pt-6 pb-15 rounded-t-2xl bg-[#080B32]`,
+            tw`w-full px-4 pt-6 pb-15 rounded-t-2xl`, { backgroundColor: bgpopup },
             {
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
