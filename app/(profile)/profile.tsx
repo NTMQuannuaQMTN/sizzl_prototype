@@ -2,7 +2,7 @@
 import { supabase } from '@/utils/supabase';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, Animated, Easing, Image, ImageBackground, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, Easing, Image, ImageBackground, Linking, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 import Requested from '../../assets/icons/accept_question.svg';
 import Friend from '../../assets/icons/accepted.svg';
@@ -20,11 +20,34 @@ import BotBar from '../botbar';
 import { useUserStore } from '../store/userStore';
 import ProfileBackgroundWrapper from './background_wrapper';
 
-import { navigate } from 'expo-router/build/global-state/routing';
+
+// Move UserView type outside the component to avoid React hook errors
+
 
 import PfpDefault from '../../assets/icons/pfpdefault.svg';
 
+type UserView = {
+  id: string;
+  username?: string;
+  firstname?: string;
+  lastname?: string;
+  profile_image?: string;
+  background_url?: string;
+  bio?: string;
+  birthdate?: string;
+  instagramurl?: string;
+  xurl?: string;
+  snapchaturl?: string;
+  facebookurl?: string;
+  friend_count?: number;
+};
+
 export default function ProfilePage() {
+
+  // State for loading and refreshing
+  const [loading, setLoading] = useState(true); // true during initial fetch
+  const [refreshing, setRefreshing] = useState(false); // for pull-to-refresh
+
   // State for "added" alert UI
   const [showAddedAlert, setShowAddedAlert] = useState(false);
   const [addedAlertVisible, setAddedAlertVisible] = useState(false);
@@ -111,24 +134,12 @@ export default function ProfilePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [friendRequest, userView]);
 
-  type UserView = {
-    id: string;
-    username?: string;
-    firstname?: string;
-    lastname?: string;
-    profile_image?: string;
-    background_url?: string;
-    bio?: string;
-    birthdate?: string;
-    instagramurl?: string;
-    xurl?: string;
-    snapchaturl?: string;
-    facebookurl?: string;
-    friend_count?: number;
-  };
 
-  // Define fetchUser outside useEffect
-  const fetchUser = async () => {
+
+  // Fetch user data from Supabase 'users' table and set user view
+  const fetchUser = async (isRefresh = false) => {
+    if (!isRefresh) setLoading(true);
+    else setRefreshing(true);
     try {
       const { data, error } = await supabase
         .from('users')
@@ -136,43 +147,27 @@ export default function ProfilePage() {
         .eq('id', user_id)
         .single();
       if (error) {
-        setUserView(null);
+        // PGRST116 = no rows found (404)
+        if (error.code === 'PGRST116') {
+          setUserView(null);
+        } else {
+          Alert.alert('Error', 'Failed to load profile.');
+        }
       } else {
         setUserView(data);
       }
     } catch (err) {
       setUserView(null);
+    } finally {
+      if (!isRefresh) setLoading(false);
+      else setRefreshing(false);
     }
   };
 
-  // Fetch user data from Supabase 'users' table and set user view
-  useEffect(
-    React.useCallback(() => {
-      let isMounted = true;
-      async function fetchUser() {
-        try {
-          const { data, error } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', user_id)
-            .single();
-          if (error) {
-            console.error('Error fetching user:', error);
-            if (isMounted) setUserView(null);
-          } else {
-            if (isMounted) setUserView(data);
-          }
-        } catch (err) {
-          console.error('Unexpected error fetching user:', err);
-          if (isMounted) setUserView(null);
-        }
-      }
-      fetchUser();
-      return () => {
-        isMounted = false;
-      };
-    }, [])
-  );
+  useEffect(() => {
+    fetchUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user_id]);
 
   const handleAddRequest = async (id: string | string[] | undefined) => {
     const { error } = await supabase.from('requests')
@@ -502,18 +497,31 @@ export default function ProfilePage() {
     return '';
   }
 
+  // Loading screen UI
+  if (loading) {
+    return (
+      <View style={[tw`flex-1 justify-center items-center bg-[#080B32]`, { minHeight: '100%' }]}> 
+        <Animated.View style={{ opacity: 0.8 }}>
+          <PfpDefault width={100} height={100} />
+        </Animated.View>
+        <Text style={[tw`text-white text-lg mt-6`, { fontFamily: 'Nunito-ExtraBold' }]}>Loading profile...</Text>
+      </View>
+    );
+  }
+
+  // Main profile UI
   return (
     <ProfileBackgroundWrapper imageUrl={userView?.background_url}>
       <ScrollView
         contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-start', alignItems: 'center', marginVertical: 16 }}
         refreshControl={
           <RefreshControl
-            refreshing={false}
+            refreshing={refreshing}
             onRefresh={() => {
               if (userView?.id) {
                 checkRequest(userView.id);
               }
-              fetchUser();
+              fetchUser(true);
             }}
             tintColor="#fff"
           />
@@ -531,7 +539,7 @@ export default function ProfilePage() {
 
         {/* Profile picture: show image if present, otherwise SVG fallback, fast like BotBar */}
         <View style={tw`mt-4 mb-2`}>
-          <View style={[tw`rounded-full border-2 border-white items-center justify-center bg-white/10`, { width: 120, height: 120, overflow: 'hidden' }]}>
+          <View style={[tw`rounded-full border-2 border-white items-center justify-center bg-white/10`, { width: 120, height: 120, overflow: 'hidden' }]}>...
             {userView?.profile_image ? (
               <Image
                 source={{ uri: userView.profile_image }}
@@ -624,28 +632,28 @@ export default function ProfilePage() {
           {/* Instagram */}
           {userView?.instagramurl && (
             <TouchableOpacity style={tw``}
-              onPress={() => { navigate(`https://instagram.com/${userView?.instagramurl}`); }}>
+              onPress={() => { Linking.openURL(`https://instagram.com/${userView?.instagramurl}`); }}>
               <InstagramIcon width={24} height={24} />
             </TouchableOpacity>
           )}
           {/* X (Twitter) */}
           {userView?.xurl && (
             <TouchableOpacity style={tw``}
-              onPress={() => { navigate(`https://x.com/${userView?.xurl}`); }}>
+              onPress={() => { Linking.openURL(`https://x.com/${userView?.xurl}`); }}>
               <XIcon width={24} height={24} />
             </TouchableOpacity>
           )}
           {/* Snapchat */}
           {userView?.snapchaturl && (
             <TouchableOpacity style={tw``}
-              onPress={() => { navigate(`https://snapchat.com/add/${userView?.snapchaturl}`) }}>
+              onPress={() => { Linking.openURL(`https://snapchat.com/add/${userView?.snapchaturl}`); }}>
               <SnapchatIcon width={24} height={24} />
             </TouchableOpacity>
           )}
           {/* Facebook */}
           {userView?.facebookurl && (
             <TouchableOpacity style={tw``}
-              onPress={() => { navigate(`https://facebook.com/${userView?.facebookurl}`) }}>
+              onPress={() => { Linking.openURL(`https://facebook.com/${userView?.facebookurl}`); }}>
               <FBIcon width={24} height={24} />
             </TouchableOpacity>
           )}
