@@ -2,7 +2,8 @@
 import { supabase } from '@/utils/supabase';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, Animated, Easing, Image, ImageBackground, Linking, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, Easing, Image, ImageBackground, Linking, RefreshControl, Share as RNShare, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+// ...existing code...
 import tw from 'twrnc';
 import Requested from '../../assets/icons/accept_question.svg';
 import Friend from '../../assets/icons/accepted.svg';
@@ -43,6 +44,21 @@ type UserView = {
 };
 
 export default function ProfilePage() {
+  // ...existing code...
+  // Share profile logic (must be inside the component to access userView)
+  const handleShareProfile = async () => {
+    if (!userView) return;
+    try {
+      const profileUrl = `https://sizzl.app/profile/${userView.username || userView.id}`;
+      const name = userView.firstname ? userView.firstname : (userView.username || 'Someone');
+      const message = `${name} on Sizzl`;
+      await RNShare.share({
+        message: `${message}\n${profileUrl}`,
+      });
+    } catch (error) {
+      Alert.alert('Error', 'Could not share profile.');
+    }
+  };
 
   // State for loading and refreshing
   const [loading, setLoading] = useState(true); // true during initial fetch
@@ -539,7 +555,7 @@ export default function ProfilePage() {
 
         {/* Profile picture: show image if present, otherwise SVG fallback, fast like BotBar */}
         <View style={tw`mt-4 mb-2`}>
-          <View style={[tw`rounded-full border-2 border-white items-center justify-center bg-white/10`, { width: 120, height: 120, overflow: 'hidden' }]}>...
+        <View style={[tw`rounded-full border-2 border-white items-center justify-center bg-white/10`, { width: 120, height: 120, overflow: 'hidden' }]}> 
             {userView?.profile_image ? (
               <Image
                 source={{ uri: userView.profile_image }}
@@ -605,7 +621,10 @@ export default function ProfilePage() {
             <Friend width={20} height={20} />
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Friends</Text>
           </TouchableOpacity>}
-          <TouchableOpacity style={tw`flex-row justify-center gap-2 bg-white/5 border border-white/10 flex-1 py-2 rounded-xl`}>
+          <TouchableOpacity
+            style={tw`flex-row justify-center gap-2 bg-white/5 border border-white/10 flex-1 py-2 rounded-xl`}
+            onPress={handleShareProfile}
+          >
             <Share width={18} height={18} style={tw`mt-0.5`} />
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Share profile</Text>
           </TouchableOpacity>
