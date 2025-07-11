@@ -1,11 +1,14 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { Alert, Text, TouchableOpacity, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
+import { captureRef } from 'react-native-view-shot';
 import tw from 'twrnc';
 import BackIcon from '../../assets/icons/back.svg';
+import DownloadIcon from '../../assets/icons/download-icon.svg';
 import { useUserStore } from '../store/userStore';
+import { saveBase64ToGallery } from '../utils/saveToGallery';
 import ProfileBackgroundWrapper from './background_wrapper';
 
 const tabInactive = 'rgba(255,255,255,0.05)';
@@ -24,6 +27,40 @@ const QRProfile: React.FC = () => {
   const [tab, setTab] = useState<'qr' | 'scan'>('qr');
   const router = useRouter();
   const { user } = useUserStore();
+  const qrRef = useRef<any>(null);
+  const cardRef = useRef<any>(null);
+  const [saving, setSaving] = useState(false);
+
+  const handleSaveQr = async () => {
+    if (!cardRef.current) {
+      Alert.alert('Error', 'QR card not ready.');
+      return;
+    }
+    setSaving(true);
+    try {
+      // Debug: show alert before capture
+      Alert.alert('Saving', 'Attempting to save QR card...');
+      const uri = await captureRef(cardRef, {
+        format: 'png',
+        quality: 1,
+      });
+      // Read file as base64
+      const base64 = await fetch(uri).then(res => res.blob()).then(blob => {
+        return new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      });
+      await saveBase64ToGallery(base64);
+      Alert.alert('Saved!', 'QR card saved to your gallery.');
+    } catch (e) {
+      Alert.alert('Error', 'Could not save QR card.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <LinearGradient
@@ -73,19 +110,28 @@ const QRProfile: React.FC = () => {
 
         {/* Tab content */}
         {tab === 'qr' && (
-          <View style={{ width: '100%', alignItems: 'center', marginTop: 75, minHeight: 400 }}>
+          <View ref={cardRef} collapsable={false} style={{ width: '100%', alignItems: 'center', marginTop: 40, minHeight: 500 }}>
             <ProfileBackgroundWrapper imageUrl={user?.background_url} borderRadius={14}>
-              <View style={[tw`items-center p-14`, { backgroundColor: user?.background_url ? '' : bgpopup }]}> 
+              <View style={[tw`items-center px-14 py-16`, { backgroundColor: user?.background_url ? '' : bgpopup }]}> 
                 <Text style={[tw`text-white text-[15px] mb-6`, { fontFamily: 'Nunito-ExtraBold' }]}>Add me on Sizzl 🔥</Text>
                 <QRCode
                   value={`https://sizzl.app/profile/${username || userId}`}
                   size={200}
                   color="#fff"
                   backgroundColor="transparent"
+                  getRef={c => { qrRef.current = c; }}
                 />
                 <Text style={[tw`text-white mt-6`, { fontFamily: 'Nunito-Bold', fontSize: 13 }]}>@{username}</Text>
               </View>
             </ProfileBackgroundWrapper>
+            <TouchableOpacity
+              style={[tw`mt-10 flex-row items-center bg-white/5 border border-white/10 rounded-xl py-2 px-4`]}
+              onPress={handleSaveQr}
+              disabled={saving}
+            >
+              <DownloadIcon width={20} height={20} style={{ marginRight: 6 }} />
+              <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold', fontSize: 13 }]}>Save QR Card</Text>
+            </TouchableOpacity>
           </View>
         )}
         {tab === 'scan' && (
