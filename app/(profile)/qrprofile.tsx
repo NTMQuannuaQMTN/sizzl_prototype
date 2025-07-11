@@ -1,12 +1,12 @@
 import { supabase } from '@/utils/supabase';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as MediaLibrary from 'expo-media-library';
 import { useRouter } from 'expo-router';
-import React, { useRef, useState, useEffect } from 'react';
-import { Alert, Animated, Text, TouchableOpacity, View, StyleSheet, Dimensions } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Alert, Animated, Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { captureRef } from 'react-native-view-shot';
-import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
-import * as MediaLibrary from 'expo-media-library';
 import tw from 'twrnc';
 import BackIcon from '../../assets/icons/back.svg';
 import DownloadIcon from '../../assets/icons/download-icon.svg';
@@ -34,6 +34,9 @@ const QRProfile: React.FC = () => {
   const cardRef = useRef<any>(null);
   const [saving, setSaving] = useState(false);
   const [showSavedModal, setShowSavedModal] = useState(false);
+  const [showQrErrorModal, setShowQrErrorModal] = useState(false);
+  const [qrErrorTitle, setQrErrorTitle] = useState('');
+  const [qrErrorMessage, setQrErrorMessage] = useState('');
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   // Camera related states
@@ -88,15 +91,14 @@ const QRProfile: React.FC = () => {
 
   const handleBarCodeScanned = async ({ type, data }: { type: string; data: string }) => {
     setScanned(true);
-    
-    // Check if the QR code is a Sizzl profile URL
-    if (data.includes('sizzl.app/profile/')) {
+
+    // Only allow scanning Sizzl profile QR codes
+    const sizzlProfileRegex = /^https?:\/\/(www\.)?sizzl\.app\/profile\/[\w-]+$/i;
+    if (sizzlProfileRegex.test(data)) {
       const profileIdentifier = data.split('sizzl.app/profile/')[1];
-      
       try {
         // Check if the identifier is a username or user ID
         let userId = profileIdentifier;
-        
         // If it's not a UUID format, assume it's a username and look up the user ID
         if (!profileIdentifier.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
           // It's a username, look up the user ID from the database
@@ -105,57 +107,38 @@ const QRProfile: React.FC = () => {
             .select('id')
             .eq('username', profileIdentifier)
             .single();
-          
           if (error || !userData) {
-            Alert.alert(
-              'Profile Not Found',
-              `Could not find user with username: ${profileIdentifier}`,
-              [{ text: 'OK', onPress: () => setScanned(false) }]
-            );
+            setQrErrorTitle('Profile Not Found');
+            setQrErrorMessage(`Could not find user with username: ${profileIdentifier}`);
+            setShowQrErrorModal(true);
+            setScanned(false);
             return;
           }
-          
           userId = userData.id;
         }
-        
-        Alert.alert(
-          'QR Code Scanned! 🎉',
-          `Found Sizzl profile: ${profileIdentifier}`,
-          [
-            { text: 'Cancel', style: 'cancel', onPress: () => setScanned(false) },
-            { 
-              text: 'View Profile', 
-              onPress: () => {
-                // Navigate to the profile using the user ID
-                router.replace({ 
-                  pathname: '/(profile)/profile', 
-                  params: { user_id: userId } 
-                });
-              }
-            }
-          ]
-        );
+        // Navigate directly to the profile using the user ID
+        router.replace({ 
+          pathname: '/(profile)/profile', 
+          params: { user_id: userId } 
+        });
       } catch (error) {
         console.error('Error processing QR code:', error);
-        Alert.alert(
-          'Error',
-          'Could not process the QR code. Please try again.',
-          [{ text: 'OK', onPress: () => setScanned(false) }]
-        );
+        setQrErrorTitle('Error');
+        setQrErrorMessage('Could not process the QR code. Please try again.');
+        setShowQrErrorModal(true);
+        setScanned(false);
       }
     } else {
-      Alert.alert(
-        'QR Code Scanned',
-        `Data: ${data}`,
-        [
-          { text: 'OK', onPress: () => setScanned(false) }
-        ]
-      );
+      setQrErrorTitle('Invalid QR Code 😢');
+      setQrErrorMessage('This QR code is not a valid Sizzl profile link. Scan a valid one to connect!');
+      setShowQrErrorModal(true);
+      setScanned(false);
     }
   };
 
   const resetScanner = () => {
     setScanned(false);
+    setShowQrErrorModal(false);
   };
 
   if (!permission) {
@@ -203,7 +186,44 @@ const QRProfile: React.FC = () => {
       end={{ x: 0, y: 1 }}
       style={{ flex: 1 }}
     >
-      <View style={[tw`flex-1 items-center mt-10 justify-start`]}>
+      <View style={[tw`flex-1 items-center mt-10 justify-start`]}> 
+        {/* Customizable QR Error Modal (always rendered at root) */}
+        {showQrErrorModal && (
+          <Animated.View
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.6)',
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: 101,
+            }}
+          >
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={resetScanner}
+              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+            />
+            <TouchableOpacity
+              activeOpacity={1}
+              style={{ backgroundColor: '#222', borderRadius: 16, padding: 24, alignItems: 'center', maxWidth: 320, width: '80%' }}
+              onPress={e => e.stopPropagation()}
+            >
+              <Text style={[tw`text-white text-[16px] mb-2`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>{qrErrorTitle}</Text>
+              <Text style={[tw`text-white mb-4`, { fontFamily: 'Nunito-Medium', textAlign: 'center', fontSize: 14 }]}>{qrErrorMessage}</Text>
+              <TouchableOpacity
+                style={[tw`flex-row items-center justify-center bg-white/10 border border-white/20 rounded-xl px-6 py-1.5`]}
+                onPress={resetScanner}
+              >
+                <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold', fontSize: 13 }]}>OK</Text>
+              </TouchableOpacity>
+            </TouchableOpacity>
+          </Animated.View>
+        )}
+
         {/* Back button */}
         <View style={tw`w-full flex-row items-center mb-2 px-3`}>
           <TouchableOpacity
@@ -310,8 +330,8 @@ const QRProfile: React.FC = () => {
         )}
         {tab === 'scan' && (
           <View style={[tw`flex-1 w-full items-center`, { marginTop: 24 }]}> 
-            <Text style={[tw`text-white text-lg mb-4`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Scan QR Code 📱</Text>
-            <Text style={[tw`text-white text-sm mb-6 px-8`, { fontFamily: 'Nunito-Medium', textAlign: 'center' }]}>Point your camera at a Sizzl QR code to connect with friends</Text>
+            <Text style={[tw`text-white text-[15px] mb-3`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Scan QR Code 📷</Text>
+            <Text style={[tw`text-white text-[13px] mb-6 px-10 leading-[1.25]`, { fontFamily: 'Nunito-Medium', textAlign: 'center' }]}>Point your camera at your friend's QR Card to connect with them 🤝</Text>
             
             <View style={[styles.cameraContainer]}>
               <CameraView
@@ -341,10 +361,10 @@ const QRProfile: React.FC = () => {
 
             {scanned && (
               <TouchableOpacity
-                style={[tw`mt-6 bg-white/10 border border-white/20 rounded-xl px-6 py-3`]}
+                style={[tw`mt-8 bg-white/10 border border-white/20 rounded-xl px-6 py-2`]}
                 onPress={resetScanner}
               >
-                <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold', fontSize: 14 }]}>Scan Again</Text>
+                <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold', fontSize: 14 }]}>Scan again</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -358,28 +378,32 @@ const styles = StyleSheet.create({
   cameraContainer: {
     width: width * 0.85,
     height: width * 0.85,
-    borderRadius: 20,
+    borderRadius: 16,
     overflow: 'hidden',
     backgroundColor: '#000',
   },
   camera: {
     flex: 1,
+    borderRadius: 16,
   },
   overlay: {
     flex: 1,
     backgroundColor: 'transparent',
+    borderRadius: 16,
   },
   unfocusedContainer: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    flex: 0.5,
+    // backgroundColor: 'rgba(0,0,0,0.7)',
   },
   middleContainer: {
     flexDirection: 'row',
-    flex: 1.5,
+    flex: 10,
+    borderRadius: 16,
   },
   focusedContainer: {
-    flex: 6,
+    flex: 10,
     position: 'relative',
+    borderRadius: 20,
   },
   corner: {
     position: 'absolute',
