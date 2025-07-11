@@ -1,11 +1,12 @@
-import { CameraView, useCameraPermissions } from 'expo-camera';
+import { supabase } from '@/utils/supabase';
 import { LinearGradient } from 'expo-linear-gradient';
-import * as MediaLibrary from 'expo-media-library';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Animated, Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useRef, useState, useEffect } from 'react';
+import { Alert, Animated, Text, TouchableOpacity, View, StyleSheet, Dimensions } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { captureRef } from 'react-native-view-shot';
+import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
+import * as MediaLibrary from 'expo-media-library';
 import tw from 'twrnc';
 import BackIcon from '../../assets/icons/back.svg';
 import DownloadIcon from '../../assets/icons/download-icon.svg';
@@ -19,25 +20,8 @@ const tabTextInactive = '#fff';
 const bgpopup = '#080B32';
 const bggreenmodal = '#22C55E';
 
-type UserView = {
-  id: string;
-  username?: string;
-  firstname?: string;
-  lastname?: string;
-  profile_image?: string;
-  background_url?: string;
-  bio?: string;
-  birthdate?: string;
-  instagramurl?: string;
-  xurl?: string;
-  snapchaturl?: string;
-  facebookurl?: string;
-  friend_count?: number;
-};
-
 // This page expects to be used as a route, so get params from router
 import { useLocalSearchParams } from 'expo-router';
-import { supabase } from '@/utils/supabase';
 
 const { width, height } = Dimensions.get('window');
 
@@ -50,7 +34,6 @@ const QRProfile: React.FC = () => {
   const cardRef = useRef<any>(null);
   const [saving, setSaving] = useState(false);
   const [showSavedModal, setShowSavedModal] = useState(false);
-  const [userViewID, setUserViewID] = useState<string | undefined>(username);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   // Camera related states
@@ -63,19 +46,6 @@ const QRProfile: React.FC = () => {
       requestPermission();
     }
   }, [tab, permission, requestPermission]);
-
-  const findUser = async (username: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('id')
-        .eq('username', username);
-      if (error) throw error;
-      setUserViewID(data[0]?.id);
-    } catch (error) {
-      Alert.alert('Error', 'User not found.');
-    }
-  };
 
   const handleSaveQr = async () => {
     if (!cardRef.current) {
@@ -116,34 +86,63 @@ const QRProfile: React.FC = () => {
     }).start(() => setShowSavedModal(false));
   };
 
-  const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
+  const handleBarCodeScanned = async ({ type, data }: { type: string; data: string }) => {
     setScanned(true);
     
     // Check if the QR code is a Sizzl profile URL
     if (data.includes('sizzl.app/profile/')) {
-      const profileId = data.split('sizzl.app/profile/')[1];
-      console.log('Scanned Sizzl profile ID:', profileId);
-      findUser(profileId).catch(err => {
-        console.error('Error finding user:', err);
-      });
-      console.log('User view ID:', userViewID);
-      Alert.alert(
-        'QR Code Scanned! 🎉',
-        `Found Sizzl profile: ${profileId}`,
-        [
-          { text: 'Cancel', style: 'cancel', onPress: () => setScanned(false) },
-          { 
-            text: 'View Profile', 
-            onPress: () => {
-              // Navigate to the profile using profileId as userId param
-              router.push({
-                pathname: '/(profile)/qrprofile',
-                params: { userId: userViewID || profileId },
-              });
-            }
+      const profileIdentifier = data.split('sizzl.app/profile/')[1];
+      
+      try {
+        // Check if the identifier is a username or user ID
+        let userId = profileIdentifier;
+        
+        // If it's not a UUID format, assume it's a username and look up the user ID
+        if (!profileIdentifier.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+          // It's a username, look up the user ID from the database
+          const { data: userData, error } = await supabase
+            .from('users')
+            .select('id')
+            .eq('username', profileIdentifier)
+            .single();
+          
+          if (error || !userData) {
+            Alert.alert(
+              'Profile Not Found',
+              `Could not find user with username: ${profileIdentifier}`,
+              [{ text: 'OK', onPress: () => setScanned(false) }]
+            );
+            return;
           }
-        ]
-      );
+          
+          userId = userData.id;
+        }
+        
+        Alert.alert(
+          'QR Code Scanned! 🎉',
+          `Found Sizzl profile: ${profileIdentifier}`,
+          [
+            { text: 'Cancel', style: 'cancel', onPress: () => setScanned(false) },
+            { 
+              text: 'View Profile', 
+              onPress: () => {
+                // Navigate to the profile using the user ID
+                router.replace({ 
+                  pathname: '/(profile)/profile', 
+                  params: { user_id: userId } 
+                });
+              }
+            }
+          ]
+        );
+      } catch (error) {
+        console.error('Error processing QR code:', error);
+        Alert.alert(
+          'Error',
+          'Could not process the QR code. Please try again.',
+          [{ text: 'OK', onPress: () => setScanned(false) }]
+        );
+      }
     } else {
       Alert.alert(
         'QR Code Scanned',
@@ -251,7 +250,7 @@ const QRProfile: React.FC = () => {
                 <View style={[tw`flex-1 justify-center items-center p-10`, { backgroundColor: user?.background_url ? '' : bgpopup }]}> 
                   <Text style={[tw`text-white text-[15px] mb-8`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Add me on Sizzl 🔥</Text>
                   <QRCode
-                    value={`https://sizzl.app/profile/${userId || username}`}
+                    value={`https://sizzl.app/profile/${username || userId}`}
                     size={240}
                     color="#fff"
                     backgroundColor="transparent"
