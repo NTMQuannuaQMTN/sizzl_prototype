@@ -15,6 +15,7 @@ import Private from '../../assets/icons/private.svg';
 import Public from '../../assets/icons/public.svg';
 import RSVP from '../../assets/icons/time.svg';
 import CohostModal from './cohost';
+import DateTimeModal from './dateTimeModal';
 import LocationModal from './location';
 
 interface Friend {
@@ -53,18 +54,41 @@ export default function CreatePage() {
     notes: '',
   });
   const [showCohostModal, setShowCohostModal] = useState(false);
+  const [showDateTimeModal, setShowDateTimeModal] = useState(false);
 
   // Dummy locations for demonstration
-  const locations = [
-    {
-      address: '1234 A Rd',
-      city: 'East Lansing, MI, 48825',
-    },
-    {
-      address: '1234 A Rd',
-      city: 'East Lansing, MI, 48825',
-    },
-  ];
+  // To get all locations from Google Maps, you typically need to use the Google Places API or Geocoding API.
+  // Here is an example of how you might fetch places near a location using the Google Places API (requires an API key):
+
+  const [locations, setLocations] = useState<{ address: string; city: string }[]>([]);
+
+  // useEffect(() => {
+  //   async function fetchLocations() {
+  //     const apiKey = 'YOUR_GOOGLE_MAPS_API_KEY'; // Replace with your actual API key
+  //     const lat = 42.7369792; // Example latitude
+  //     const lng = -84.4838654; // Example longitude
+  //     const radius = 1500; // in meters
+
+  //     // Google Places Nearby Search API endpoint
+  //     const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&key=${apiKey}`;
+
+  //     try {
+  //       const response = await fetch(url);
+  //       const data = await response.json();
+  //       if (data.results) {
+  //         const formatted = data.results.map((place: any) => ({
+  //           address: place.vicinity || place.name,
+  //           city: '', // You may need to use Geocoding API to get the city name
+  //         }));
+  //         setLocations(formatted);
+  //       }
+  //     } catch (error) {
+  //       console.error('Error fetching locations from Google Maps:', error);
+  //     }
+  //   }
+
+  //   fetchLocations();
+  // }, []);
 
   // Dummy friends data for cohost modal
   // Fetch friends from the "friends" table (replace with your actual data fetching logic)
@@ -159,7 +183,8 @@ export default function CreatePage() {
         {/* Set date and time */}
         <View style={tw`px-4 mb-3`}>
           {/* Placeholder for date/time picker */}
-          <TouchableOpacity style={tw`bg-white/10 rounded-xl px-4 py-3 flex-row items-center mb-1`}>
+          <TouchableOpacity style={tw`bg-white/10 rounded-xl px-4 py-3 flex-row items-center mb-1`}
+          onPress={() => setShowDateTimeModal(true)}>
             <Text style={tw`text-white/70 text-base`}>Set date and time</Text>
           </TouchableOpacity>
         </View>
@@ -359,6 +384,13 @@ export default function CreatePage() {
         location={location}
         setLocation={setLocation}
         locations={locations}
+      />
+      <DateTimeModal
+        visible={showDateTimeModal}
+        onClose={() => { }}
+        startDate={new Date()}
+        endDate={new Date()}
+        onSave={() => { }}
       />
     </KeyboardAvoidingView>
   );
