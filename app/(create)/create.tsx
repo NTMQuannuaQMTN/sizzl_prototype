@@ -18,6 +18,7 @@ import Public from '../../assets/icons/public.svg';
 import RSVP from '../../assets/icons/time.svg';
 import CohostModal from './cohost';
 import DateTimeModal from './dateTimeModal';
+import ImageModal from './imageModal';
 import LocationModal from './location';
 
 interface Friend {
@@ -31,6 +32,17 @@ interface Friend {
 export default function CreatePage() {
   const [title, setTitle] = useState('');
   const [publicEvent, setPublic] = useState(true);
+  const imageOptions = [
+    require('../../assets/images/default_1.png'),
+    require('../../assets/images/default_2.png'),
+    require('../../assets/images/default_3.png'),
+    require('../../assets/images/default_4.png'),
+    require('../../assets/images/default_5.png'),
+    require('../../assets/images/default_6.png'),
+    require('../../assets/images/default_7.png'),
+    require('../../assets/images/default_8.png'),
+  ];
+  const [image, setImage] = useState(imageOptions[Math.floor(Math.random() * 8)]);
   const { user } = useUserStore();
   const [cohosts, setCohosts] = useState([]);
   const [bio, setBio] = useState('');
@@ -57,10 +69,7 @@ export default function CreatePage() {
   });
   const [showCohostModal, setShowCohostModal] = useState(false);
   const [showDateTimeModal, setShowDateTimeModal] = useState(false);
-
-  // Dummy locations for demonstration
-  // To get all locations from Google Maps, you typically need to use the Google Places API or Geocoding API.
-  // Here is an example of how you might fetch places near a location using the Google Places API (requires an API key):
+  const [showImageModal, setShowImageModal] = useState(false);
 
   const [locations, setLocations] = useState<{ address: string; city: string }[]>([]);
 
@@ -125,8 +134,27 @@ export default function CreatePage() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}
-        keyboardShouldPersistTaps="handled">
+      <Image
+        source={typeof image === 'string' ? { uri: image } : image}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: undefined,
+          minHeight: '100%',
+          resizeMode: 'cover',
+          zIndex: 0,
+        }}
+        blurRadius={2}
+      />
+      <View style={[tw`w-full absolute top-0 bg-black bg-opacity-60`, { minHeight: '100%', height: undefined }]} />
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+        style={{ zIndex: 1 }}
+      >
         {/* Top bar */}
         <View style={tw`flex-row items-center justify-between px-4 mt-10 mb-1.5`}>
           <View style={tw`flex-row items-center gap-4`}>
@@ -140,7 +168,7 @@ export default function CreatePage() {
 
         {/* Title input */}
         <View style={tw`px-4 mb-2 items-center`}>
-          <TextInput style={[tw`text-white text-[22px]`, {fontFamily: 'Nunito-ExtraBold'}]}
+          <TextInput style={[tw`text-white text-[22px]`, { fontFamily: 'Nunito-ExtraBold' }]}
             value={title}
             onChangeText={setTitle}
             placeholder='your event title'
@@ -152,42 +180,30 @@ export default function CreatePage() {
           <TouchableOpacity style={tw`flex-row items-center gap-2 justify-center bg-[#064B55] ${publicEvent ? 'border border-white/10' : 'opacity-30'} rounded-full px-2 py-0.5 mr-1`}
             onPress={() => { setPublic(true) }}>
             <Public></Public>
-            <Text style={[tw`text-[13px] text-white`, {fontFamily: 'Nunito-ExtraBold'}]}>Public</Text>
+            <Text style={[tw`text-[13px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Public</Text>
           </TouchableOpacity>
           <TouchableOpacity style={tw`flex-row items-center gap-2 justify-center bg-[#080B32] ${publicEvent ? 'opacity-30' : 'border border-purple-900'} rounded-full px-2 py-0.5`}
             onPress={() => { setPublic(false) }}>
             <Private></Private>
-            <Text style={[tw`text-[13px] text-white`, {fontFamily: 'Nunito-ExtraBold'}]}>Private</Text>
+            <Text style={[tw`text-[13px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Private</Text>
           </TouchableOpacity>
         </View>
 
         {/* Image picker */}
         <View style={tw`px-4 mb-3`}>
-          <View
-            style={[
-              tw`rounded-xl overflow-hidden w-full bg-[#f5e2c6] items-center justify-center relative`,
-              { aspectRatio: 410 / 279, height: undefined },
-            ]}
-          >
+          <TouchableOpacity style={[tw`rounded-2xl overflow-hidden w-full h-36 bg-[#f5e2c6] items-center justify-center relative`, { aspectRatio: 410 / 279, height: undefined }]}
+            onPress={() => { setShowImageModal(true) }}>
+            <Image
+              source={typeof image === 'string' ? { uri: image } : image}
+              style={tw`w-full h-36`}
+              resizeMode="cover"
+            />
             {/* Placeholder for event image */}
-            <View style={tw`flex-row items-center gap-1 absolute top-2.5 right-2.5 bg-white rounded-lg px-2 py-1 shadow-md`}>
-              <Camera width={14} height={14} />
-              <Text style={[tw`text-xs text-black`, { fontFamily: 'Nunito-ExtraBold' }]}>Choose image</Text>
+            <View style={tw`flex-row gap-1 absolute top-2 right-2 bg-white/80 rounded px-2 py-1`}>
+              <Camera />
+              <Text style={tw`text-xs text-black font-bold`}>Choose</Text>
             </View>
-            {/* Example illustration */}
-            <View style={tw`flex-row items-center justify-center`}>
-              <View style={tw`mr-2`}>
-                <View style={tw`w-16 h-16 bg-[#e94e3c] rounded-lg`} />
-              </View>
-              <View>
-                <View style={tw`w-20 h-16 bg-[#e94e3c] rounded-lg mb-1`} />
-                <View style={tw`w-10 h-6 bg-[#fff] rounded-lg`} />
-              </View>
-            </View>
-            <Text style={tw`absolute bottom-2 left-2 text-xs text-[#e94e3c] font-bold`}>
-              FOR SOME MOVIE AND SNACKS ALRIGHT
-            </Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Set date and time */}
@@ -197,7 +213,7 @@ export default function CreatePage() {
             onPress={() => setShowDateTimeModal(true)}
             activeOpacity={0.7}
           >
-            <Text style={[tw`text-gray-400 text-[18px]`, {fontFamily: 'Nunito-ExtraBold'}]}>Set date and time</Text>
+            <Text style={[tw`text-gray-400 text-[18px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Set date and time</Text>
           </TouchableOpacity>
         </View>
 
@@ -241,7 +257,7 @@ export default function CreatePage() {
                     <PfpDefault width={30} height={30} />
                   )}
                 </View>
-                <Text style={[tw`text-white`, {fontFamily: 'Nunito-Bold'}]}>{user.firstname}</Text>
+                <Text style={[tw`text-white`, { fontFamily: 'Nunito-Bold' }]}>{user.firstname}</Text>
               </View>
 
               {cohosts.filter(c => typeof c === 'object').slice(0, 2).map((cohost, idx) => {
@@ -255,7 +271,7 @@ export default function CreatePage() {
                         defaultSource={require('../../assets/icons/pfpdefault.svg')}
                       />
                     </View>
-                    <Text style={[tw`text-white`, {fontFamily: 'Nunito-Bold'}]}>{cohost.firstname}</Text>
+                    <Text style={[tw`text-white`, { fontFamily: 'Nunito-Bold' }]}>{cohost.firstname}</Text>
                   </View>
                 );
               })}
@@ -271,7 +287,7 @@ export default function CreatePage() {
               style={tw`self-start`}
             >
               <Text style={[tw`rounded-lg text-white text-xs bg-white/10 border border-white/20 mt-2 -mb-1 py-1 px-2.5`, { fontFamily: 'Nunito-ExtraBold' }]}>
-               Add cohosts (optional)
+                Add cohosts (optional)
               </Text>
             </TouchableOpacity>
           </TouchableOpacity>
@@ -309,10 +325,10 @@ export default function CreatePage() {
             <TextInput
               style={[
                 tw`text-white text-[13px] px-0 py-0 text-left leading-[1.25]`,
-                { 
-                  fontFamily: bio ? 'Nunito-Medium' : 'Nunito-ExtraBold', 
-                  minHeight: 60, 
-                  textAlignVertical: 'top' 
+                {
+                  fontFamily: bio ? 'Nunito-Medium' : 'Nunito-ExtraBold',
+                  minHeight: 60,
+                  textAlignVertical: 'top'
                 }
               ]}
               placeholder="About this event..."
@@ -469,18 +485,19 @@ export default function CreatePage() {
             </View>
           </View>
         </View>
-      </ScrollView>
+      </ScrollView >
 
       {/* Cohost Modal */}
-      <CohostModal
+      < CohostModal
         visible={showCohostModal}
-        onClose={() => setShowCohostModal(false)}
+        onClose={() => setShowCohostModal(false)
+        }
         friends={friends}
         cohosts={cohosts}
         onSave={setCohosts}
       />
       {/* Location Modal */}
-      <LocationModal
+      < LocationModal
         visible={showLocationModal}
         onClose={() => setShowLocationModal(false)}
         location={location}
@@ -489,11 +506,17 @@ export default function CreatePage() {
       />
       <DateTimeModal
         visible={showDateTimeModal}
-        onClose={() => { }}
+        onClose={() => { setShowDateTimeModal(false) }}
         startDate={new Date()}
         endDate={new Date()}
         onSave={() => { }}
       />
-    </KeyboardAvoidingView>
+      <ImageModal
+        visible={showImageModal}
+        onClose={() => { setShowImageModal(false) }}
+        imageOptions={imageOptions}
+        onSelect={(img) => { setImage(img) }}
+      />
+    </KeyboardAvoidingView >
   );
 }
