@@ -286,7 +286,7 @@ const QRProfile: React.FC = () => {
               disabled={saving}
             >
               <DownloadIcon width={20} height={20} style={{ marginRight: 6 }} />
-              <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold', fontSize: 13 }]}>Save QR Card</Text>
+              <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold', fontSize: 13 }]}>Save your QR Card</Text>
             </TouchableOpacity>
 
             {/* Custom Saved Modal */}
