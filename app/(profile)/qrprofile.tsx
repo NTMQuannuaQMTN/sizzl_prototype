@@ -82,7 +82,7 @@ const QRProfile: React.FC = () => {
     >
       <View style={[tw`flex-1 items-center mt-10 justify-start`]}>
         {/* Back button */}
-        <View style={tw`w-full flex-row items-center mb-2 px-4`}>
+        <View style={tw`w-full flex-row items-center mb-2 px-3`}>
           <TouchableOpacity
             onPress={() => router.back()}
             style={tw`p-2 mr-2`}
@@ -114,7 +114,7 @@ const QRProfile: React.FC = () => {
               ]}
               onPress={() => setTab('scan')}
             >
-              <Text style={{ color: tab === 'scan' ? tabTextActive : tabTextInactive, fontFamily: 'Nunito-ExtraBold', fontSize: 14 }}>scan</Text>
+              <Text style={{ color: tab === 'scan' ? tabTextActive : tabTextInactive, fontFamily: 'Nunito-ExtraBold', fontSize: 14 }}>Scan</Text>
             </TouchableOpacity>
           </View>
         </View>
