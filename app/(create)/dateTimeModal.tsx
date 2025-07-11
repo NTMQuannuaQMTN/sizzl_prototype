@@ -29,10 +29,9 @@ const timeOptions = getTimeOptions();
 export default function DateTimeModal({ visible, onClose, startDate, endDate, onSave }: DateTimeModalProps) {
   const [localStart, setLocalStart] = useState<Date>(startDate);
   const [localEnd, setLocalEnd] = useState<Date>(endDate);
-  const [showStartDate, setShowStartDate] = useState(false);
-  const [showEndDate, setShowEndDate] = useState(false);
-  const [showStartTime, setShowStartTime] = useState(false);
-  const [showEndTime, setShowEndTime] = useState(false);
+  const [showDate, setShowDate] = useState(false);
+  const [showTime, setShowTime] = useState(false);
+  const [activeTab, setActiveTab] = useState<'start' | 'end'>('start');
 
   const handleTimeChange = (type: 'start' | 'end', timeStr: string) => {
     const match = timeStr.match(/(\d+):(\d+)(am|pm)/i);
@@ -53,6 +52,9 @@ export default function DateTimeModal({ visible, onClose, startDate, endDate, on
     }
   };
 
+  const currentDate = activeTab === 'start' ? localStart : localEnd;
+  const setCurrentDate = activeTab === 'start' ? setLocalStart : setLocalEnd;
+
   return (
     <Modal
       visible={visible}
@@ -63,74 +65,52 @@ export default function DateTimeModal({ visible, onClose, startDate, endDate, on
       <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end', alignItems: 'center' }}>
         <View style={{ width: '100%', borderTopLeftRadius: 20, borderTopRightRadius: 20, backgroundColor: '#0B1A2A', padding: 20, paddingBottom: 32 }}>
           <Text style={[tw`text-white text-lg font-bold mb-4`, { textAlign: 'center' }]}>Select Event Date & Time</Text>
-          {/* Start Section */}
-          <Text style={tw`text-white font-bold mb-1`}>Start</Text>
-          <TouchableOpacity style={tw`bg-[#16263A] rounded-lg px-4 py-3 mb-2`} onPress={() => setShowStartDate(true)}>
-            <Text style={tw`text-white`}>{localStart.toDateString()}</Text>
+          {/* Tabs */}
+          <View style={tw`flex-row mb-4`}> 
+            <TouchableOpacity
+              style={tw`${activeTab === 'start' ? 'bg-[#7A5CFA]' : 'bg-[#16263A]'} flex-1 rounded-l-full py-2`}
+              onPress={() => setActiveTab('start')}
+            >
+              <Text style={tw`text-white text-center font-bold`}>Start</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={tw`${activeTab === 'end' ? 'bg-[#7A5CFA]' : 'bg-[#16263A]'} flex-1 rounded-r-full py-2`}
+              onPress={() => setActiveTab('end')}
+            >
+              <Text style={tw`text-white text-center font-bold`}>End</Text>
+            </TouchableOpacity>
+          </View>
+          {/* Date Picker */}
+          <TouchableOpacity style={tw`bg-[#16263A] rounded-lg px-4 py-3 mb-2`} onPress={() => setShowDate(true)}>
+            <Text style={tw`text-white`}>{currentDate.toDateString()}</Text>
           </TouchableOpacity>
-          {showStartDate && (
+          {showDate && (
             <DateTimePicker
-              value={localStart}
+              value={currentDate}
               mode="date"
               display="calendar"
               onChange={(_, date) => {
-                setShowStartDate(false);
-                if (date) setLocalStart(new Date(date.setHours(localStart.getHours(), localStart.getMinutes())));
+                setShowDate(false);
+                if (date) setCurrentDate(new Date(date.setHours(currentDate.getHours(), currentDate.getMinutes())));
               }}
             />
           )}
-          <TouchableOpacity style={tw`bg-[#16263A] rounded-lg px-4 py-3 mb-4`} onPress={() => setShowStartTime(true)}>
+          {/* Time Picker */}
+          <TouchableOpacity style={tw`bg-[#16263A] rounded-lg px-4 py-3 mb-4`} onPress={() => setShowTime(true)}>
             <Text style={tw`text-white`}>{timeOptions.find(t => {
-              const h = localStart.getHours();
-              const m = localStart.getMinutes();
+              const h = currentDate.getHours();
+              const m = currentDate.getMinutes();
               const hour = h % 12 === 0 ? 12 : h % 12;
               const ampm = h < 12 ? 'am' : 'pm';
               const min = m.toString().padStart(2, '0');
               return t === `${hour}:${min}${ampm}`;
             })}</Text>
           </TouchableOpacity>
-          {showStartTime && (
+          {showTime && (
             <View style={{ maxHeight: 200, backgroundColor: '#16263A', borderRadius: 8, marginBottom: 8 }}>
               <ScrollView>
                 {timeOptions.map((t, idx) => (
-                  <TouchableOpacity key={t} style={tw`px-4 py-2`} onPress={() => { handleTimeChange('start', t); setShowStartTime(false); }}>
-                    <Text style={tw`text-white`}>{t}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          )}
-          {/* End Section */}
-          <Text style={tw`text-white font-bold mb-1 mt-2`}>End</Text>
-          <TouchableOpacity style={tw`bg-[#16263A] rounded-lg px-4 py-3 mb-2`} onPress={() => setShowEndDate(true)}>
-            <Text style={tw`text-white`}>{localEnd.toDateString()}</Text>
-          </TouchableOpacity>
-          {showEndDate && (
-            <DateTimePicker
-              value={localEnd}
-              mode="date"
-              display="calendar"
-              onChange={(_, date) => {
-                setShowEndDate(false);
-                if (date) setLocalEnd(new Date(date.setHours(localEnd.getHours(), localEnd.getMinutes())));
-              }}
-            />
-          )}
-          <TouchableOpacity style={tw`bg-[#16263A] rounded-lg px-4 py-3 mb-4`} onPress={() => setShowEndTime(true)}>
-            <Text style={tw`text-white`}>{timeOptions.find(t => {
-              const h = localEnd.getHours();
-              const m = localEnd.getMinutes();
-              const hour = h % 12 === 0 ? 12 : h % 12;
-              const ampm = h < 12 ? 'am' : 'pm';
-              const min = m.toString().padStart(2, '0');
-              return t === `${hour}:${min}${ampm}`;
-            })}</Text>
-          </TouchableOpacity>
-          {showEndTime && (
-            <View style={{ maxHeight: 200, backgroundColor: '#16263A', borderRadius: 8, marginBottom: 8 }}>
-              <ScrollView>
-                {timeOptions.map((t, idx) => (
-                  <TouchableOpacity key={t} style={tw`px-4 py-2`} onPress={() => { handleTimeChange('end', t); setShowEndTime(false); }}>
+                  <TouchableOpacity key={t} style={tw`px-4 py-2`} onPress={() => { handleTimeChange(activeTab, t); setShowTime(false); }}>
                     <Text style={tw`text-white`}>{t}</Text>
                   </TouchableOpacity>
                 ))}
