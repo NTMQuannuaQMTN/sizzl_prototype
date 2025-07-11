@@ -5,6 +5,7 @@ import { Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, Tou
 import tw from 'twrnc';
 import { useUserStore } from '../store/userStore';
 
+
 import { supabase } from '@/utils/supabase';
 import Back from '../../assets/icons/back.svg';
 import Camera from '../../assets/icons/camera_icon.svg';
@@ -18,6 +19,7 @@ import Public from '../../assets/icons/public.svg';
 import RSVP from '../../assets/icons/time.svg';
 import CohostModal from './cohost';
 import DateTimeModal from './dateTimeModal';
+import defaultImages from './defaultimage';
 import ImageModal from './imageModal';
 import LocationModal from './location';
 
@@ -32,17 +34,8 @@ interface Friend {
 export default function CreatePage() {
   const [title, setTitle] = useState('');
   const [publicEvent, setPublic] = useState(true);
-  const imageOptions = [
-    require('../../assets/images/default_1.png'),
-    require('../../assets/images/default_2.png'),
-    require('../../assets/images/default_3.png'),
-    require('../../assets/images/default_4.png'),
-    require('../../assets/images/default_5.png'),
-    require('../../assets/images/default_6.png'),
-    require('../../assets/images/default_7.png'),
-    require('../../assets/images/default_8.png'),
-  ];
-  const [image, setImage] = useState(imageOptions[Math.floor(Math.random() * 8)]);
+  const imageOptions = defaultImages;
+  const [image, setImage] = useState(imageOptions[Math.floor(Math.random() * imageOptions.length)]);
   const { user } = useUserStore();
   const [cohosts, setCohosts] = useState([]);
   const [bio, setBio] = useState('');
@@ -147,7 +140,7 @@ export default function CreatePage() {
           resizeMode: 'cover',
           zIndex: 0,
         }}
-        blurRadius={2}
+        blurRadius={2.5}
       />
       <View style={[tw`w-full absolute top-0 bg-black bg-opacity-60`, { minHeight: '100%', height: undefined }]} />
       <ScrollView
@@ -191,17 +184,17 @@ export default function CreatePage() {
 
         {/* Image picker */}
         <View style={tw`px-4 mb-3`}>
-          <TouchableOpacity style={[tw`rounded-2xl overflow-hidden w-full h-36 bg-[#f5e2c6] items-center justify-center relative`, { aspectRatio: 410 / 279, height: undefined }]}
+          <TouchableOpacity style={[tw`rounded-2xl overflow-hidden w-full items-center justify-center relative`, { aspectRatio: 410 / 279 }]}
             onPress={() => { setShowImageModal(true) }}>
             <Image
               source={typeof image === 'string' ? { uri: image } : image}
-              style={tw`w-full h-36`}
-              resizeMode="cover"
+              style={{ width: '100%', aspectRatio: 410 / 279 }}
+              resizeMode="contain"
             />
             {/* Placeholder for event image */}
-            <View style={tw`flex-row gap-1 absolute top-2 right-2 bg-white/80 rounded px-2 py-1`}>
-              <Camera />
-              <Text style={tw`text-xs text-black font-bold`}>Choose</Text>
+            <View style={tw`flex-row gap-1.5 absolute top-2.5 right-2.5 bg-white rounded-lg px-2 py-1 shadow-md`}>
+              <Camera width={14} height={14} />
+              <Text style={[tw`text-xs text-black`, { fontFamily: 'Nunito-ExtraBold' }]}>{'Choose image'}</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -357,7 +350,7 @@ export default function CreatePage() {
         </View>
 
         {/* What's special? */}
-        <View style={tw`px-4 mb-8`}>
+        <View style={tw`px-4 mb-18`}>
           <Text style={[tw`text-white text-[15px] mb-2`, { fontFamily: 'Nunito-ExtraBold' }]}>What's special?</Text>
           {/* Special event perks selection UI */}
           <View style={tw`gap-2.5`}>
