@@ -525,9 +525,6 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <View style={[tw`flex-1 justify-center items-center`, { backgroundColor: bgpopup, minHeight: '100%' }]}> 
-        <Animated.View style={{ opacity: 0.8 }}>
-          <PfpDefault width={100} height={100} />
-        </Animated.View>
         <Text style={[tw`text-white text-lg mt-6`, { fontFamily: 'Nunito-ExtraBold' }]}>Loading profile...</Text>
       </View>
     );
