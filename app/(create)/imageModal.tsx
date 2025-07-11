@@ -19,6 +19,7 @@ export default function ImageModal({ visible, onClose, imageOptions, onSelect }:
         });
         if (!result.canceled) {
             onSelect(result.assets[0].uri);
+            onClose();
         }
     };
 
