@@ -147,7 +147,7 @@ export default function CreatePage() {
         }}
         blurRadius={2}
       />
-      <View style={tw`w-full min-h-full absolute top-0 bg-black bg-opacity-60`}/>
+      <View style={[tw`w-full absolute top-0 bg-black bg-opacity-60`, {minHeight: '100%', height: undefined}]}/>
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps="handled"
