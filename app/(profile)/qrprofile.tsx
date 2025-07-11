@@ -105,29 +105,31 @@ const QRProfile: React.FC = () => {
 
         {/* Tab content */}
         {tab === 'qr' && (
-          <View ref={cardRef} collapsable={false} style={{ width: '100%', alignItems: 'center', marginTop: 40, minHeight: 500 }}>
-            <ProfileBackgroundWrapper imageUrl={user?.background_url} borderRadius={14}>
-              <View style={[tw`items-center px-14 py-16`, { backgroundColor: user?.background_url ? '' : bgpopup }]}> 
-                <Text style={[tw`text-white text-[15px] mb-6`, { fontFamily: 'Nunito-ExtraBold' }]}>Add me on Sizzl 🔥</Text>
-                <QRCode
-                  value={`https://sizzl.app/profile/${username || userId}`}
-                  size={200}
-                  color="#fff"
-                  backgroundColor="transparent"
-                  getRef={c => { qrRef.current = c; }}
-                />
-                <Text style={[tw`text-white mt-6`, { fontFamily: 'Nunito-Bold', fontSize: 13 }]}>@{username}</Text>
-              </View>
-            </ProfileBackgroundWrapper>
+          <>
+            <View ref={cardRef} collapsable={false} style={{ width: '100%', alignItems: 'center', marginTop: 20, minHeight: 500 }}>
+              <ProfileBackgroundWrapper imageUrl={user?.background_url} borderRadius={14}>
+                <View style={[tw`flex-1 justify-center items-center p-10`, { backgroundColor: user?.background_url ? '' : bgpopup }]}> 
+                  <Text style={[tw`text-white text-[15px] mb-8`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Add me on Sizzl 🔥</Text>
+                  <QRCode
+                    value={`https://sizzl.app/profile/${username || userId}`}
+                    size={240}
+                    color="#fff"
+                    backgroundColor="transparent"
+                    getRef={c => { qrRef.current = c; }}
+                  />
+                  <Text style={[tw`text-white mt-8`, { fontFamily: 'Nunito-Bold', fontSize: 13, textAlign: 'center' }]}>@{username}</Text>
+                </View>
+              </ProfileBackgroundWrapper>
+            </View>
             <TouchableOpacity
-              style={[tw`mt-10 flex-row items-center bg-white/5 border border-white/10 rounded-xl py-2 px-4`]}
+              style={[tw`mt-8 flex-row items-center bg-white/5 border border-white/10 rounded-xl py-2 px-4`]}
               onPress={handleSaveQr}
               disabled={saving}
             >
               <DownloadIcon width={20} height={20} style={{ marginRight: 6 }} />
               <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold', fontSize: 13 }]}>Save QR Card</Text>
             </TouchableOpacity>
-          </View>
+          </>
         )}
         {tab === 'scan' && (
           <View style={[tw`items-center`, { marginTop: 24 }]}> 
