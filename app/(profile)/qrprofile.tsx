@@ -1,8 +1,9 @@
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as MediaLibrary from 'expo-media-library';
 import { useRouter } from 'expo-router';
-import React, { useRef, useState } from 'react';
-import { Alert, Animated, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Alert, Animated, Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { captureRef } from 'react-native-view-shot';
 import tw from 'twrnc';
@@ -18,10 +19,27 @@ const tabTextInactive = '#fff';
 const bgpopup = '#080B32';
 const bggreenmodal = '#22C55E';
 
+type UserView = {
+  id: string;
+  username?: string;
+  firstname?: string;
+  lastname?: string;
+  profile_image?: string;
+  background_url?: string;
+  bio?: string;
+  birthdate?: string;
+  instagramurl?: string;
+  xurl?: string;
+  snapchaturl?: string;
+  facebookurl?: string;
+  friend_count?: number;
+};
 
 // This page expects to be used as a route, so get params from router
 import { useLocalSearchParams } from 'expo-router';
+import { supabase } from '@/utils/supabase';
 
+const { width, height } = Dimensions.get('window');
 
 const QRProfile: React.FC = () => {
   const { username, userId } = useLocalSearchParams<{ username?: string; userId?: string }>();
@@ -32,7 +50,32 @@ const QRProfile: React.FC = () => {
   const cardRef = useRef<any>(null);
   const [saving, setSaving] = useState(false);
   const [showSavedModal, setShowSavedModal] = useState(false);
+  const [userViewID, setUserViewID] = useState<string | undefined>(username);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  // Camera related states
+  const [permission, requestPermission] = useCameraPermissions();
+  const [scanned, setScanned] = useState(false);
+
+  useEffect(() => {
+    // Camera permissions are handled by useCameraPermissions hook
+    if (tab === 'scan' && !permission?.granted) {
+      requestPermission();
+    }
+  }, [tab, permission, requestPermission]);
+
+  const findUser = async (username: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id')
+        .eq('username', username);
+      if (error) throw error;
+      setUserViewID(data[0]?.id);
+    } catch (error) {
+      Alert.alert('Error', 'User not found.');
+    }
+  };
 
   const handleSaveQr = async () => {
     if (!cardRef.current) {
@@ -72,6 +115,87 @@ const QRProfile: React.FC = () => {
       useNativeDriver: true,
     }).start(() => setShowSavedModal(false));
   };
+
+  const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
+    setScanned(true);
+    
+    // Check if the QR code is a Sizzl profile URL
+    if (data.includes('sizzl.app/profile/')) {
+      const profileId = data.split('sizzl.app/profile/')[1];
+      console.log('Scanned Sizzl profile ID:', profileId);
+      findUser(profileId).catch(err => {
+        console.error('Error finding user:', err);
+      });
+      console.log('User view ID:', userViewID);
+      Alert.alert(
+        'QR Code Scanned! 🎉',
+        `Found Sizzl profile: ${profileId}`,
+        [
+          { text: 'Cancel', style: 'cancel', onPress: () => setScanned(false) },
+          { 
+            text: 'View Profile', 
+            onPress: () => {
+              // Navigate to the profile using profileId as userId param
+              router.push({
+                pathname: '/(profile)/qrprofile',
+                params: { userId: userViewID || profileId },
+              });
+            }
+          }
+        ]
+      );
+    } else {
+      Alert.alert(
+        'QR Code Scanned',
+        `Data: ${data}`,
+        [
+          { text: 'OK', onPress: () => setScanned(false) }
+        ]
+      );
+    }
+  };
+
+  const resetScanner = () => {
+    setScanned(false);
+  };
+
+  if (!permission) {
+    // Camera permissions are still loading
+    return (
+      <LinearGradient
+        colors={['#080B32', '#0E1241', '#291C56', '#392465', '#51286A']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={{ flex: 1 }}
+      >
+        <View style={[tw`flex-1 items-center justify-center`]}>
+          <Text style={[tw`text-white text-lg`, { fontFamily: 'Nunito-Medium' }]}>Loading camera...</Text>
+        </View>
+      </LinearGradient>
+    );
+  }
+
+  if (!permission.granted) {
+    return (
+      <LinearGradient
+        colors={['#080B32', '#0E1241', '#291C56', '#392465', '#51286A']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={{ flex: 1 }}
+      >
+        <View style={[tw`flex-1 items-center justify-center px-8`]}>
+          <Text style={[tw`text-white text-lg text-center mb-4`, { fontFamily: 'Nunito-Bold' }]}>Camera access denied</Text>
+          <Text style={[tw`text-white text-center mb-6`, { fontFamily: 'Nunito-Medium' }]}>Please enable camera permission in your device settings to scan QR codes.</Text>
+          <TouchableOpacity
+            style={[tw`bg-white/10 border border-white/20 rounded-xl px-6 py-3`]}
+            onPress={requestPermission}
+          >
+            <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Grant Permission</Text>
+          </TouchableOpacity>
+        </View>
+      </LinearGradient>
+    );
+  }
 
   return (
     <LinearGradient
@@ -127,7 +251,7 @@ const QRProfile: React.FC = () => {
                 <View style={[tw`flex-1 justify-center items-center p-10`, { backgroundColor: user?.background_url ? '' : bgpopup }]}> 
                   <Text style={[tw`text-white text-[15px] mb-8`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Add me on Sizzl 🔥</Text>
                   <QRCode
-                    value={`https://sizzl.app/profile/${username || userId}`}
+                    value={`https://sizzl.app/profile/${userId || username}`}
                     size={240}
                     color="#fff"
                     backgroundColor="transparent"
@@ -186,14 +310,109 @@ const QRProfile: React.FC = () => {
           </>
         )}
         {tab === 'scan' && (
-          <View style={[tw`items-center`, { marginTop: 24 }]}> 
-            <Text style={[tw`text-white text-2xl`, { fontFamily: 'Nunito-ExtraBold' }]}>coming soon 😏</Text>
-            {/* Add any content you want for the 'scan' tab here */}
+          <View style={[tw`flex-1 w-full items-center`, { marginTop: 24 }]}> 
+            <Text style={[tw`text-white text-lg mb-4`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Scan QR Code 📱</Text>
+            <Text style={[tw`text-white text-sm mb-6 px-8`, { fontFamily: 'Nunito-Medium', textAlign: 'center' }]}>Point your camera at a Sizzl QR code to connect with friends</Text>
+            
+            <View style={[styles.cameraContainer]}>
+              <CameraView
+                style={styles.camera}
+                facing="back"
+                onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
+                barcodeScannerSettings={{
+                  barcodeTypes: ["qr"],
+                }}
+              >
+                <View style={styles.overlay}>
+                  <View style={styles.unfocusedContainer}></View>
+                  <View style={styles.middleContainer}>
+                    <View style={styles.unfocusedContainer}></View>
+                    <View style={styles.focusedContainer}>
+                      <View style={[styles.corner, styles.topLeft]} />
+                      <View style={[styles.corner, styles.topRight]} />
+                      <View style={[styles.corner, styles.bottomLeft]} />
+                      <View style={[styles.corner, styles.bottomRight]} />
+                    </View>
+                    <View style={styles.unfocusedContainer}></View>
+                  </View>
+                  <View style={styles.unfocusedContainer}></View>
+                </View>
+              </CameraView>
+            </View>
+
+            {scanned && (
+              <TouchableOpacity
+                style={[tw`mt-6 bg-white/10 border border-white/20 rounded-xl px-6 py-3`]}
+                onPress={resetScanner}
+              >
+                <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold', fontSize: 14 }]}>Scan Again</Text>
+              </TouchableOpacity>
+            )}
           </View>
         )}
       </View>
     </LinearGradient>
   );
 };
+
+const styles = StyleSheet.create({
+  cameraContainer: {
+    width: width * 0.85,
+    height: width * 0.85,
+    borderRadius: 20,
+    overflow: 'hidden',
+    backgroundColor: '#000',
+  },
+  camera: {
+    flex: 1,
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  unfocusedContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+  },
+  middleContainer: {
+    flexDirection: 'row',
+    flex: 1.5,
+  },
+  focusedContainer: {
+    flex: 6,
+    position: 'relative',
+  },
+  corner: {
+    position: 'absolute',
+    width: 30,
+    height: 30,
+    borderColor: '#7A5CFA',
+    borderWidth: 4,
+  },
+  topLeft: {
+    top: 0,
+    left: 0,
+    borderBottomWidth: 0,
+    borderRightWidth: 0,
+  },
+  topRight: {
+    top: 0,
+    right: 0,
+    borderBottomWidth: 0,
+    borderLeftWidth: 0,
+  },
+  bottomLeft: {
+    bottom: 0,
+    left: 0,
+    borderTopWidth: 0,
+    borderRightWidth: 0,
+  },
+  bottomRight: {
+    bottom: 0,
+    right: 0,
+    borderTopWidth: 0,
+    borderLeftWidth: 0,
+  },
+});
 
 export default QRProfile;
