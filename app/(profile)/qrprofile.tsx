@@ -1,4 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
+import * as MediaLibrary from 'expo-media-library';
 import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import { Alert, Text, TouchableOpacity, View } from 'react-native';
@@ -8,7 +9,6 @@ import tw from 'twrnc';
 import BackIcon from '../../assets/icons/back.svg';
 import DownloadIcon from '../../assets/icons/download-icon.svg';
 import { useUserStore } from '../store/userStore';
-import { saveBase64ToGallery } from '../utils/saveToGallery';
 import ProfileBackgroundWrapper from './background_wrapper';
 
 const tabInactive = 'rgba(255,255,255,0.05)';
@@ -38,22 +38,17 @@ const QRProfile: React.FC = () => {
     }
     setSaving(true);
     try {
-      // Debug: show alert before capture
-      Alert.alert('Saving', 'Attempting to save QR card...');
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission required', 'Please allow access to your photos to save the QR card.');
+        setSaving(false);
+        return;
+      }
       const uri = await captureRef(cardRef, {
         format: 'png',
         quality: 1,
       });
-      // Read file as base64
-      const base64 = await fetch(uri).then(res => res.blob()).then(blob => {
-        return new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        });
-      });
-      await saveBase64ToGallery(base64);
+      await MediaLibrary.saveToLibraryAsync(uri);
       Alert.alert('Saved!', 'QR card saved to your gallery.');
     } catch (e) {
       Alert.alert('Error', 'Could not save QR card.');
@@ -136,7 +131,7 @@ const QRProfile: React.FC = () => {
         )}
         {tab === 'scan' && (
           <View style={[tw`items-center`, { marginTop: 24 }]}> 
-            <Text style={[tw`text-white text-2xl`, { fontFamily: 'Nunito-ExtraBold' }]}>scan 😏</Text>
+            <Text style={[tw`text-white text-2xl`, { fontFamily: 'Nunito-ExtraBold' }]}>coming soon 😏</Text>
             {/* Add any content you want for the 'scan' tab here */}
           </View>
         )}
