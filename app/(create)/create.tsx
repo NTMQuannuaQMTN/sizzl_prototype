@@ -1,7 +1,7 @@
 
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Image, KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 import { useUserStore } from '../store/userStore';
 
@@ -14,11 +14,22 @@ import PfpDefault from '../../assets/icons/pfpdefault.svg';
 import Private from '../../assets/icons/private.svg';
 import Public from '../../assets/icons/public.svg';
 import RSVP from '../../assets/icons/time.svg';
+import CohostModal from './cohost';
+import LocationModal from './location';
+
+interface Friend {
+  id: string;
+  firstname?: string;
+  lastname?: string;
+  username?: string;
+  profile_image?: string;
+}
 
 export default function CreatePage() {
   const [title, setTitle] = useState('');
   const [publicEvent, setPublic] = useState(true);
   const { user } = useUserStore();
+  const [cohosts, setCohosts] = useState([]);
   const [bio, setBio] = useState('');
   const [special, setSpecial] = useState({
     cash: '',
@@ -57,16 +68,16 @@ export default function CreatePage() {
 
   // Dummy friends data for cohost modal
   // Fetch friends from the "friends" table (replace with your actual data fetching logic)
-  const [friends, setFriends] = useState([]);
+  const [friends, setFriends] = useState<Friend[]>([]);
 
   useEffect(() => {
     // Example async fetch function, replace with your actual API/database call
     async function fetchFriends() {
       try {
         let idFriend: readonly any[] | undefined = [];
-        const {data: idGet, error: idErr} = await supabase
-        .from('friends')
-        .select('friend').eq('user_id', user.id);
+        const { data: idGet, error: idErr } = await supabase
+          .from('friends')
+          .select('friend').eq('user_id', user.id);
         idFriend = (idGet?.map(f => f.friend));
 
         const { data, error } = await supabase
@@ -162,24 +173,49 @@ export default function CreatePage() {
           >
             <View style={tw`flex-row gap-2`}>
               <Host />
-              <Text style={tw`text-white/70 text-xs mb-2`}>Hosted by</Text>
+              <Text style={tw`text-white/70 text-xs mb-2`}>Hosted by{' '}
+                {cohosts.filter(c => typeof c === 'string').slice(0, 2).join(', ')}{cohosts.filter(c => typeof c === 'string').length > 2 && ` and ${cohosts.filter(c => typeof c === 'string').length - 2} more`}</Text>
             </View>
-            <View style={tw`flex-row items-center`}>
+            <View style={tw`flex-row items-center gap-2`}>
               {/* Host avatar */}
-              <View style={[tw`rounded-full border border-white items-center justify-center bg-white/10`, { width: 30, height: 30, overflow: 'hidden' }]}> 
-                {user?.profile_image ? (
-                  <Image
-                    source={{ uri: user.profile_image }}
-                    style={{ width: 30, height: 30, borderRadius: 60 }}
-                    defaultSource={require('../../assets/icons/pfpdefault.svg')}
-                    onError={() => { }}
-                  />
-                ) : (
-                  <PfpDefault width={30} height={30} />
-                )}
+              <View style={tw`flex-row items-center gap-2 bg-black px-3 py-2 rounded-full`}>
+                <View style={[tw`rounded-full border border-white items-center justify-center bg-white/10`, { width: 30, height: 30, overflow: 'hidden' }]}>
+                  {user?.profile_image ? (
+                    <Image
+                      source={{ uri: user.profile_image }}
+                      style={{ width: 30, height: 30, borderRadius: 60 }}
+                      defaultSource={require('../../assets/icons/pfpdefault.svg')}
+                      onError={() => { }}
+                    />
+                  ) : (
+                    <PfpDefault width={30} height={30} />
+                  )}
+                </View>
+                <Text style={tw`text-white`}>{user.firstname}</Text>
               </View>
-              <Text style={tw`text-white ml-auto text-xs bg-transparent px-2 py-1`}>Add cohosts (optional)</Text>
+
+              {cohosts.filter(c => typeof c === 'object').slice(0, 2).map((cohost, idx) => {
+                return (
+                  <View key={cohost.id} style={tw`flex-row items-center gap-2 bg-black px-3 py-2 rounded-full`}>
+                    <View style={[tw`rounded-full border border-white items-center justify-center bg-white/10`, { width: 30, height: 30, overflow: 'hidden' }]}>
+                      <Image
+                        source={cohost.profile_image ? { uri: cohost.profile_image } : require('../../assets/icons/pfpdefault.svg')}
+                        style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: '#222' }}
+                        resizeMode="cover"
+                        defaultSource={require('../../assets/icons/pfpdefault.svg')}
+                      />
+                    </View>
+                    <Text style={tw`text-white`}>{cohost.firstname}</Text>
+                  </View>
+                );
+              })}
+
+              {cohosts.filter(c => typeof c === 'object').length > 2 &&
+                <View style={tw`flex-row items-center bg-[#000000] rounded-full px-3 py-2 gap-2`}>
+                  <Text style={tw`text-white`}>+{cohosts.filter(c => typeof c === 'object').length - 2}</Text>
+                </View>}
             </View>
+            <Text style={tw`text-white text-xs bg-transparent mt-2 -mb-1 py-1`}>Add cohosts (optional)</Text>
           </TouchableOpacity>
         </View>
 
@@ -307,187 +343,23 @@ export default function CreatePage() {
           </View>
         </View>
       </ScrollView>
-      {/* Location Modal */}
-      <Modal
-        visible={showLocationModal}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setShowLocationModal(false)}
-      >
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end', alignItems: 'center' }}>
-          <View style={{ width: '100%', borderTopLeftRadius: 20, borderTopRightRadius: 20, backgroundColor: '#0B1A2A', padding: 20, paddingBottom: 32 }}>
-            {/* Drag bar */}
-            <View style={{ alignItems: 'center', marginBottom: 10 }}>
-              <View style={{ width: 40, height: 5, borderRadius: 3, backgroundColor: '#fff', opacity: 0.2 }} />
-            </View>
-            <Text style={[tw`text-white text-lg font-bold`, { textAlign: 'center', marginBottom: 16 }]}>Event location</Text>
-            {/* Search bar */}
-            <View style={{ marginBottom: 10 }}>
-              <TextInput
-                style={{ backgroundColor: '#16263A', borderRadius: 8, color: 'white', paddingHorizontal: 12, paddingVertical: 10, fontSize: 16 }}
-                placeholder="Set your location..."
-                placeholderTextColor="#FFFFFF55"
-                value={location.search}
-                onChangeText={text => setLocation(loc => ({...loc, search: text}))}
-              />
-            </View>
-            {/* RSVP checkbox */}
-            <TouchableOpacity
-              style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}
-              onPress={() => setLocation(loc => ({...loc, rsvpFirst: !location.rsvpFirst}))}
-              activeOpacity={0.7}
-            >
-              <View style={{ width: 18, height: 18, borderRadius: 4, borderWidth: 1, borderColor: '#888', backgroundColor: location.rsvpFirst ? '#7A5CFA' : 'transparent', marginRight: 8, justifyContent: 'center', alignItems: 'center' }}>
-                {location.rsvpFirst && <View style={{ width: 10, height: 10, backgroundColor: '#fff', borderRadius: 2 }} />}
-              </View>
-              <Text style={{ color: '#B0B8C1', fontSize: 14 }}>Guests must RSVP first to see location</Text>
-            </TouchableOpacity>
-            {/* Location list */}
-            <View style={{ marginBottom: 10 }}>
-              {locations.map((loc, idx) => (
-                <TouchableOpacity
-                  key={idx}
-                  style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8, opacity: location.selected === loc.address ? 1 : 0.7 }}
-                  onPress={() => setLocation(loca => ({...loca, selected: loc.address}))}
-                  activeOpacity={0.7}
-                >
-                  <Location width={16} height={16} style={{ marginTop: 2, marginRight: 6 }} />
-                  <View>
-                    <Text style={{ color: 'white', fontSize: 16 }}>{loc.address}</Text>
-                    <Text style={{ color: '#B0B8C1', fontSize: 13 }}>{loc.city}</Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </View>
-            {/* Display name */}
-            <View style={{ marginBottom: 10 }}>
-              <TextInput
-                style={{ backgroundColor: '#16263A', borderRadius: 8, color: 'white', paddingHorizontal: 12, paddingVertical: 10, fontSize: 15, marginBottom: 4 }}
-                placeholder="eg. Jonny's apartment"
-                placeholderTextColor="#FFFFFF55"
-                value={location.name}
-                onChangeText={text => setLocation(loc => ({...loc, name: text}))}
-              />
-            </View>
-            {/* Apt/Suite/Floor */}
-            <View style={{ marginBottom: 10 }}>
-              <TextInput
-                style={{ backgroundColor: '#16263A', borderRadius: 8, color: 'white', paddingHorizontal: 12, paddingVertical: 10, fontSize: 15, marginBottom: 4 }}
-                placeholder="eg. Room 12E"
-                placeholderTextColor="#FFFFFF55"
-                value={location.aptSuite}
-                onChangeText={text => setLocation(loc => ({...loc, aptSuite: text}))}
-              />
-            </View>
-            {/* Further notes */}
-            <View style={{ marginBottom: 18 }}>
-              <TextInput
-                style={{ backgroundColor: '#16263A', borderRadius: 8, color: 'white', paddingHorizontal: 12, paddingVertical: 10, fontSize: 15 }}
-                placeholder="eg. take the second elevator, not the first one"
-                placeholderTextColor="#FFFFFF55"
-                value={location.notes}
-                onChangeText={text => setLocation(loc => ({...loc, notes: text}))}
-              />
-            </View>
-            {/* Save and Cancel buttons */}
-            <TouchableOpacity
-              style={{ backgroundColor: '#7A5CFA', borderRadius: 999, paddingVertical: 12, alignItems: 'center', marginBottom: 10 }}
-              onPress={() => setShowLocationModal(false)}
-              activeOpacity={0.8}
-            >
-              <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 17 }}>Save</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={{ backgroundColor: '#1A2636', borderRadius: 999, paddingVertical: 12, alignItems: 'center' }}
-              onPress={() => setShowLocationModal(false)}
-              activeOpacity={0.8}
-            >
-              <Text style={{ color: '#B0B8C1', fontWeight: 'bold', fontSize: 17 }}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
 
       {/* Cohost Modal */}
-      <Modal
+      <CohostModal
         visible={showCohostModal}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setShowCohostModal(false)}
-      >
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end', alignItems: 'center' }}>
-          <View style={{ width: '100%', borderTopLeftRadius: 20, borderTopRightRadius: 20, backgroundColor: '#0B1A2A', padding: 20, paddingBottom: 32 }}>
-            {/* Drag bar */}
-            <View style={{ alignItems: 'center', marginBottom: 10 }}>
-              <View style={{ width: 40, height: 5, borderRadius: 3, backgroundColor: '#fff', opacity: 0.2 }} />
-            </View>
-            <Text style={[tw`text-white text-lg font-bold`, { textAlign: 'center', marginBottom: 16 }]}>Manage hosts</Text>
-            {/* Cohost input */}
-            <View style={{ marginBottom: 18 }}>
-              <TextInput
-                style={{ backgroundColor: '#16263A', borderRadius: 8, color: 'white', paddingHorizontal: 12, paddingVertical: 14, fontSize: 15, marginBottom: 4 }}
-              placeholder="Cohosts (club, organization, person, etc.)"
-              placeholderTextColor="#FFFFFF55"
-            />
-          </View>
-          {/* Friends list */}
-          <Text style={tw`text-white font-bold mb-2`}>Your friends</Text>
-          <View style={{ marginBottom: 10 }}>
-            {friends.length > 0 ? friends.map((friend, idx) => (
-              <View key={friend?.id} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#16263A', borderRadius: 12, marginBottom: 10, padding: 10 }}>
-                {/* 
-                  The profile image may take a long time to render if:
-                  - The `profile_image` is a remote URL and the image is large or the network is slow.
-                  - The `Image` component is not optimized for caching or uses a slow source.
-                  - The `profile_image` is not a valid URI or is missing, causing fallback delays.
-                  - The image is being fetched from Supabase Storage or another remote storage with slow response.
-
-                  To improve performance:
-                  - Ensure `profile_image` is a valid, direct image URL.
-                  - Use a library like `react-native-fast-image` for better caching and loading.
-                  - Provide a default image while loading.
-                  - Preload images if possible.
-                */}
-                <Image
-                  source={
-                    friend?.profile_image
-                      ? { uri: friend.profile_image }
-                      : require('../../assets/icons/pfpdefault.svg')
-                  }
-                  style={{ width: 40, height: 40, borderRadius: 20, marginRight: 10, backgroundColor: '#222' }}
-                  resizeMode="cover"
-                  defaultSource={require('../../assets/icons/pfpdefault.svg')}
-                />
-                <View style={{ flex: 1 }}>
-                  <Text style={[tw`text-white font-bold`, { fontSize: 16 }]}>{friend?.firstname} {friend?.lastname}</Text>
-                  <Text style={[tw`text-white/60`, { fontSize: 13 }]}>{friend?.username}</Text>
-                </View>
-                <TouchableOpacity style={{ backgroundColor: '#7A5CFA', borderRadius: 999, paddingHorizontal: 18, paddingVertical: 7 }}>
-                  <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 15 }}>Add cohost</Text>
-                </TouchableOpacity>
-              </View>
-            )) : (
-              <Text style={tw`text-white text-center mt-4 mb-2`}>Oops, you gotta add some friends before having them cohorting events with you!</Text>
-            )}
-          </View>
-          {/* Save and Cancel buttons */}
-          <TouchableOpacity
-            style={{ backgroundColor: '#7A5CFA', borderRadius: 999, paddingVertical: 12, alignItems: 'center', marginBottom: 10 }}
-            onPress={() => setShowCohostModal(false)}
-            activeOpacity={0.8}
-          >
-            <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 17 }}>Save</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{ backgroundColor: '#1A2636', borderRadius: 999, paddingVertical: 12, alignItems: 'center' }}
-            onPress={() => setShowCohostModal(false)}
-            activeOpacity={0.8}
-          >
-            <Text style={{ color: '#B0B8C1', fontWeight: 'bold', fontSize: 17 }}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
+        onClose={() => setShowCohostModal(false)}
+        friends={friends}
+        cohosts={cohosts}
+        onSave={setCohosts}
+      />
+      {/* Location Modal */}
+      <LocationModal
+        visible={showLocationModal}
+        onClose={() => setShowLocationModal(false)}
+        location={location}
+        setLocation={setLocation}
+        locations={locations}
+      />
     </KeyboardAvoidingView>
   );
 }
