@@ -16,6 +16,8 @@ import SnapchatIcon from '../../assets/icons/snapchat-icon.svg';
 import XIcon from '../../assets/icons/x-icon.svg';
 import ProfileBackgroundWrapper from './background_wrapper';
 
+const bggreenmodal = '#22C55E';
+
 export default function EditProfile() {
   const [showSuccess, setShowSuccess] = useState(false);
   // Focus state for each input
@@ -755,8 +757,8 @@ export default function EditProfile() {
               }}
               pointerEvents="none"
               >
-              <View style={[tw`bg-[#080B32] px-6 py-2 rounded-full shadow-lg`, { flexDirection: 'row', alignItems: 'center', gap: 8 }]}>
-                <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Profile updated successfully!</Text>
+              <View style={[tw`px-6 py-2 rounded-full shadow-lg`, { backgroundColor: bggreenmodal, flexDirection: 'row', alignItems: 'center', gap: 8 }]}>
+                <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Profile updated successfully 🥳</Text>
               </View>
               </View>
             )}

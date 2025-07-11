@@ -2,7 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as MediaLibrary from 'expo-media-library';
 import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
-import { Alert, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, Text, TouchableOpacity, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { captureRef } from 'react-native-view-shot';
 import tw from 'twrnc';
@@ -16,6 +16,7 @@ const tabActive = '#7A5CFA';
 const tabTextActive = '#fff';
 const tabTextInactive = '#fff';
 const bgpopup = '#080B32';
+const bggreenmodal = '#22C55E';
 
 
 // This page expects to be used as a route, so get params from router
@@ -30,6 +31,8 @@ const QRProfile: React.FC = () => {
   const qrRef = useRef<any>(null);
   const cardRef = useRef<any>(null);
   const [saving, setSaving] = useState(false);
+  const [showSavedModal, setShowSavedModal] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const handleSaveQr = async () => {
     if (!cardRef.current) {
@@ -49,12 +52,25 @@ const QRProfile: React.FC = () => {
         quality: 1,
       });
       await MediaLibrary.saveToLibraryAsync(uri);
-      Alert.alert('Saved!', 'QR card saved to your gallery.');
+      setShowSavedModal(true);
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
     } catch (e) {
       Alert.alert('Error', 'Could not save QR card.');
     } finally {
       setSaving(false);
     }
+  };
+
+  const closeModal = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => setShowSavedModal(false));
   };
 
   return (
@@ -129,6 +145,44 @@ const QRProfile: React.FC = () => {
               <DownloadIcon width={20} height={20} style={{ marginRight: 6 }} />
               <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold', fontSize: 13 }]}>Save QR Card</Text>
             </TouchableOpacity>
+
+            {/* Custom Saved Modal */}
+            {showSavedModal && (
+              <Animated.View
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: 'rgba(0,0,0,0.6)',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  zIndex: 100,
+                  opacity: fadeAnim,
+                }}
+              >
+                <TouchableOpacity
+                  activeOpacity={1}
+                  onPress={closeModal}
+                  style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+                />
+                <TouchableOpacity
+                  activeOpacity={1}
+                  style={{ backgroundColor: bggreenmodal, borderRadius: 16, padding: 24, alignItems: 'center', maxWidth: 320, width: '80%' }}
+                  onPress={e => e.stopPropagation()}
+                >
+                  <Text style={[tw`text-white text-[16px] mb-2`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Your QR Card is saved 🥳</Text>
+                  <Text style={[tw`text-white mb-4`, { fontFamily: 'Nunito-Medium', textAlign: 'center', fontSize: 14 }]}>You can now find your QR card in your Photos/Gallery. Share it with friends to connect on Sizzl! 🎉</Text>
+                  <TouchableOpacity
+                    style={[tw`flex-row items-center justify-center bg-white/10 border border-white/20 rounded-xl px-6 py-2`]}
+                    onPress={closeModal}
+                  >
+                    <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold', fontSize: 14 }]}>Got it</Text>
+                  </TouchableOpacity>
+                </TouchableOpacity>
+              </Animated.View>
+            )}
           </>
         )}
         {tab === 'scan' && (

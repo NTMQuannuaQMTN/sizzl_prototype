@@ -1,5 +1,6 @@
 // Color constants
 const bgpopup = '#080B32';
+const bggreenmodal = '#22C55E';
 
 // Imports
 import { supabase } from '@/utils/supabase';
