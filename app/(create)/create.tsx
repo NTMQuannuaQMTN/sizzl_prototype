@@ -29,6 +29,17 @@ interface Friend {
 export default function CreatePage() {
   const [title, setTitle] = useState('');
   const [publicEvent, setPublic] = useState(true);
+  const imageOptions = [
+    require('../../assets/images/default_1.png'),
+    require('../../assets/images/default_2.png'),
+    require('../../assets/images/default_3.png'),
+    require('../../assets/images/default_4.png'),
+    require('../../assets/images/default_5.png'),
+    require('../../assets/images/default_6.png'),
+    require('../../assets/images/default_7.png'),
+    require('../../assets/images/default_8.png'),
+  ];
+  const [image, setImage] = useState(imageOptions[Math.floor(Math.random() * 8)]);
   const { user } = useUserStore();
   const [cohosts, setCohosts] = useState([]);
   const [bio, setBio] = useState('');
@@ -55,10 +66,7 @@ export default function CreatePage() {
   });
   const [showCohostModal, setShowCohostModal] = useState(false);
   const [showDateTimeModal, setShowDateTimeModal] = useState(false);
-
-  // Dummy locations for demonstration
-  // To get all locations from Google Maps, you typically need to use the Google Places API or Geocoding API.
-  // Here is an example of how you might fetch places near a location using the Google Places API (requires an API key):
+  const [showImageModal, setShowImageModal] = useState(false);
 
   const [locations, setLocations] = useState<{ address: string; city: string }[]>([]);
 
@@ -160,31 +168,26 @@ export default function CreatePage() {
 
         {/* Image picker */}
         <View style={tw`px-4 mb-3`}>
-          <View style={tw`rounded-2xl overflow-hidden w-full h-36 bg-[#f5e2c6] items-center justify-center relative`}>
+          <TouchableOpacity style={tw`rounded-2xl overflow-hidden w-full h-36 bg-[#f5e2c6] items-center justify-center relative`}
+            onPress={() => { setShowImageModal(true) }}>
+            <Image
+              source={typeof image === 'string' ? { uri: image } : image}
+              style={tw`w-full h-36`}
+              resizeMode="cover"
+            />
             {/* Placeholder for event image */}
             <View style={tw`flex-row gap-1 absolute top-2 right-2 bg-white/80 rounded px-2 py-1`}>
-              <Camera></Camera>
+              <Camera />
               <Text style={tw`text-xs text-black font-bold`}>Choose</Text>
             </View>
-            {/* Example illustration */}
-            <View style={tw`flex-row items-center justify-center`}>
-              <View style={tw`mr-2`}>
-                <View style={tw`w-16 h-16 bg-[#e94e3c] rounded-lg`} />
-              </View>
-              <View>
-                <View style={tw`w-20 h-16 bg-[#e94e3c] rounded-lg mb-1`} />
-                <View style={tw`w-10 h-6 bg-[#fff] rounded-lg`} />
-              </View>
-            </View>
-            <Text style={tw`absolute bottom-2 left-2 text-xs text-[#e94e3c] font-bold`}>FOR SOME MOVIE AND SNACKS ALRIGHT</Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Set date and time */}
         <View style={tw`px-4 mb-3`}>
           {/* Placeholder for date/time picker */}
           <TouchableOpacity style={tw`bg-white/10 rounded-xl px-4 py-3 flex-row items-center mb-1`}
-          onPress={() => setShowDateTimeModal(true)}>
+            onPress={() => setShowDateTimeModal(true)}>
             <Text style={tw`text-white/70 text-base`}>Set date and time</Text>
           </TouchableOpacity>
         </View>
@@ -387,7 +390,7 @@ export default function CreatePage() {
       />
       <DateTimeModal
         visible={showDateTimeModal}
-        onClose={() => { }}
+        onClose={() => { setShowDateTimeModal(false) }}
         startDate={new Date()}
         endDate={new Date()}
         onSave={() => { }}
