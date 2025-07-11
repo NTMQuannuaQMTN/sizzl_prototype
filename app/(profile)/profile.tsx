@@ -5,8 +5,8 @@ const bgpopup = '#080B32';
 import { supabase } from '@/utils/supabase';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, Animated, Easing, Image, ImageBackground, Linking, Modal, RefreshControl, Share as RNShare, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import QRCode from 'react-native-qrcode-svg';
+import { Alert, Animated, Easing, Image, ImageBackground, Linking, RefreshControl, Share as RNShare, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+// import QRCode from 'react-native-qrcode-svg';
 import QrIcon from '../../assets/icons/qr.svg';
 // ...existing code...
 import tw from 'twrnc';
@@ -555,7 +555,18 @@ export default function ProfilePage() {
           <Text style={[tw`text-white text-[15px] ${self ? '' : 'mt-2'}`, { fontFamily: 'Nunito-ExtraBold' }]}>@{userView?.username}</Text>
           {self && (
             <View style={tw`flex-row items-center`}>
-              <TouchableOpacity onPress={() => setShowQR(true)} style={tw`mr-2.5`} accessibilityLabel="Show QR code">
+              <TouchableOpacity
+                onPress={() => {
+                  if (userView) {
+                    router.push({
+                      pathname: '/(profile)/qrprofile',
+                      params: { username: userView.username, userId: userView.id },
+                    });
+                  }
+                }}
+                style={tw`mr-2.5`}
+                accessibilityLabel="Show QR code"
+              >
                 <QrIcon width={20} height={20} />
               </TouchableOpacity>
               <TouchableOpacity>
@@ -693,32 +704,7 @@ export default function ProfilePage() {
       </ScrollView>
       <BotBar currentTab="profile" selfView={self} />
 
-    {/* QR Code Modal */}
-    <Modal
-      visible={showQR}
-      transparent
-      animationType="fade"
-      onRequestClose={() => setShowQR(false)}
-    >
-      <TouchableOpacity
-        style={[tw`flex-1 justify-center items-center bg-black/80`]} 
-        activeOpacity={1}
-        onPress={() => setShowQR(false)}
-      >
-        <View style={[tw`rounded-2xl p-6 items-center`, { backgroundColor: bgpopup, minWidth: 260 }]}>
-          <Text style={[tw`text-white text-lg mb-4`, { fontFamily: 'Nunito-ExtraBold' }]}>Scan to add me!</Text>
-          {userView && (
-            <QRCode
-              value={`https://sizzl.app/profile/${userView.username || userView.id}`}
-              size={200}
-              color="#fff"
-              backgroundColor="transparent"
-            />
-          )}
-          <Text style={[tw`text-white mt-4`, { fontFamily: 'Nunito-Medium', fontSize: 13 }]}>@{userView?.username}</Text>
-        </View>
-      </TouchableOpacity>
-    </Modal>
+    {/* QR Code Modal removed: now navigates to QRProfile page */}
 
       {/* Friend request modal with slide-up animation */}
       {showFriendModal && userView && (
