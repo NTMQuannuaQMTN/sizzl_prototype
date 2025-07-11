@@ -16,6 +16,7 @@ import Public from '../../assets/icons/public.svg';
 import RSVP from '../../assets/icons/time.svg';
 import CohostModal from './cohost';
 import DateTimeModal from './dateTimeModal';
+import ImageModal from './imageModal';
 import LocationModal from './location';
 
 interface Friend {
@@ -131,8 +132,27 @@ export default function CreatePage() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}
-        keyboardShouldPersistTaps="handled">
+      <Image
+        source={typeof image === 'string' ? { uri: image } : image}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: undefined,
+          minHeight: '100%',
+          resizeMode: 'cover',
+          zIndex: 0,
+        }}
+        blurRadius={2}
+      />
+      <View style={tw`w-full min-h-full absolute top-0 bg-black bg-opacity-60`}/>
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+        style={{ zIndex: 1 }}
+      >
         {/* Top bar */}
         <View style={tw`flex-row items-center justify-between px-4 mt-2 mb-1`}>
           <View style={tw`flex-row items-center gap-4`}>
@@ -394,6 +414,12 @@ export default function CreatePage() {
         startDate={new Date()}
         endDate={new Date()}
         onSave={() => { }}
+      />
+      <ImageModal
+        visible={showImageModal}
+        onClose={() => { setShowImageModal(false) }}
+        imageOptions={imageOptions}
+        onSelect={(img) => {setImage(img)}}
       />
     </KeyboardAvoidingView>
   );
