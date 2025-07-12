@@ -1,10 +1,9 @@
-
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import tw from 'twrnc';
 import { useUserStore } from '../store/userStore';
-
 
 import { supabase } from '@/utils/supabase';
 import Back from '../../assets/icons/back.svg';
@@ -37,7 +36,8 @@ export default function CreatePage() {
   const imageOptions = defaultImages;
   const [image, setImage] = useState(imageOptions[Math.floor(Math.random() * imageOptions.length)]);
   const { user } = useUserStore();
-  const [cohosts, setCohosts] = useState([]);
+  // Cohosts can be Friend objects or strings (usernames/ids)
+  const [cohosts, setCohosts] = useState<(Friend | string)[]>([]);
   const [bio, setBio] = useState('');
   const [special, setSpecial] = useState({
     cash: '',
@@ -122,11 +122,17 @@ export default function CreatePage() {
   }, [showCohostModal]);
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: '#300000', paddingTop: 0, paddingBottom: 0 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+    <KeyboardAwareScrollView
+      style={{ flex: 1 }}
+      contentContainerStyle={{ flexGrow: 1 }}
+      keyboardShouldPersistTaps="handled"
+      enableOnAndroid={true}
+      extraScrollHeight={50}
+      showsVerticalScrollIndicator={false}
+      resetScrollToCoords={{ x: 0, y: 0 }}
+      scrollEnabled={true}
     >
+      {/* Background image and overlay */}
       <Image
         source={typeof image === 'string' ? { uri: image } : image}
         style={{
@@ -141,62 +147,57 @@ export default function CreatePage() {
         }}
         blurRadius={8}
       />
-      <View style={[tw`w-full absolute top-0 bg-black bg-opacity-60`, { minHeight: '100%', height: undefined }]} />
-      <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
-        keyboardShouldPersistTaps="handled"
-        style={{ zIndex: 1 }}
-      >
-        {/* Top bar */}
-        <View style={tw`flex-row items-center justify-between px-4 mt-10 mb-1.5`}>
-          <View style={tw`flex-row items-center gap-4`}>
-            <TouchableOpacity onPress={() => router.navigate('/(home)/home/explore')}><Back></Back></TouchableOpacity>
-            <Text style={[tw`text-white text-base`, { fontFamily: 'Nunito-ExtraBold' }]}>Create event</Text>
+      <View style={[tw`w-full absolute top-0 bg-black bg-opacity-60`, { minHeight: '100%', height: undefined, zIndex: 0 }]} />
+      {/* Top bar */}
+      <View style={tw`flex-row items-center justify-between px-4 mt-10 mb-1.5`}>
+        <View style={tw`flex-row items-center gap-4`}>
+          <TouchableOpacity onPress={() => router.navigate('/(home)/home/explore')}><Back /></TouchableOpacity>
+          <Text style={[tw`text-white text-base`, { fontFamily: 'Nunito-ExtraBold' }]}>Create event</Text>
+        </View>
+        <TouchableOpacity style={tw`bg-[#7b61ff] rounded-full px-4 py-1`}>
+          <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Done</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Title input */}
+      <View style={tw`px-4 mb-2 items-center`}>
+        <TextInput style={[tw`text-white text-[22px]`, { fontFamily: 'Nunito-ExtraBold' }]}
+          value={title}
+          onChangeText={setTitle}
+          placeholder='your event title'
+          placeholderTextColor={'#9ca3af'}
+        />
+      </View>
+
+      <View style={tw`flex-row items-center mx-4 mb-2.5`}>
+        <TouchableOpacity style={tw`flex-row items-center gap-2 justify-center bg-[#064B55] ${publicEvent ? 'border border-white/10' : 'opacity-30'} rounded-full px-2 py-0.5 mr-1`}
+          onPress={() => { setPublic(true) }}>
+          <Public />
+          <Text style={[tw`text-[13px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Public</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={tw`flex-row items-center gap-2 justify-center bg-[#080B32] ${publicEvent ? 'opacity-30' : 'border border-purple-900'} rounded-full px-2 py-0.5`}
+          onPress={() => { setPublic(false) }}>
+          <Private />
+          <Text style={[tw`text-[13px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Private</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Image picker */}
+      <View style={tw`px-4 mb-2`}>
+        <TouchableOpacity style={[tw`rounded-xl overflow-hidden w-full items-center justify-center relative`, { aspectRatio: 410 / 279 }]}
+          onPress={() => { setShowImageModal(true) }}>
+          <Image
+            source={typeof image === 'string' ? { uri: image } : image}
+            style={{ width: '100%', height: '100%' }}
+            resizeMode={'contain'}
+          />
+          {/* Placeholder for event image */}
+          <View style={tw`flex-row gap-1.5 absolute top-2.5 right-2.5 bg-white rounded-lg px-2 py-1 shadow-md`}>
+            <Camera width={14} height={14} />
+            <Text style={[tw`text-xs text-black`, { fontFamily: 'Nunito-ExtraBold' }]}>{'Choose image'}</Text>
           </View>
-          <TouchableOpacity style={tw`bg-[#7b61ff] rounded-full px-4 py-1`}>
-            <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Done</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Title input */}
-        <View style={tw`px-4 mb-2 items-center`}>
-          <TextInput style={[tw`text-white text-[22px]`, { fontFamily: 'Nunito-ExtraBold' }]}
-            value={title}
-            onChangeText={setTitle}
-            placeholder='your event title'
-            placeholderTextColor={'#9ca3af'}>
-          </TextInput>
-        </View>
-
-        <View style={tw`flex-row items-center mx-4 mb-2.5`}>
-          <TouchableOpacity style={tw`flex-row items-center gap-2 justify-center bg-[#064B55] ${publicEvent ? 'border border-white/10' : 'opacity-30'} rounded-full px-2 py-0.5 mr-1`}
-            onPress={() => { setPublic(true) }}>
-            <Public></Public>
-            <Text style={[tw`text-[13px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Public</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={tw`flex-row items-center gap-2 justify-center bg-[#080B32] ${publicEvent ? 'opacity-30' : 'border border-purple-900'} rounded-full px-2 py-0.5`}
-            onPress={() => { setPublic(false) }}>
-            <Private></Private>
-            <Text style={[tw`text-[13px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Private</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Image picker */}
-        <View style={tw`px-4 mb-2`}>
-          <TouchableOpacity style={[tw`rounded-xl overflow-hidden w-full items-center justify-center relative`, { aspectRatio: 410 / 279 }]}
-            onPress={() => { setShowImageModal(true) }}>
-            <Image
-              source={typeof image === 'string' ? { uri: image } : image}
-              style={{ width: '100%', height: '100%' }}
-              resizeMode={'contain'}
-            />
-            {/* Placeholder for event image */}
-            <View style={tw`flex-row gap-1.5 absolute top-2.5 right-2.5 bg-white rounded-lg px-2 py-1 shadow-md`}>
-              <Camera width={14} height={14} />
-              <Text style={[tw`text-xs text-black`, { fontFamily: 'Nunito-ExtraBold' }]}>{'Choose image'}</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
+        </TouchableOpacity>
+      </View>
 
         {/* Set date and time */}
         <View style={tw`px-4 mb-2`}>
@@ -477,19 +478,17 @@ export default function CreatePage() {
             </View>
           </View>
         </View>
-      </ScrollView >
-
+      {/* ...existing code for the rest of the form... */}
       {/* Cohost Modal */}
-      < CohostModal
+      <CohostModal
         visible={showCohostModal}
-        onClose={() => setShowCohostModal(false)
-        }
+        onClose={() => setShowCohostModal(false)}
         friends={friends}
         cohosts={cohosts}
         onSave={setCohosts}
       />
       {/* Location Modal */}
-      < LocationModal
+      <LocationModal
         visible={showLocationModal}
         onClose={() => setShowLocationModal(false)}
         location={location}
@@ -509,6 +508,6 @@ export default function CreatePage() {
         imageOptions={imageOptions}
         onSelect={(img) => { setImage(img) }}
       />
-    </KeyboardAvoidingView >
+    </KeyboardAwareScrollView>
   );
 }
