@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import tw from 'twrnc';
@@ -21,7 +21,8 @@ import DateTimeModal from './dateTimeModal';
 import defaultImages from './defaultimage';
 import ImageModal from './imageModal';
 import LocationModal from './location';
-
+import MoreSettingsModal from './moreSettingsModal';
+// Define Friend and Cohost types locally
 interface Friend {
   id: string;
   firstname?: string;
@@ -29,6 +30,7 @@ interface Friend {
   username?: string;
   profile_image?: string;
 }
+type Cohost = Friend | string;
 
 export default function CreatePage() {
   const [title, setTitle] = useState('');
@@ -38,6 +40,7 @@ export default function CreatePage() {
   const { user } = useUserStore();
   // Cohosts can be Friend objects or strings (usernames/ids)
   const [cohosts, setCohosts] = useState<(Friend | string)[]>([]);
+  // const [cohosts, setCohosts] = useState<Cohost[]>([]);
   const [bio, setBio] = useState('');
   const [special, setSpecial] = useState({
     cash: '',
@@ -63,6 +66,11 @@ export default function CreatePage() {
   const [showCohostModal, setShowCohostModal] = useState(false);
   const [showDateTimeModal, setShowDateTimeModal] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
+  const [showMoreSettingsModal, setShowMoreSettingsModal] = useState(false);
+  const [list, setList] = useState({
+    public: true,
+    maybe: true,
+  })
 
   const [locations, setLocations] = useState<{ address: string; city: string }[]>([]);
 
@@ -350,7 +358,7 @@ export default function CreatePage() {
         </View>
 
         {/* What's special? */}
-        <View style={tw`px-4 mb-18`}>
+        <View style={tw`px-4 mb-4`}>
           <Text style={[tw`text-white text-[15px] mb-2`, { fontFamily: 'Nunito-ExtraBold' }]}>What's special?</Text>
           {/* Special event perks selection UI */}
           <View style={tw`gap-2.5`}>
@@ -478,7 +486,19 @@ export default function CreatePage() {
             </View>
           </View>
         </View>
-      {/* ...existing code for the rest of the form... */}
+
+        {/* More settings modal */}
+        <View style={tw`px-4 mb-6`}>
+          <TouchableOpacity
+            style={tw`flex-row items-center gap-2.5 bg-white/10 rounded-xl px-3 py-2 mt-2`}
+            onPress={() => setShowMoreSettingsModal(true)}
+            activeOpacity={0.8}
+          >
+            <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>More settings</Text>
+          </TouchableOpacity>
+        </View>
+      {/* </KeyboardAwareScrollView > */}
+
       {/* Cohost Modal */}
       <CohostModal
         visible={showCohostModal}
@@ -508,6 +528,14 @@ export default function CreatePage() {
         imageOptions={imageOptions}
         onSelect={(img) => { setImage(img) }}
       />
-    </KeyboardAwareScrollView>
+
+      {/* More Settings Modal */}
+      <MoreSettingsModal
+        visible={showMoreSettingsModal}
+        onClose={() => setShowMoreSettingsModal(false)}
+        list={list}
+        setList={setList}
+      />
+    </KeyboardAwareScrollView >
   );
 }
