@@ -23,7 +23,7 @@ const MoreSettingsModal: React.FC<MoreSettingsModalProps> = ({ visible, onClose,
 
           {/* Public List Toggle */}
           <View style={tw`flex-row items-center justify-between mb-4`}>
-            <Text style={[tw`text-white text-base`, { fontFamily: 'Nunito-Medium' }]}>Show public list</Text>
+            <Text style={[tw`text-white text-base`, { fontFamily: 'Nunito-Medium' }]}>Publicize list</Text>
             <Switch
               value={list.public}
               onValueChange={v => setList({ ...list, public: v })}
@@ -34,7 +34,7 @@ const MoreSettingsModal: React.FC<MoreSettingsModalProps> = ({ visible, onClose,
 
           {/* Maybe List Toggle */}
           <View style={tw`flex-row items-center justify-between mb-4`}>
-            <Text style={[tw`text-white text-base`, { fontFamily: 'Nunito-Medium' }]}>Show maybe list</Text>
+            <Text style={[tw`text-white text-base`, { fontFamily: 'Nunito-Medium' }]}>Allow to answer 'Maybe'</Text>
             <Switch
               value={list.maybe}
               onValueChange={v => setList({ ...list, maybe: v })}
