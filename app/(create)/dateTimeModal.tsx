@@ -88,7 +88,7 @@ export default function DateTimeModal({ visible, onClose, startDate, endDate, on
             <DateTimePicker
               value={currentDate}
               mode="date"
-              display="calendar"
+              display="spinner"
               onChange={(_, date) => {
                 setShowDate(false);
                 if (date) setCurrentDate(new Date(date.setHours(currentDate.getHours(), currentDate.getMinutes())));
