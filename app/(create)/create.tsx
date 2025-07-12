@@ -132,15 +132,14 @@ export default function CreatePage() {
         style={{
           position: 'absolute',
           top: 0,
-          left: 0,
-          right: 0,
+          left: "-50%",
           bottom: 0,
           height: undefined,
           minHeight: '100%',
           resizeMode: 'cover',
           zIndex: 0,
         }}
-        blurRadius={2.5}
+        blurRadius={8}
       />
       <View style={[tw`w-full absolute top-0 bg-black bg-opacity-60`, { minHeight: '100%', height: undefined }]} />
       <ScrollView
@@ -183,13 +182,13 @@ export default function CreatePage() {
         </View>
 
         {/* Image picker */}
-        <View style={tw`px-4 mb-3`}>
-          <TouchableOpacity style={[tw`rounded-2xl overflow-hidden w-full items-center justify-center relative`, { aspectRatio: 410 / 279 }]}
+        <View style={tw`px-4 mb-2`}>
+          <TouchableOpacity style={[tw`rounded-xl overflow-hidden w-full items-center justify-center relative`, { aspectRatio: 410 / 279 }]}
             onPress={() => { setShowImageModal(true) }}>
             <Image
               source={typeof image === 'string' ? { uri: image } : image}
-              style={{ width: '100%', aspectRatio: 410 / 279 }}
-              resizeMode="contain"
+              style={{ width: '100%', height: '100%' }}
+              resizeMode={'contain'}
             />
             {/* Placeholder for event image */}
             <View style={tw`flex-row gap-1.5 absolute top-2.5 right-2.5 bg-white rounded-lg px-2 py-1 shadow-md`}>
