@@ -3,7 +3,7 @@ import React from 'react';
 import { Animated, Easing, Image, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 
-import UploadIcon from '../../assets/icons/upload-icon.svg';
+import UploadIcon from '../../assets/icons/uploadwhite-icon.svg';
 
 interface ImageModalProps {
     visible: boolean;
@@ -131,20 +131,20 @@ export default function ImageModal({ visible, onClose, imageOptions, onSelect }:
                             ))}
                         </ScrollView>
                     </View>
-                    <View style={tw`mt-0 pb-4`}>
+                    <View style={tw`py-3`}>
                         <TouchableOpacity
-                            style={tw`bg-white rounded-full flex-row justify-center py-2.5 items-center gap-1.5`}
+                            style={tw`bg-[#7A5CFA] rounded-full flex-row justify-center py-2.5 items-center gap-1.5`}
                             onPress={pickImage}
                         >
                             <UploadIcon width={20} height={20} />
-                            <Text style={[tw`text-black text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Upload image</Text>
+                            <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Upload image</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={tw`bg-white/5 rounded-full py-2.5 items-center mt-2`}
                             onPress={onClose}
                             activeOpacity={0.8}
                         >
-                            <Text style={[tw`text-[#B0B8C1] text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Cancel</Text>
+                            <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Cancel</Text>
                         </TouchableOpacity>
                     </View>
                 </Animated.View>
