@@ -1,7 +1,9 @@
 import * as ImagePicker from 'expo-image-picker';
 import React from 'react';
-import { Animated, Easing, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Easing, Image, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
+
+import UploadIcon from '../../assets/icons/upload-icon.svg';
 
 interface ImageModalProps {
     visible: boolean;
@@ -52,58 +54,101 @@ export default function ImageModal({ visible, onClose, imageOptions, onSelect }:
     if (!shouldRender) return null;
 
     return (
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end', alignItems: 'center', position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', zIndex: 100 }}>
-            <TouchableOpacity
-                style={{ position: 'absolute', width: '100%', height: '100%' }}
-                activeOpacity={1}
-                onPress={onClose}
-            />
-            <Animated.View
-                style={[
-                    { width: '100%', borderTopLeftRadius: 20, borderTopRightRadius: 20, backgroundColor: '#0B1A2A', padding: 20, paddingBottom: 32, height: '95%' },
-                    {
-                        transform: [
-                            {
-                                translateY: slideAnim.interpolate({
-                                    inputRange: [0, 1],
-                                    outputRange: [0, 400],
-                                }),
-                            },
-                        ],
-                    },
-                ]}
+        <Modal
+            visible={visible}
+            animationType={Platform.OS === 'ios' ? 'slide' : 'fade'}
+            transparent
+            onRequestClose={onClose}
+            statusBarTranslucent
+        >
+            <View
+                style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end', alignItems: 'center' }}
             >
-                <Text style={[tw`text-white text-lg font-bold mb-4`, { textAlign: 'center' }]}>Choose an Event Image</Text>
-                <ScrollView contentContainerStyle={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' }}>
-                    {imageOptions.map((img, idx) => (
+                <TouchableOpacity
+                    style={{ position: 'absolute', width: '100%', height: '100%' }}
+                    activeOpacity={1}
+                    onPress={onClose}
+                />
+                <Animated.View
+                    style={[
+                        {
+                            width: '100%',
+                            borderTopLeftRadius: 20,
+                            borderTopRightRadius: 20,
+                            backgroundColor: '#080B32',
+                            padding: 20,
+                            paddingBottom: 0,
+                            height: 600,
+                            flexDirection: 'column',
+                        },
+                        {
+                            transform: [
+                                {
+                                    translateY: slideAnim.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: [0, 400],
+                                    }),
+                                },
+                            ],
+                        },
+                    ]}
+                >
+                    <Text style={[tw`text-white text-[15px] mb-4`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Choose a theme for your event!</Text>
+                    <View style={{ flex: 1, minHeight: 0, width: '100%' }}>
+                        <ScrollView
+                            contentContainerStyle={{
+                                flexDirection: 'row',
+                                flexWrap: 'wrap',
+                                justifyContent: 'center',
+                                marginBottom: 0,
+                                width: '100%',
+                            }}
+                            keyboardShouldPersistTaps="handled"
+                            nestedScrollEnabled={true}
+                            scrollEnabled={true}
+                        >
+                            {imageOptions.map((img, idx) => (
+                                <TouchableOpacity
+                                    key={idx}
+                                    onPress={() => { onSelect(img); onClose(); }}
+                                    style={{
+                                        margin: 8,
+                                        borderRadius: 10,
+                                        overflow: 'hidden',
+                                        borderWidth: 0,
+                                        borderColor: 'transparent',
+                                        width: '45%',
+                                        aspectRatio: 410 / 279, // maintain 410:279 ratio
+                                    }}
+                                    activeOpacity={0.7}
+                                >
+                                    <Image
+                                        source={img}
+                                        style={{ width: '100%', height: '100%', borderRadius: 10 }}
+                                        resizeMode="cover"
+                                    />
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    </View>
+                    <View style={tw`mt-0 pb-4`}>
                         <TouchableOpacity
-                            key={idx}
-                            onPress={() => { onSelect(img); onClose(); }}
-                            style={{ margin: 8, borderRadius: 12, overflow: 'hidden', borderWidth: 3, borderColor: 'transparent' }}
+                            style={tw`bg-white rounded-full flex-row justify-center py-2.5 items-center gap-1.5`}
+                            onPress={pickImage}
+                        >
+                            <UploadIcon width={20} height={20} />
+                            <Text style={[tw`text-black text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Upload image</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={tw`bg-white/5 rounded-full py-2.5 items-center mt-2`}
+                            onPress={onClose}
                             activeOpacity={0.8}
                         >
-                            <Image
-                                source={img}
-                                style={{ width: 120, height: 120, borderRadius: 12 }}
-                                resizeMode="cover"
-                            />
+                            <Text style={[tw`text-[#B0B8C1] text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Cancel</Text>
                         </TouchableOpacity>
-                    ))}
-                </ScrollView>
-                <TouchableOpacity
-                    style={{ backgroundColor: '#FFFFFF', borderRadius: 999, paddingVertical: 12, alignItems: 'center', marginTop: 16 }}
-                    onPress={pickImage}
-                >
-                    <Text style={{ color: '#000000', fontWeight: 'bold', fontSize: 17 }}>Upload image</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={{ backgroundColor: '#1A2636', borderRadius: 999, paddingVertical: 12, alignItems: 'center', marginTop: 8 }}
-                    onPress={onClose}
-                    activeOpacity={0.8}
-                >
-                    <Text style={{ color: '#B0B8C1', fontWeight: 'bold', fontSize: 17 }}>Cancel</Text>
-                </TouchableOpacity>
-            </Animated.View>
-        </View>
+                    </View>
+                </Animated.View>
+            </View>
+        </Modal>
     );
 }

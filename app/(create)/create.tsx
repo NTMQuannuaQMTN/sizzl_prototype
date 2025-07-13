@@ -37,6 +37,7 @@ export default function CreatePage() {
   const [publicEvent, setPublic] = useState(true);
   const imageOptions = defaultImages;
   const [image, setImage] = useState(imageOptions[Math.floor(Math.random() * imageOptions.length)]);
+
   const { user } = useUserStore();
   // Cohosts can be Friend objects or strings (usernames/ids)
   const [cohosts, setCohosts] = useState<(Friend | string)[]>([]);
@@ -138,15 +139,24 @@ export default function CreatePage() {
       extraScrollHeight={50}
       showsVerticalScrollIndicator={false}
       resetScrollToCoords={{ x: 0, y: 0 }}
-      scrollEnabled={true}
+      scrollEnabled={!showImageModal}
     >
       {/* Background image and overlay */}
       <Image
-        source={typeof image === 'string' ? { uri: image } : image}
+        source={
+          typeof image === 'string'
+            ? (image.startsWith('file://') || image.startsWith('content://')
+                ? { uri: image }
+                : { uri: image })
+            : image && image.uri
+              ? { uri: image.uri }
+              : image
+        }
         style={{
           position: 'absolute',
           top: 0,
-          left: "-50%",
+          left: 0,
+          width: '100%',
           bottom: 0,
           height: undefined,
           minHeight: '100%',
@@ -154,6 +164,9 @@ export default function CreatePage() {
           zIndex: 0,
         }}
         blurRadius={8}
+        onError={e => {
+          console.log('Background image failed to load:', e.nativeEvent);
+        }}
       />
       <View style={[tw`w-full absolute top-0 bg-black bg-opacity-60`, { minHeight: '100%', height: undefined, zIndex: 0 }]} />
       {/* Top bar */}
@@ -195,9 +208,19 @@ export default function CreatePage() {
         <TouchableOpacity style={[tw`rounded-xl overflow-hidden w-full items-center justify-center relative`, { aspectRatio: 410 / 279 }]}
           onPress={() => { setShowImageModal(true) }}>
           <Image
-            source={typeof image === 'string' ? { uri: image } : image}
+            source={
+              typeof image === 'string'
+                ? { uri: image }
+                : image && image.uri
+                  ? { uri: image.uri }
+                  : image
+            }
             style={{ width: '100%', height: '100%' }}
-            resizeMode={'contain'}
+            resizeMode={
+              typeof image === 'string' && imageOptions.includes(image)
+                ? 'contain'
+                : 'cover'
+            }
           />
           {/* Placeholder for event image */}
           <View style={tw`flex-row gap-1.5 absolute top-2.5 right-2.5 bg-white rounded-lg px-2 py-1 shadow-md`}>

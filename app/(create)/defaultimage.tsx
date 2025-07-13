@@ -10,6 +10,7 @@ const defaultImages = [
   require('../../assets/images/default_6.png'),
   require('../../assets/images/default_7.png'),
   require('../../assets/images/default_8.png'),
+  require('../../assets/images/default_9.png'),
 ];
 
 export default defaultImages;
