@@ -28,8 +28,12 @@ const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose,
           <Calendar
             current={selectedDate.toISOString().split('T')[0]}
             onDayPress={day => {
-              const [year, month, date] = day.dateString.split('-').map(Number);
-              setSelectedDate(new Date(year, month - 1, date));
+              // The issue is that new Date(year, month - 1, date) creates a Date in local time,
+              // but Calendar's day.dateString is in 'YYYY-MM-DD' (UTC midnight).
+              // To avoid timezone offset issues, construct the date as UTC:
+              const [year, month, dayNum] = day.dateString.split('-').map(Number);
+              const selected = new Date(Date.UTC(year, month - 1, dayNum));
+              setSelectedDate(selected);
             }}
             minDate={minDate.toISOString().split('T')[0]}
             maxDate={maxDate.toISOString().split('T')[0]}
@@ -58,7 +62,10 @@ const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose,
           <View style={tw`flex-row gap-3 mt-6`}>
             <TouchableOpacity
               style={tw`flex-1 bg-gray-300 rounded-lg py-3`}
-              onPress={onClose}
+              onPress={() => {
+                setSelectedDate(initialDate);
+                onClose();
+              }}
             >
               <Text style={[tw`text-black text-center`, { fontFamily: 'Nunito-Bold' }]}>Cancel</Text>
             </TouchableOpacity>
