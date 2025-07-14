@@ -97,7 +97,7 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
             </TouchableOpacity>
             <TouchableOpacity
               style={tw`${activeTab === 'end' ? 'bg-[#7A5CFA]' : 'bg-[#16263A]'} justify-center items-center flex-1 rounded-r-full py-2`}
-              onPress={() => { setActiveTab('end'); setEndAvailable(true) }}
+              onPress={() => { setActiveTab('end'); setEndAvailable(true); console.log('endSet', endSet) }}
             >
               <Text style={tw`text-white text-center font-bold`}>End</Text>
               {endAvailable && <Text style={tw`text-white text-center font-bold`}>{localEnd.toDateString()}</Text>}
@@ -182,7 +182,7 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
           {/* Save/Cancel */}
           <TouchableOpacity
             style={{ backgroundColor: '#7A5CFA', borderRadius: 999, paddingVertical: 12, alignItems: 'center', marginBottom: 10 }}
-            onPress={() => { onSave({ start: localStart, end: localEnd, startTime: locStartTime, endTime: locEndTime, endSet: endAvailable }); }}
+            onPress={() => { console.log(endAvailable); onSave({ start: localStart, end: localEnd, startTime: locStartTime, endTime: locEndTime, endSet: endAvailable }); }}
             activeOpacity={0.8}
           >
             <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 17 }}>Save</Text>
@@ -190,6 +190,7 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
           <TouchableOpacity
             style={{ backgroundColor: '#1A2636', borderRadius: 999, paddingVertical: 12, alignItems: 'center' }}
             onPress={() => {
+              console.log(endSet);
               setLocalStart(startDate);
               setLocalEnd(endDate);
               setEndAvailable(endSet);

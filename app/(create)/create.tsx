@@ -610,7 +610,7 @@ export default function CreatePage() {
         endSet={date.endSet}
         endDate={date.end || new Date()}
         endTime={date.endTime || '12:00am'}
-        onSave={({ start, end, startTime, endTime }) => {
+        onSave={({ start, end, startTime, endTime, endSet }) => {
           // Helper to combine date and time string into a Date object
           function combineDateAndTime(dateObj: Date, timeStr: string): Date {
             const match = timeStr.match(/(\d+):(\d+)(am|pm)/i);
@@ -638,7 +638,7 @@ export default function CreatePage() {
           }
 
           // 2. End must be at least 30 minutes after start
-          if (endDateTime.getTime() - startDateTime.getTime() < 30 * 60 * 1000) {
+          if (endSet && endDateTime.getTime() - startDateTime.getTime() < 30 * 60 * 1000) {
             alert("End date and time must be at least 30 minutes after the start.");
             return;
           }
@@ -649,7 +649,7 @@ export default function CreatePage() {
             startTime: date.startTime,
             end: end,
             endTime: date.endTime,
-            endSet: true,
+            endSet: endSet,
           }));
           setShowDateTimeModal(false);
         }}
