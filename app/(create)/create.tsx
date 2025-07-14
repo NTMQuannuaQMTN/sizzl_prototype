@@ -22,6 +22,7 @@ import defaultImages from './defaultimage';
 import ImageModal from './imageModal';
 import LocationModal from './location';
 import MoreSettingsModal from './moreSettingsModal';
+import RSVPDeadlineModal from './rsvpDeadlineModal';
 // Define Friend and Cohost types locally
 interface Friend {
   id: string;
@@ -123,18 +124,19 @@ export default function CreatePage() {
     aptSuite: '',
     notes: '',
   });
+  const [rsvpDL, setRSVPDL] = useState(new Date());
   const [showCohostModal, setShowCohostModal] = useState(false);
   const [showDateTimeModal, setShowDateTimeModal] = useState(false);
   useEffect(() => {
     console.log(date);
   }, [showDateTimeModal]);
   const [showImageModal, setShowImageModal] = useState(false);
+  const [showRSVPModal, setShowRSVPModal] = useState(false);
   const [showMoreSettingsModal, setShowMoreSettingsModal] = useState(false);
   const [list, setList] = useState({
     public: true,
     maybe: true,
   })
-
   const [locations, setLocations] = useState<{ address: string; city: string }[]>([]);
 
   // useEffect(() => {
@@ -208,8 +210,8 @@ export default function CreatePage() {
         source={
           typeof image === 'string'
             ? (image.startsWith('file://') || image.startsWith('content://')
-                ? { uri: image }
-                : { uri: image })
+              ? { uri: image }
+              : { uri: image })
             : image && image.uri
               ? { uri: image.uri }
               : image
@@ -234,7 +236,7 @@ export default function CreatePage() {
       {/* Top bar */}
       <View style={tw`flex-row items-center justify-between px-4 mt-10 mb-1.5`}>
         <View style={tw`flex-row items-center gap-4`}>
-          <TouchableOpacity onPress={() => router.navigate('/(home)/home/explore')}><Back /></TouchableOpacity>
+          <TouchableOpacity onPress={() => router.replace('/(home)/home/explore')}><Back /></TouchableOpacity>
           <Text style={[tw`text-white text-base`, { fontFamily: 'Nunito-ExtraBold' }]}>Create event</Text>
         </View>
         <TouchableOpacity style={tw`bg-[#7b61ff] rounded-full px-4 py-1`}>
@@ -295,11 +297,11 @@ export default function CreatePage() {
       {/* Set date and time */}
       <View style={tw`px-4 mb-2`}>
         {/* Placeholder for date/time picker */}
-        <TouchableOpacity style={tw`bg-white/10 border border-white/20 rounded-xl px-4 py-3 flex-row items-center`}
+        <TouchableOpacity style={tw`bg-white/10 border border-white/20 rounded-xl px-4 py-3 flex items-start`}
           onPress={() => setShowDateTimeModal(true)}
           activeOpacity={0.7}
         >
-          <Text style={[tw`text-gray-400 text-[18px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Set date and time</Text>
+          <Text style={[tw`text-gray-400 text-[18px]`, { fontFamily: 'Nunito-ExtraBold' }]}>{date.start.toDateString()} {date.startTime} {date.endSet && `- ${date.end.toDateString()} ${date.endTime}`}</Text>
         </TouchableOpacity>
       </View>
 
@@ -398,6 +400,7 @@ export default function CreatePage() {
       {/* RSVP deadline */}
       <TouchableOpacity style={tw`px-4 mb-2`}
         activeOpacity={0.7}
+        onPress={() => setShowRSVPModal(true)}
       >
         <View style={tw`bg-white/10 border border-white/20 flex-row items-center gap-2 rounded-xl px-4 py-3`}>
           <RSVP width={15} height={15}></RSVP>
@@ -667,6 +670,23 @@ export default function CreatePage() {
         onClose={() => setShowMoreSettingsModal(false)}
         list={list}
         setList={setList}
+      />
+
+      <RSVPDeadlineModal
+        visible={showRSVPModal}
+        onClose={() => setShowRSVPModal(false)}
+        initialDate={date.start}
+        maxDate={date.start}
+        minDate={(() => {
+          const start = new Date(date.start);
+          const min = new Date(start);
+          min.setDate(min.getDate() - 7);
+          const now = new Date();
+          // minDate cannot be before today
+          if (min < now) return now;
+          return min;
+        })()}
+        onSave={() => {}}
       />
     </KeyboardAwareScrollView >
   );
