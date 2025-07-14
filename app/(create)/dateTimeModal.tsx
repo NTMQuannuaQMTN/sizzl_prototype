@@ -11,7 +11,7 @@ interface DateTimeModalProps {
   endSet: boolean;
   endDate: Date;
   endTime: string;
-  onSave: (val: { start: Date; end: Date; startTime: String; endTime: String }) => void;
+  onSave: (val: { start: Date; end: Date; startTime: String; endTime: String; endSet: boolean }) => void;
 }
 
 function getTimeOptions() {
@@ -182,7 +182,7 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
           {/* Save/Cancel */}
           <TouchableOpacity
             style={{ backgroundColor: '#7A5CFA', borderRadius: 999, paddingVertical: 12, alignItems: 'center', marginBottom: 10 }}
-            onPress={() => { onSave({ start: localStart, end: localEnd, startTime: locStartTime, endTime: locEndTime }); }}
+            onPress={() => { onSave({ start: localStart, end: localEnd, startTime: locStartTime, endTime: locEndTime, endSet: endAvailable }); }}
             activeOpacity={0.8}
           >
             <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 17 }}>Save</Text>
