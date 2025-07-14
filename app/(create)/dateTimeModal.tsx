@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import tw from 'twrnc';
 
@@ -29,6 +29,7 @@ function getTimeOptions() {
 
 const timeOptions = getTimeOptions();
 
+
 export default function DateTimeModal({ visible, onClose, startDate, startTime, endSet, endDate, endTime, onSave }: DateTimeModalProps) {
   const [localStart, setLocalStart] = useState<Date>(startDate);
   const [localEnd, setLocalEnd] = useState<Date>(endDate);
@@ -36,6 +37,33 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
   const [locEndTime, setLocEndTime] = useState<String>(endTime);
   const [endAvailable, setEndAvailable] = useState<boolean>(endSet);
   const [activeTab, setActiveTab] = useState<'start' | 'end'>('start');
+
+  // Animation logic (copied from imageModal)
+  const slideAnim = useRef(new Animated.Value(1)).current; // 1 = hidden, 0 = visible
+  const [shouldRender, setShouldRender] = useState(visible);
+
+  useEffect(() => {
+    if (visible) {
+      setShouldRender(true);
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 300,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(slideAnim, {
+        toValue: 1,
+        duration: 250,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }).start(() => {
+        setShouldRender(false);
+      });
+    }
+  }, [visible]);
+
+  if (!shouldRender) return null;
 
   // Get current date and time for validation
   const now = new Date();
@@ -78,34 +106,63 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
   return (
     <Modal
       visible={visible}
-      animationType="slide"
+      animationType={Platform.OS === 'ios' ? 'slide' : 'fade'}
       transparent
       onRequestClose={onClose}
+      statusBarTranslucent
     >
-      <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end', alignItems: 'center' }}>
-        <View style={{ width: '100%', borderTopLeftRadius: 20, borderTopRightRadius: 20, backgroundColor: '#0B1A2A', padding: 20, paddingBottom: 32 }}>
-          <Text style={[tw`text-white text-lg font-bold mb-4`, { textAlign: 'center' }]}>Select Event Date & Time</Text>
+      <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end', alignItems: 'center' }}>
+        {/* Overlay to close modal on tap */}
+        <TouchableOpacity
+          style={{ position: 'absolute', width: '100%', height: '100%' }}
+          activeOpacity={1}
+          onPress={onClose}
+        />
+        <Animated.View
+          style={[
+            tw`w-full px-0 pt-6 pb-0 rounded-t-2xl`,
+            { backgroundColor: '#080B32', marginBottom: 0, paddingHorizontal: 20, paddingBottom: 32, height: 750 },
+            {
+              transform: [
+                {
+                  translateY: slideAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, 400],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <Text style={[tw`text-white text-[15px] mb-4`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Set date and time</Text>
           {/* Tabs */}
-          <View style={tw`flex-row mb-4`}>
+          <View style={tw`flex-row px-3 mb-4`}>
             <TouchableOpacity
-              style={tw`${activeTab === 'start' ? 'bg-[#7A5CFA]' : 'bg-[#16263A]'} justify-center items-center flex-1 rounded-l-full py-2`}
+              style={tw`${activeTab === 'start' ? 'bg-[#7A5CFA]' : 'bg-white/10'} justify-center items-center flex-1 rounded-l-xl py-2`}
               onPress={() => setActiveTab('start')}
             >
-              <Text style={tw`text-white text-center font-bold`}>Start</Text>
-              <Text style={tw`text-white text-center font-bold`}>{localStart.toDateString()}</Text>
-              <Text style={tw`text-white text-center font-bold`}>{locStartTime}</Text>
+              {(!localStart || !locStartTime) ? (
+                <Text style={[tw`text-white text-center text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Start</Text>
+              ) : null}
+              <Text style={[tw`text-white text-center text-[13px] `, { fontFamily: 'Nunito-Medium' }]}>{localStart.toDateString()}</Text>
+              <Text style={[tw`text-white text-center text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>{locStartTime}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={tw`${activeTab === 'end' ? 'bg-[#7A5CFA]' : 'bg-[#16263A]'} justify-center items-center flex-1 rounded-r-full py-2`}
-              onPress={() => { setActiveTab('end'); setEndAvailable(true); console.log('endSet', endSet) }}
+              style={tw`${activeTab === 'end' ? 'bg-[#7A5CFA]' : 'bg-white/10'} justify-center items-center flex-1 rounded-r-xl py-2`}
+              onPress={() => { setActiveTab('end'); setEndAvailable(true); }}
             >
-              <Text style={tw`text-white text-center font-bold`}>End</Text>
-              {endAvailable && <Text style={tw`text-white text-center font-bold`}>{localEnd.toDateString()}</Text>}
-              {endAvailable && <Text style={tw`text-white text-center font-bold`}>{locEndTime}</Text>}
+              {(!endAvailable || !localEnd || !locEndTime) ? (
+                <>
+                  <Text style={[tw`text-white text-center text-[13px] `, { fontFamily: 'Nunito-Medium' }]}>Optional</Text>
+                  <Text style={[tw`text-white text-center text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>End</Text>
+                </>
+              ) : null}
+              {endAvailable && <Text style={[tw`text-white text-center text-[13px] `, { fontFamily: 'Nunito-Medium' }]}>{localEnd.toDateString()}</Text>}
+              {endAvailable && <Text style={[tw`text-white text-center`, { fontFamily: 'Nunito-ExtraBold' }]}>{locEndTime}</Text>}
             </TouchableOpacity>
           </View>
           {/* Date Picker */}
-          <View style={{ backgroundColor: '#16263A', borderRadius: 8, marginBottom: 8 }}>
+            <View style={[tw`mx-3 mb-2 rounded-xl overflow-hidden`]}>
             <Calendar
               current={currentDate.toISOString().split('T')[0]}
               onDayPress={day => {
@@ -151,9 +208,9 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
                 }
               }}
               theme={{
-                backgroundColor: '#16263A',
-                calendarBackground: '#16263A',
-                textSectionTitleColor: '#B0B8C1',
+                // backgroundColor: '#FFFFFF1A',
+                calendarBackground: '#14173C',
+                textSectionTitleColor: '#ffffff',
                 selectedDayBackgroundColor: '#7A5CFA',
                 selectedDayTextColor: '#ffffff',
                 todayTextColor: '#7A5CFA',
@@ -180,29 +237,30 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
             </ScrollView>
           </View>
           {/* Save/Cancel */}
-          <TouchableOpacity
-            style={{ backgroundColor: '#7A5CFA', borderRadius: 999, paddingVertical: 12, alignItems: 'center', marginBottom: 10 }}
-            onPress={() => { console.log(endAvailable); onSave({ start: localStart, end: localEnd, startTime: locStartTime, endTime: locEndTime, endSet: endAvailable }); }}
-            activeOpacity={0.8}
-          >
-            <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 17 }}>Save</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={{ backgroundColor: '#1A2636', borderRadius: 999, paddingVertical: 12, alignItems: 'center' }}
-            onPress={() => {
-              console.log(endSet);
-              setLocalStart(startDate);
-              setLocalEnd(endDate);
-              setEndAvailable(endSet);
-              setLocStartTime(startTime);
-              setLocEndTime(endTime);
-              onClose();
-            }}
-            activeOpacity={0.8}
-          >
-            <Text style={{ color: '#B0B8C1', fontWeight: 'bold', fontSize: 17 }}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
+          <View style={tw`py-3 px-4`}>
+            <TouchableOpacity
+              style={tw`bg-[#7A5CFA] rounded-full flex-row justify-center py-2.5 items-center gap-1.5`}
+              onPress={() => { onSave({ start: localStart, end: localEnd, startTime: locStartTime, endTime: locEndTime, endSet: endAvailable }); }}
+              activeOpacity={0.8}
+            >
+              <Text style={[tw`text-white text-[14px]`, { fontWeight: 'bold' }]}>Save</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={tw`bg-white/5 rounded-full py-2.5 items-center mt-2`}
+              onPress={() => {
+                setLocalStart(startDate);
+                setLocalEnd(endDate);
+                setEndAvailable(endSet);
+                setLocStartTime(startTime);
+                setLocEndTime(endTime);
+                onClose();
+              }}
+              activeOpacity={0.8}
+            >
+              <Text style={[tw`text-white text-[14px]`, { fontWeight: 'bold' }]}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
       </View>
     </Modal>
   );
