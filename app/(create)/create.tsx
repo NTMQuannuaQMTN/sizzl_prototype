@@ -89,9 +89,10 @@ export default function CreatePage() {
       }
       return {
         start: startDate,
-        end: null,
+        end: new Date(),
         startTime: startTime,
-        endTime: null,
+        endTime: '12:00am',
+        endSet: false,
       };
     })()
   });
@@ -601,11 +602,57 @@ export default function CreatePage() {
       />
       <DateTimeModal
         visible={showDateTimeModal}
-        onClose={() => { setShowDateTimeModal(false) }}
+        onClose={() => {
+          setShowDateTimeModal(false);
+        }}
         startDate={date.start}
-        endSet={date.end ? true : false}
+        startTime={date.startTime}
+        endSet={date.endSet}
         endDate={date.end || new Date()}
-        onSave={() => { }}
+        endTime={date.endTime || '12:00am'}
+        onSave={({ start, end, startTime, endTime }) => {
+          // Helper to combine date and time string into a Date object
+          function combineDateAndTime(dateObj: Date, timeStr: string): Date {
+            const match = timeStr.match(/(\d+):(\d+)(am|pm)/i);
+            if (!match) return new Date(dateObj);
+            let [_, hourStr, minStr, ampm] = match;
+            let hour = Number(hourStr);
+            let minute = Number(minStr);
+            if (ampm.toLowerCase() === 'pm' && hour !== 12) hour += 12;
+            if (ampm.toLowerCase() === 'am' && hour === 12) hour = 0;
+            const newDate = new Date(dateObj);
+            newDate.setHours(hour, minute, 0, 0);
+            return newDate;
+          }
+
+          const now = new Date();
+          const startDateTime = combineDateAndTime(start, String(startTime));
+          const endDateTime = combineDateAndTime(end, String(endTime || '12:00am'));
+
+          // 1. Start must not be before now
+          console.log(startDateTime.getTime());
+          console.log(now.getTime());
+          if (startDateTime.getTime() < now.getTime()) {
+            alert("Start date and time must not be before the current time.");
+            return;
+          }
+
+          // 2. End must be at least 30 minutes after start
+          if (endDateTime.getTime() - startDateTime.getTime() < 30 * 60 * 1000) {
+            alert("End date and time must be at least 30 minutes after the start.");
+            return;
+          }
+
+          // If valid, update date state and close modal
+          setDate(({
+            start: start,
+            startTime: date.startTime,
+            end: end,
+            endTime: date.endTime,
+            endSet: true,
+          }));
+          setShowDateTimeModal(false);
+        }}
       />
       <ImageModal
         visible={showImageModal}
