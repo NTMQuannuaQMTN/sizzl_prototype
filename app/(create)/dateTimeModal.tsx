@@ -208,7 +208,6 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
                 }
               }}
               theme={{
-                // backgroundColor: '#FFFFFF1A',
                 calendarBackground: '#14173C',
                 textSectionTitleColor: '#ffffff',
                 selectedDayBackgroundColor: '#7A5CFA',
@@ -218,6 +217,12 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
                 textDisabledColor: '#3A4A5A',
                 monthTextColor: '#ffffff',
                 arrowColor: '#7A5CFA',
+                textDayFontFamily: 'Nunito-Medium',
+                textMonthFontFamily: 'Nunito-ExtraBold',
+                textDayHeaderFontFamily: 'Nunito-Medium',
+                textDayFontSize: 13,
+                textMonthFontSize: 14,
+                textDayHeaderFontSize: 13,
               }}
               markedDates={{
                 [currentDate.toISOString().split('T')[0]]: { selected: true, selectedColor: '#7A5CFA' }
