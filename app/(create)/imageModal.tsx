@@ -61,9 +61,7 @@ export default function ImageModal({ visible, onClose, imageOptions, onSelect }:
             onRequestClose={onClose}
             statusBarTranslucent
         >
-            <View
-                style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end', alignItems: 'center' }}
-            >
+            <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end', alignItems: 'center' }}>
                 <TouchableOpacity
                     style={{ position: 'absolute', width: '100%', height: '100%' }}
                     activeOpacity={1}
@@ -71,16 +69,8 @@ export default function ImageModal({ visible, onClose, imageOptions, onSelect }:
                 />
                 <Animated.View
                     style={[
-                        {
-                            width: '100%',
-                            borderTopLeftRadius: 20,
-                            borderTopRightRadius: 20,
-                            backgroundColor: '#080B32',
-                            padding: 20,
-                            paddingBottom: 0,
-                            height: 600,
-                            flexDirection: 'column',
-                        },
+                        tw`w-full px-0 pt-6 pb-0 rounded-t-2xl`,
+                        { backgroundColor: '#080B32', marginBottom: 0, height: 600 },
                         {
                             transform: [
                                 {
@@ -131,7 +121,7 @@ export default function ImageModal({ visible, onClose, imageOptions, onSelect }:
                             ))}
                         </ScrollView>
                     </View>
-                    <View style={tw`py-3`}>
+                    <View style={tw`py-3 px-4`}>
                         <TouchableOpacity
                             style={tw`bg-[#7A5CFA] rounded-full flex-row justify-center py-2.5 items-center gap-1.5`}
                             onPress={pickImage}
