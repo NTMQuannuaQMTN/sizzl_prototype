@@ -32,8 +32,6 @@ import HostWhite from '../../assets/icons/hostwhite-icon.svg';
 import Location from '../../assets/icons/location.svg';
 import LocationWhite from '../../assets/icons/locationwhite-icon.svg';
 import PfpDefault from '../../assets/icons/pfpdefault.svg';
-import Private from '../../assets/icons/private.svg';
-import Public from '../../assets/icons/public.svg';
 import RSVP from '../../assets/icons/time.svg';
 import RSVPWhite from '../../assets/icons/timewhite.svg';
 import CohostModal from './cohost';
@@ -245,46 +243,6 @@ export default function CreatePage() {
           />
         </View>
 
-        {/* Set date and time */}
-        <View style={tw`px-4 mb-2`}>
-          {/* Placeholder for date/time picker */}
-          <TouchableOpacity style={tw`bg-white/10 border border-white/20 rounded-xl px-4 py-3 flex items-start`}
-            onPress={() => setShowDateTimeModal(true)}
-            activeOpacity={0.7}
-          >
-            {(!date.dateChosen) ? (
-              <Text style={[tw`text-gray-400 text-[18px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Set date and time</Text>
-            ) : date.endSet ? (
-              (() => {
-                const startDateStr = formatFullDate(date.start);
-                const endDateStr = formatFullDate(date.end);
-                if (startDateStr === endDateStr) {
-                  // Same day: show date on first line, times on second line
-                  return (
-                    <Text style={[tw`text-white text-[18px]`, { fontFamily: 'Nunito-ExtraBold' }]}>
-                      {startDateStr}{"\n"}
-                      {date.startTime} - {date.endTime}
-                    </Text>
-                  );
-                } else {
-                  // Different days: show both date and time on each line
-                  return (
-                    <Text style={[tw`text-white text-[18px]`, { fontFamily: 'Nunito-ExtraBold' }]}>
-                      {startDateStr}, {date.startTime} -{"\n"}
-                      {endDateStr}, {date.endTime}
-                    </Text>
-                  );
-                }
-              })()
-            ) : (
-              <Text style={[tw`text-white text-[18px]`, { fontFamily: 'Nunito-ExtraBold' }]}>
-                {formatFullDate(date.start)}{"\n"}
-                {date.startTime}
-              </Text>
-            )}
-          </TouchableOpacity>
-        </View>
-
         {/* Image picker */}
         <View style={tw`px-4 mb-2`}>
           <TouchableOpacity style={[tw`rounded-xl overflow-hidden w-full items-center justify-center relative`, { aspectRatio: 410 / 279 }]}
@@ -322,13 +280,30 @@ export default function CreatePage() {
             {(!date.dateChosen) ? (
               <Text style={[tw`text-gray-400 text-[18px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Set date and time</Text>
             ) : date.endSet ? (
-              <Text style={[tw`text-white text-[18px]`, { fontFamily: 'Nunito-ExtraBold' }]}>
-                {date.start.toDateString()}, {date.startTime} -{"\n"}
-                {date.end.toDateString()}, {date.endTime}
-              </Text>
+              (() => {
+                const startDateStr = formatFullDate(date.start);
+                const endDateStr = formatFullDate(date.end);
+                if (startDateStr === endDateStr) {
+                  // Same day: show date on first line, times on second line
+                  return (
+                    <Text style={[tw`text-white text-[18px]`, { fontFamily: 'Nunito-ExtraBold' }]}>
+                      {startDateStr}{"\n"}
+                      {date.startTime} - {date.endTime}
+                    </Text>
+                  );
+                } else {
+                  // Different days: show both date and time on each line
+                  return (
+                    <Text style={[tw`text-white text-[18px]`, { fontFamily: 'Nunito-ExtraBold' }]}>
+                      {startDateStr}, {date.startTime} -{"\n"}
+                      {endDateStr}, {date.endTime}
+                    </Text>
+                  );
+                }
+              })()
             ) : (
               <Text style={[tw`text-white text-[18px]`, { fontFamily: 'Nunito-ExtraBold' }]}>
-                {date.start.toDateString()}{"\n"}
+                {formatFullDate(date.start)}{"\n"}
                 {date.startTime}
               </Text>
             )}
@@ -433,17 +408,6 @@ export default function CreatePage() {
           onPress={() => setShowRSVPModal(true)}
         >
           <View style={tw`bg-white/10 border border-white/20 flex-row items-center gap-2 rounded-xl px-4 py-3`}>
-            <RSVP width={15} height={15}></RSVP>
-            <Text style={[tw`text-gray-400 text-[13px]`, { fontFamily: 'Nunito-ExtraBold' }]}>RSVP deadline: {rsvpDL?.toDateString()}</Text>
-          </View>
-        </TouchableOpacity>
-
-        {/* RSVP deadline */}
-        <TouchableOpacity style={tw`px-4 mb-2`}
-          activeOpacity={0.7}
-          onPress={() => setShowRSVPModal(true)}
-        >
-          <View style={tw`bg-white/10 border border-white/20 flex-row items-center gap-2 rounded-xl px-4 py-3`}>
             {rsvpDL ? (
               <RSVPWhite width={14} height={14} />
             ) : (
@@ -486,300 +450,151 @@ export default function CreatePage() {
               maxLength={200}
             />
             <View style={tw`flex-row justify-end mt-0.5 -mr-1`}>
-              <TextInput
+              <Text
                 style={[
-                  tw`text-white text-[13px] px-0 py-0 text-left leading-[1.25]`,
-                  {
-                    fontFamily: bio ? 'Nunito-Medium' : 'Nunito-ExtraBold',
-                    minHeight: 60,
-                    textAlignVertical: 'top'
-                  }
+                  tw`text-[11px]`,
+                  { fontFamily: 'Nunito-Medium' },
+                  bio.length >= 200 ? tw`text-rose-600` : tw`text-gray-400`
                 ]}
-                placeholder="About this event..."
-                placeholderTextColor="#9ca3af"
-                multiline={true}
-                value={bio}
-                onChangeText={text => {
-                  if (text.length <= 200) setBio(text);
-                }}
-                blurOnSubmit={true}
-                returnKeyType="done"
-                maxLength={200}
-              />
-              <View style={tw`flex-row justify-end mt-0.5 -mr-1`}>
-                <Text
-                  style={[
-                    tw`text-[11px]`,
-                    { fontFamily: 'Nunito-Medium' },
-                    bio.length >= 200 ? tw`text-rose-600` : tw`text-gray-400`
-                  ]}
-                >
-                  {bio.length}/200
-                </Text>
-              </View>
+              >
+                {bio.length}/200
+              </Text>
             </View>
           </View>
+        </View>
 
-          {/* What's special? */}
-          <View style={tw`px-4 mb-4`}>
-            <Text style={[tw`text-white text-[15px] mb-2`, { fontFamily: 'Nunito-ExtraBold' }]}>What's special?</Text>
-            {/* Special event perks selection UI */}
-            <View style={tw`gap-2.5`}>
-              {/* Selected: Cash prize */}
-              <View style={tw`gap-1.5`}>
-                <TouchableOpacity style={tw`flex-row items-center gap-2.5`}
-                  onPress={() => setSpecialBox((sp) => ({ ...sp, cash: !specialBox.cash }))}
-                  activeOpacity={0.7}
-                >
-                  <View style={[tw`w-4 h-4 rounded border border-gray-400 items-center justify-center ${specialBox.cash ? 'bg-[#7A5CFA]' : 'bg-white/10'}`]}>
-                    {/* Unchecked: no checkmark */}
-                  </View>
-                  <View style={tw`flex-row items-center bg-yellow-200 px-3 py-1.5 rounded-full`}>
-                    <Text style={tw`text-[14px] mr-1.5`}>💸</Text>
-                    <Text style={[tw`text-black text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Cash prize</Text>
-                  </View>
-                </TouchableOpacity>
+        {/* What's special? */}
+        <View style={tw`px-4.5 mb-2`}>
+          <Text style={[tw`text-white text-[15px] mb-2`, { fontFamily: 'Nunito-ExtraBold' }]}>What's special?</Text>
+          {/* Special event perks selection UI */}
+          <View style={tw`gap-2.5`}>
+            {/* Selected: Cash prize */}
+            <View style={tw`gap-1.5`}>
+              <TouchableOpacity style={tw`flex-row items-center gap-2.5`}
+                onPress={() => setSpecialBox((sp) => ({ ...sp, cash: !specialBox.cash }))}
+                activeOpacity={0.7}
+              >
+                <View style={[tw`w-4 h-4 rounded border border-gray-400 items-center justify-center ${specialBox.cash ? 'bg-[#7A5CFA]' : 'bg-white/10'}`]}>
+                  {/* Unchecked: no checkmark */}
+                </View>
+                <View style={tw`flex-row items-center bg-yellow-200 px-3 py-1.5 rounded-full`}>
+                  <Text style={tw`text-[14px] mr-1.5`}>💸</Text>
+                  <Text style={[tw`text-black text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Cash prize</Text>
+                </View>
+              </TouchableOpacity>
 
-                {/* Custom text input for "What's special?" */}
-                {specialBox.cash && (
-                  <View style={tw`pl-6.5`}>
-                    <TextInput
-                      style={[
-                        tw`items-center text-white bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-[13px]`,
-                        { fontFamily: 'Nunito-Medium' }
-                      ]}
-                      placeholder="Add details (optional)"
-                      placeholderTextColor="#9ca3af"
-                      value={special.cash}
-                      onChangeText={text => setSpecial(sp => ({ ...sp, cash: text }))}
-                    />
-                  </View>
-                )}
-              </View>
+              {/* Custom text input for "What's special?" */}
+              {specialBox.cash && (
+                <View style={tw`pl-6.5`}>
+                  <TextInput
+                    style={[
+                      tw`items-center text-white bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-[13px]`,
+                      { fontFamily: 'Nunito-Medium' }
+                    ]}
+                    placeholder="Add details (optional)"
+                    placeholderTextColor="#9ca3af"
+                    value={special.cash}
+                    onChangeText={text => setSpecial(sp => ({ ...sp, cash: text }))}
+                  />
+                </View>
+              )}
+            </View>
 
-              {/* Other options */}
-              <View style={tw`gap-1.5`}>
-                <TouchableOpacity style={tw`flex-row items-center gap-2.5`}
-                  onPress={() => setSpecialBox((sp) => ({ ...sp, food: !specialBox.food }))}
-                  activeOpacity={0.7}
-                >
-                  <View style={[tw`w-4 h-4 rounded border border-gray-400 items-center justify-center ${specialBox.food ? 'bg-[#7A5CFA]' : 'bg-white/10'}`]}>
-                    {/* Unchecked: no checkmark */}
-                  </View>
-                  <View style={tw`flex-row items-center bg-sky-200 px-3 py-1.5 rounded-full`}>
-                    <Text style={tw`text-[14px] mr-1.5`}>🍕</Text>
-                    <Text style={[tw`text-gray-900 text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Free food</Text>
-                  </View>
-                </TouchableOpacity>
-                {/* Custom text input for "What's special?" */}
-                {specialBox.food && (
-                  <View style={tw`pl-6.5`}>
-                    <TextInput
-                      style={[
-                        tw`items-center text-white bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-[13px]`,
-                        { fontFamily: 'Nunito-Medium' }
-                      ]}
-                      placeholder="Add details (optional)"
-                      placeholderTextColor="#9ca3af"
-                      value={special.food}
-                      onChangeText={text => setSpecial(sp => ({ ...sp, food: text }))}
-                    />
-                  </View>
-                )}
-              </View>
+            {/* Other options */}
+            <View style={tw`gap-1.5`}>
+              <TouchableOpacity style={tw`flex-row items-center gap-2.5`}
+                onPress={() => setSpecialBox((sp) => ({ ...sp, food: !specialBox.food }))}
+                activeOpacity={0.7}
+              >
+                <View style={[tw`w-4 h-4 rounded border border-gray-400 items-center justify-center ${specialBox.food ? 'bg-[#7A5CFA]' : 'bg-white/10'}`]}>
+                  {/* Unchecked: no checkmark */}
+                </View>
+                <View style={tw`flex-row items-center bg-sky-200 px-3 py-1.5 rounded-full`}>
+                  <Text style={tw`text-[14px] mr-1.5`}>🍕</Text>
+                  <Text style={[tw`text-gray-900 text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Free food</Text>
+                </View>
+              </TouchableOpacity>
+              {/* Custom text input for "What's special?" */}
+              {specialBox.food && (
+                <View style={tw`pl-6.5`}>
+                  <TextInput
+                    style={[
+                      tw`items-center text-white bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-[13px]`,
+                      { fontFamily: 'Nunito-Medium' }
+                    ]}
+                    placeholder="Add details (optional)"
+                    placeholderTextColor="#9ca3af"
+                    value={special.food}
+                    onChangeText={text => setSpecial(sp => ({ ...sp, food: text }))}
+                  />
+                </View>
+              )}
+            </View>
 
-              <View style={tw`gap-1.5`}>
-                <TouchableOpacity style={tw`flex-row items-center gap-2.5`}
-                  onPress={() => setSpecialBox((sp) => ({ ...sp, merch: !specialBox.merch }))}
-                  activeOpacity={0.7}
-                >
-                  <View style={[tw`w-4 h-4 rounded border border-gray-400 items-center justify-center ${specialBox.merch ? 'bg-[#7A5CFA]' : 'bg-white/10'}`]}>
-                    {/* Unchecked: no checkmark */}
-                  </View>
-                  <View style={tw`flex-row items-center bg-pink-200/90 px-3 py-1.5 rounded-full`}>
-                    <Text style={tw`text-[14px] mr-1.5`}>👕</Text>
-                    <Text style={[tw`text-gray-900 text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Free merch</Text>
-                  </View>
-                </TouchableOpacity>
-                {/* Custom text input for "What's special?" */}
-                {specialBox.merch && (
-                  <View style={tw`pl-6.5`}>
-                    <TextInput
-                      style={[
-                        tw`items-center text-white bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-[13px]`,
-                        { fontFamily: 'Nunito-Medium' }
-                      ]}
-                      placeholder="Add details (optional)"
-                      placeholderTextColor="#9ca3af"
-                      value={special.merch}
-                      onChangeText={text => setSpecial(sp => ({ ...sp, merch: text }))}
-                    />
-                  </View>
-                )}
-              </View>
+            <View style={tw`gap-1.5`}>
+              <TouchableOpacity style={tw`flex-row items-center gap-2.5`}
+                onPress={() => setSpecialBox((sp) => ({ ...sp, merch: !specialBox.merch }))}
+                activeOpacity={0.7}
+              >
+                <View style={[tw`w-4 h-4 rounded border border-gray-400 items-center justify-center ${specialBox.merch ? 'bg-[#7A5CFA]' : 'bg-white/10'}`]}>
+                  {/* Unchecked: no checkmark */}
+                </View>
+                <View style={tw`flex-row items-center bg-pink-200/90 px-3 py-1.5 rounded-full`}>
+                  <Text style={tw`text-[14px] mr-1.5`}>👕</Text>
+                  <Text style={[tw`text-gray-900 text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Free merch</Text>
+                </View>
+              </TouchableOpacity>
+              {/* Custom text input for "What's special?" */}
+              {specialBox.merch && (
+                <View style={tw`pl-6.5`}>
+                  <TextInput
+                    style={[
+                      tw`items-center text-white bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-[13px]`,
+                      { fontFamily: 'Nunito-Medium' }
+                    ]}
+                    placeholder="Add details (optional)"
+                    placeholderTextColor="#9ca3af"
+                    value={special.merch}
+                    onChangeText={text => setSpecial(sp => ({ ...sp, merch: text }))}
+                  />
+                </View>
+              )}
+            </View>
 
-              <View style={tw`gap-1.5`}>
-                <TouchableOpacity style={tw`flex-row items-center gap-2.5`}
-                  onPress={() => setSpecialBox((sp) => ({ ...sp, coolPrize: !specialBox.coolPrize }))}
-                  activeOpacity={0.7}
-                >
-                  <View style={[tw`w-4 h-4 rounded border border-gray-400 items-center justify-center ${specialBox.coolPrize ? 'bg-[#7A5CFA]' : 'bg-white/10'}`]}>
-                    {/* Unchecked: no checkmark */}
-                  </View>
-                  <View style={tw`flex-row items-center bg-green-200/90 px-3 py-1.5 rounded-full`}>
-                    <Text style={tw`text-[14px] mr-1.5`}>🎟️</Text>
-                    <Text style={[tw`text-gray-900 text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Cool prizes</Text>
-                  </View>
-                </TouchableOpacity>
-                {/* Custom text input for "What's special?" */}
-                {specialBox.coolPrize && (
-                  <View style={tw`pl-6.5`}>
-                    <TextInput
-                      style={[
-                        tw`items-center text-white bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-[13px]`,
-                        { fontFamily: 'Nunito-Medium' }
-                      ]}
-                      placeholder="Add details (optional)"
-                      placeholderTextColor="#9ca3af"
-                      value={special.coolPrize}
-                      onChangeText={text => setSpecial(sp => ({ ...sp, coolPrize: text }))}
-                    />
-                  </View>
-                )}
-              </View>
+            <View style={tw`gap-1.5`}>
+              <TouchableOpacity style={tw`flex-row items-center gap-2.5`}
+                onPress={() => setSpecialBox((sp) => ({ ...sp, coolPrize: !specialBox.coolPrize }))}
+                activeOpacity={0.7}
+              >
+                <View style={[tw`w-4 h-4 rounded border border-gray-400 items-center justify-center ${specialBox.coolPrize ? 'bg-[#7A5CFA]' : 'bg-white/10'}`]}>
+                  {/* Unchecked: no checkmark */}
+                </View>
+                <View style={tw`flex-row items-center bg-green-200/90 px-3 py-1.5 rounded-full`}>
+                  <Text style={tw`text-[14px] mr-1.5`}>🎟️</Text>
+                  <Text style={[tw`text-gray-900 text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Cool prizes</Text>
+                </View>
+              </TouchableOpacity>
+              {/* Custom text input for "What's special?" */}
+              {specialBox.coolPrize && (
+                <View style={tw`pl-6.5`}>
+                  <TextInput
+                    style={[
+                      tw`items-center text-white bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-[13px]`,
+                      { fontFamily: 'Nunito-Medium' }
+                    ]}
+                    placeholder="Add details (optional)"
+                    placeholderTextColor="#9ca3af"
+                    value={special.coolPrize}
+                    onChangeText={text => setSpecial(sp => ({ ...sp, coolPrize: text }))}
+                  />
+                </View>
+              )}
             </View>
           </View>
-
-          {/* More settings modal */}
-          <View style={tw`px-4 mb-6`}>
-            <TouchableOpacity
-              style={tw`flex-row items-center gap-2.5 bg-white/10 rounded-xl px-3 py-2 mt-2`}
-              onPress={() => setShowMoreSettingsModal(true)}
-              activeOpacity={0.8}
-            >
-              <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>More settings</Text>
-            </TouchableOpacity>
-          </View>
-          {/* </KeyboardAwareScrollView > */}
-
-          {/* Cohost Modal */}
-          <CohostModal
-            visible={showCohostModal}
-            onClose={() => setShowCohostModal(false)}
-            friends={friends}
-            cohosts={cohosts}
-            onSave={setCohosts}
-          />
-          {/* Location Modal */}
-          <LocationModal
-            visible={showLocationModal}
-            onClose={() => setShowLocationModal(false)}
-            location={location}
-            setLocation={setLocation}
-            locations={locations}
-          />
-          <DateTimeModal
-            visible={showDateTimeModal}
-            onClose={() => {
-              setShowDateTimeModal(false);
-            }}
-            startDate={date.start}
-            startTime={date.startTime}
-            endSet={date.endSet}
-            endDate={date.end || new Date()}
-            endTime={date.endTime || '12:00am'}
-            onSave={({ start, end, startTime, endTime, endSet }) => {
-              // Helper to combine date and time string into a Date object
-              function combineDateAndTime(dateObj: Date, timeStr: string): Date {
-                const match = timeStr.match(/(\d+):(\d+)(am|pm)/i);
-                if (!match) return new Date(dateObj);
-                let [_, hourStr, minStr, ampm] = match;
-                let hour = Number(hourStr);
-                let minute = Number(minStr);
-                if (ampm.toLowerCase() === 'pm' && hour !== 12) hour += 12;
-                if (ampm.toLowerCase() === 'am' && hour === 12) hour = 0;
-                const newDate = new Date(dateObj);
-                newDate.setHours(hour, minute, 0, 0);
-                return newDate;
-              }
-
-              const now = new Date();
-              const startDateTime = combineDateAndTime(start, String(startTime));
-              const endDateTime = combineDateAndTime(end, String(endTime || '12:00am'));
-
-              // 1. Start must not be before now
-              if (startDateTime.getTime() < now.getTime()) {
-                alert("Start date and time must not be before the current time.");
-                return;
-              }
-
-              // 2. End must be at least 30 minutes after start
-              if (endSet && endDateTime.getTime() - startDateTime.getTime() < 30 * 60 * 1000) {
-                alert("End date and time must be at least 30 minutes after the start.");
-                return;
-              }
-
-              // If valid, update date state and close modal
-              setDate((prev) => ({
-                ...prev,
-                start: start,
-                startTime: String(startTime),
-                end: end,
-                endTime: String(endTime),
-                endSet: endSet,
-                dateChosen: true,
-              }));
-              setShowDateTimeModal(false);
-            }}
-          />
-          <ImageModal
-            visible={showImageModal}
-            onClose={() => { setShowImageModal(false) }}
-            imageOptions={imageOptions}
-            onSelect={(img) => { setImage(img) }}
-          />
-
-          {/* More Settings Modal */}
-          <MoreSettingsModal
-            visible={showMoreSettingsModal}
-            onClose={() => setShowMoreSettingsModal(false)}
-            list={list}
-            setList={setList}
-          />
-
-          <RSVPDeadlineModal
-            visible={showRSVPModal}
-            onClose={() => setShowRSVPModal(false)}
-            initialDate={rsvpDL ?? new Date()}
-            maxDate={date.start}
-            minDate={(() => {
-              const start = new Date(date.start);
-              const min = new Date(start);
-              min.setDate(min.getDate() - 7);
-              const now = new Date();
-              // minDate cannot be before today
-              if (min < now) return now;
-              return min;
-            })()}
-            onSave={(rsvp) => {
-              // Check if the selected date is within 7 days before the event start date
-              const startDate = new Date(date.start);
-              const selectedDate = new Date(rsvp);
-              const diffMs = startDate.getTime() - selectedDate.getTime();
-              const diffDays = diffMs / (1000 * 60 * 60 * 24);
-              if (diffDays >= 0 && diffDays <= 8) {
-                setRSVPDL(rsvp);
-                setShowRSVPModal(false);
-              } else {
-                alert("RSVP deadline must be within 7 days before the event start date.");
-                return;
-              }
-            }}
-          />
         </View>
 
         {/* More settings modal */}
-        <View style={tw`px-4 mb-6`}>
+        <View style={tw`px-4 mb-12`}>
           <TouchableOpacity
             style={tw`flex-row items-center gap-2.5 bg-white/10 rounded-xl px-3 py-2 mt-2`}
             onPress={() => setShowMoreSettingsModal(true)}
@@ -789,6 +604,121 @@ export default function CreatePage() {
           </TouchableOpacity>
         </View>
         {/* </KeyboardAwareScrollView > */}
+
+        {/* Cohost Modal */}
+        <CohostModal
+          visible={showCohostModal}
+          onClose={() => setShowCohostModal(false)}
+          friends={friends}
+          cohosts={cohosts}
+          onSave={setCohosts}
+        />
+        {/* Location Modal */}
+        <LocationModal
+          visible={showLocationModal}
+          onClose={() => setShowLocationModal(false)}
+          location={location}
+          setLocation={setLocation}
+          locations={locations}
+        />
+        <DateTimeModal
+          visible={showDateTimeModal}
+          onClose={() => {
+            setShowDateTimeModal(false);
+          }}
+          startDate={date.start}
+          startTime={date.startTime}
+          endSet={date.endSet}
+          endDate={date.end || new Date()}
+          endTime={date.endTime || '12:00am'}
+          onSave={({ start, end, startTime, endTime, endSet }) => {
+            // Helper to combine date and time string into a Date object
+            function combineDateAndTime(dateObj: Date, timeStr: string): Date {
+              const match = timeStr.match(/(\d+):(\d+)(am|pm)/i);
+              if (!match) return new Date(dateObj);
+              let [_, hourStr, minStr, ampm] = match;
+              let hour = Number(hourStr);
+              let minute = Number(minStr);
+              if (ampm.toLowerCase() === 'pm' && hour !== 12) hour += 12;
+              if (ampm.toLowerCase() === 'am' && hour === 12) hour = 0;
+              const newDate = new Date(dateObj);
+              newDate.setHours(hour, minute, 0, 0);
+              return newDate;
+            }
+
+            const now = new Date();
+            const startDateTime = combineDateAndTime(start, String(startTime));
+            const endDateTime = combineDateAndTime(end, String(endTime || '12:00am'));
+
+            // 1. Start must not be before now
+            if (startDateTime.getTime() < now.getTime()) {
+              alert("Start date and time must not be before the current time.");
+              return;
+            }
+
+            // 2. End must be at least 30 minutes after start
+            if (endSet && endDateTime.getTime() - startDateTime.getTime() < 30 * 60 * 1000) {
+              alert("End date and time must be at least 30 minutes after the start.");
+              return;
+            }
+
+            // If valid, update date state and close modal
+            setDate((prev) => ({
+              ...prev,
+              start: start,
+              startTime: String(startTime),
+              end: end,
+              endTime: String(endTime),
+              endSet: endSet,
+              dateChosen: true,
+            }));
+            setShowDateTimeModal(false);
+          }}
+        />
+        <ImageModal
+          visible={showImageModal}
+          onClose={() => { setShowImageModal(false) }}
+          imageOptions={imageOptions}
+          onSelect={(img) => { setImage(img) }}
+        />
+
+        {/* More Settings Modal */}
+        <MoreSettingsModal
+          visible={showMoreSettingsModal}
+          onClose={() => setShowMoreSettingsModal(false)}
+          list={list}
+          setList={setList}
+        />
+
+        <RSVPDeadlineModal
+          visible={showRSVPModal}
+          onClose={() => setShowRSVPModal(false)}
+          initialDate={rsvpDL ?? new Date()}
+          maxDate={date.start}
+          minDate={(() => {
+            const start = new Date(date.start);
+            const min = new Date(start);
+            min.setDate(min.getDate() - 7);
+            const now = new Date();
+            // minDate cannot be before today
+            if (min < now) return now;
+            return min;
+          })()}
+          onSave={(rsvp) => {
+            // Check if the selected date is within 7 days before the event start date
+            const startDate = new Date(date.start);
+            const selectedDate = new Date(rsvp);
+            const diffMs = startDate.getTime() - selectedDate.getTime();
+            const diffDays = diffMs / (1000 * 60 * 60 * 24);
+            if (diffDays >= 0 && diffDays <= 8) {
+              setRSVPDL(rsvp);
+              setShowRSVPModal(false);
+            } else {
+              alert("RSVP deadline must be within 7 days before the event start date.");
+              return;
+            }
+          }}
+        />
       </View>
 
       {/* Cohost Modal */}
