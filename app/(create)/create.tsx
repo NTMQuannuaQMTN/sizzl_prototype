@@ -425,7 +425,7 @@ export default function CreatePage() {
               ? <LocationWhite width={14} height={14} />
               : <Location width={14} height={14} />}
             <Text style={[tw`${location.selected ? 'text-white' : 'text-gray-400'} text-[13px]`, { fontFamily: 'Nunito-ExtraBold' }]}>
-              {location.selected ? location.selected : 'Location'}
+              {location.selected ? location.selected : 'Set location'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -624,11 +624,11 @@ export default function CreatePage() {
         {/* More settings modal */}
         <View style={tw`px-4 mb-20`}>
           <TouchableOpacity
-            style={tw`flex-row items-center gap-2.5 bg-white/10 rounded-xl px-3 py-2 mt-2`}
+            style={tw`flex-row items-center gap-2.5 bg-white/10 rounded-xl px-3.5 py-2 mt-2`}
             onPress={() => setShowMoreSettingsModal(true)}
-            activeOpacity={0.8}
+            activeOpacity={0.7}
           >
-            <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>More settings</Text>
+            <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>More settings</Text>
           </TouchableOpacity>
         </View>
         {/* </KeyboardAwareScrollView > */}
