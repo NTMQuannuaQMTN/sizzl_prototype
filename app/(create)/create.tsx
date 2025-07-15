@@ -31,7 +31,6 @@ interface Friend {
   username?: string;
   profile_image?: string;
 }
-type Cohost = Friend | string;
 
 export default function CreatePage() {
   const [title, setTitle] = useState('');
@@ -139,36 +138,6 @@ export default function CreatePage() {
   })
   const [locations, setLocations] = useState<{ address: string; city: string }[]>([]);
 
-  // useEffect(() => {
-  //   async function fetchLocations() {
-  //     const apiKey = 'YOUR_GOOGLE_MAPS_API_KEY'; // Replace with your actual API key
-  //     const lat = 42.7369792; // Example latitude
-  //     const lng = -84.4838654; // Example longitude
-  //     const radius = 1500; // in meters
-
-  //     // Google Places Nearby Search API endpoint
-  //     const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&key=${apiKey}`;
-
-  //     try {
-  //       const response = await fetch(url);
-  //       const data = await response.json();
-  //       if (data.results) {
-  //         const formatted = data.results.map((place: any) => ({
-  //           address: place.vicinity || place.name,
-  //           city: '', // You may need to use Geocoding API to get the city name
-  //         }));
-  //         setLocations(formatted);
-  //       }
-  //     } catch (error) {
-  //       console.error('Error fetching locations from Google Maps:', error);
-  //     }
-  //   }
-
-  //   fetchLocations();
-  // }, []);
-
-  // Dummy friends data for cohost modal
-  // Fetch friends from the "friends" table (replace with your actual data fetching logic)
   const [friends, setFriends] = useState<Friend[]>([]);
 
   useEffect(() => {
