@@ -161,6 +161,10 @@ export default function CreatePage() {
 
   const [friends, setFriends] = useState<Friend[]>([]);
 
+  const addEvent = async () => {
+    
+  }
+
   useEffect(() => {
     // Example async fetch function, replace with your actual API/database call
     async function fetchFriends() {
@@ -239,7 +243,7 @@ export default function CreatePage() {
           {/* Done button - absolute right */}
           <TouchableOpacity
             style={[tw`absolute right-4 bg-[#7b61ff] rounded-full px-4 py-1`, { zIndex: 2 }]}
-          >
+          onPress={() => addEvent()}>
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Done</Text>
           </TouchableOpacity>
         </View>
