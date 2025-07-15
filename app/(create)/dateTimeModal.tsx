@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
@@ -53,15 +54,40 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
     }
   };
 
-  // Animation logic (copied from imageModal)
+
+  // Animation logic (slide up/down, like cohost modal)
+
   const slideAnim = useRef(new Animated.Value(1)).current; // 1 = hidden, 0 = visible
   const [shouldRender, setShouldRender] = useState(visible);
+  const [isAnimating, setIsAnimating] = useState(false);
 
-  // Track previous visible state
-  const prevVisibleRef = useRef(visible);
   useEffect(() => {
-    if (visible && !prevVisibleRef.current) {
-      // Modal just opened: sync local state with props
+    if (visible) {
+      setShouldRender(true);
+      setIsAnimating(true);
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 300,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start(() => setIsAnimating(false));
+    } else {
+      setIsAnimating(true);
+      Animated.timing(slideAnim, {
+        toValue: 1,
+        duration: 250,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }).start(() => {
+        setShouldRender(false);
+        setIsAnimating(false);
+      });
+    }
+  }, [visible]);
+
+  // Sync local state with props when opening
+  useEffect(() => {
+    if (visible) {
       setLocalStart(startDate);
       setLocalEnd(endDate);
       setLocStartTime(startTime);
@@ -70,28 +96,10 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
       setStartDateChosen(!!startDate);
       setEndDateChosen(!!(endSet && endDate));
       setActiveTab('start');
-      setShouldRender(true);
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 300,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }).start();
-    } else if (!visible && prevVisibleRef.current) {
-      // Modal just closed
-      Animated.timing(slideAnim, {
-        toValue: 1,
-        duration: 250,
-        easing: Easing.in(Easing.cubic),
-        useNativeDriver: true,
-      }).start(() => {
-        setShouldRender(false);
-      });
     }
-    prevVisibleRef.current = visible;
   }, [visible, startDate, endDate, startTime, endTime, endSet]);
 
-  if (!shouldRender) return null;
+  if (!shouldRender && !isAnimating) return null;
 
   // Get current date and time for validation
   const now = new Date();
@@ -140,7 +148,7 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
       statusBarTranslucent
     >
       <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end', alignItems: 'center' }}>
-        {/* Overlay to close modal on tap */}
+        {/* Tap outside to close */}
         <TouchableOpacity
           style={{ position: 'absolute', width: '100%', height: '100%' }}
           activeOpacity={1}
@@ -149,7 +157,7 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
         <Animated.View
           style={[
             tw`w-full px-0 pt-6 pb-0 rounded-t-2xl`,
-            { backgroundColor: '#080B32', marginBottom: 0, paddingHorizontal: 20, paddingBottom: 0, height: 750 },
+            { backgroundColor: '#080B32', marginBottom: 0, paddingHorizontal: 0, paddingBottom: 0, height: 730 },
             {
               transform: [
                 {

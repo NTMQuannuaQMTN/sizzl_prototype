@@ -47,7 +47,7 @@ const MoreSettingsModal: React.FC<MoreSettingsModalProps> = ({ visible, onClose,
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end', alignItems: 'center' }}>
+      <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end', alignItems: 'center' }}>
         {/* Tap outside to close */}
         <TouchableOpacity
           style={{ position: 'absolute', width: '100%', height: '100%' }}

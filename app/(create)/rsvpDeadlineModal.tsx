@@ -90,7 +90,7 @@ const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose,
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end', alignItems: 'center' }}>
+      <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end', alignItems: 'center' }}>
         {/* Tap outside to close */}
         <TouchableOpacity
           style={{ position: 'absolute', width: '100%', height: '100%' }}
@@ -126,7 +126,7 @@ const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose,
                 <Text style={[tw`text-[#7A5CFA] text-[13px]`, { fontFamily: 'Nunito-Bold' }]}>Clear</Text>
               </TouchableOpacity>
               <View style={{ position: 'absolute', left: 0, right: 0, alignItems: 'center', pointerEvents: 'none' }}>
-                <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Set RSVP Deadline</Text>
+                <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Set RSVP deadline</Text>
               </View>
             </View>
             <View style={[tw`mx-3 mb-2 rounded-xl overflow-hidden`]}>
