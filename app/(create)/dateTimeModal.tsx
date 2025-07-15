@@ -71,6 +71,12 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
       setEndDateChosen(!!(endSet && endDate));
       setActiveTab('start');
       setShouldRender(true);
+      // Always show today as selected on open
+      const today = new Date();
+      setLocalStart(today);
+      setLocalEnd(today);
+      setStartDateChosen(true);
+      setEndDateChosen(endSet ? true : false);
       Animated.timing(slideAnim, {
         toValue: 0,
         duration: 300,
