@@ -25,6 +25,8 @@ import tw from 'twrnc';
 import { useUserStore } from '../store/userStore';
 
 import { supabase } from '@/utils/supabase';
+import Private from '../../assets/icons/private.svg';
+import Public from '../../assets/icons/public.svg';
 import Back from '../../assets/icons/back.svg';
 import Camera from '../../assets/icons/camera_icon.svg';
 import Host from '../../assets/icons/host.svg';
@@ -250,6 +252,19 @@ export default function CreatePage() {
             placeholder='your event title'
             placeholderTextColor={'#9ca3af'}
           />
+        </View>
+
+        <View style={tw`flex-row items-center mx-4 mb-2.5`}>
+          <TouchableOpacity style={tw`flex-row items-center gap-2 justify-center bg-[#064B55] ${publicEvent ? 'border border-white/10' : 'opacity-30'} rounded-full px-2 py-0.5 mr-1`}
+            onPress={() => { setPublic(true) }}>
+            <Public />
+            <Text style={[tw`text-[13px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Public</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={tw`flex-row items-center gap-2 justify-center bg-[#080B32] ${publicEvent ? 'opacity-30' : 'border border-purple-900'} rounded-full px-2 py-0.5`}
+            onPress={() => { setPublic(false) }}>
+            <Private />
+            <Text style={[tw`text-[13px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Private</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Image picker */}
