@@ -157,7 +157,29 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
         >
           <View style={{ flex: 1, flexDirection: 'column' }}>
             <View style={{ flex: 1 }}>
-              <Text style={[tw`text-white text-[15px] mb-4`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Set date and time</Text>
+              <View style={[tw`mb-4 flex-row items-center`, { minHeight: 24 }]}> 
+                <TouchableOpacity
+                  style={[tw`px-3 py-1`, { minWidth: 50, alignItems: 'flex-start', justifyContent: 'center' }]}
+                  onPress={() => {
+                    setLocalStart(startDate);
+                    setLocalEnd(endDate);
+                    setEndAvailable(false);
+                    setLocStartTime(startTime);
+                    setLocEndTime(endTime);
+                    setStartDateChosen(false);
+                    setEndDateChosen(false);
+                    setActiveTab('start');
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-Bold' }]}>Clear</Text>
+                </TouchableOpacity>
+                <View style={{ flex: 1, alignItems: 'center' }}>
+                  <Text style={[tw`text-white -ml-2 text-[15px]`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Set date and time</Text>
+                </View>
+                {/* Spacer for symmetry */}
+                <View style={{ minWidth: 50 }} />
+              </View>
               {/* Tabs */}
               <View style={tw`flex-row px-3 mb-2`}>
                 <TouchableOpacity
@@ -212,6 +234,7 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
                       }
                       if (idx !== -1) {
                         setLocEndTime(timeOptions[idx]);
+                        setEndDateChosen(true);
                         setTimeout(() => {
                           const ITEM_HEIGHT = 43.33;
                           if (scrollRef.current) {
@@ -431,18 +454,94 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
                     })}
                   </ScrollView>
                 </View>
+                {/* Custom warning moved below */}
               </View>
             </View>
+            {/* Custom warning for end time/date < 30 mins after start, now above Save button */}
+            {activeTab === 'end' && endAvailable && (() => {
+              // Calculate start and end Date objects with selected times
+              const parseTime = (dateObj: Date, timeStr: string): Date | null => {
+                const match = String(timeStr).match(/(\d+):(\d+)(am|pm)/i);
+                if (!match) return null;
+                let [_, hourStr, minStr, ampm] = match;
+                let hour = Number(hourStr);
+                let minute = Number(minStr);
+                if (ampm === 'pm' && hour !== 12) hour += 12;
+                if (ampm === 'am' && hour === 12) hour = 0;
+                const d = new Date(dateObj);
+                d.setHours(hour, minute, 0, 0);
+                return d;
+              };
+              const startDT = parseTime(localStart, String(locStartTime));
+              const endDT = parseTime(localEnd, String(locEndTime));
+              if (startDT && endDT && (endDT.getTime() - startDT.getTime() < 30 * 60000)) {
+                return (
+                  <View style={tw`mb-1 w-full px-3`}>
+                    <View style={tw`bg-rose-600 rounded-lg p-2.5 items-center`}>
+                      <Text style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-Bold', textAlign: 'center' }]}>End date & time must be at least 30 minutes after start.</Text>
+                    </View>
+                  </View>
+                );
+              }
+              return null;
+            })()}
             {/* Save/Cancel always at bottom */}
             <View style={tw`py-3 px-4`}>
               <TouchableOpacity
-                style={tw`bg-[#7A5CFA] rounded-full flex-row justify-center py-2.5 items-center gap-1.5`}
+                style={[
+                  tw`bg-[#7A5CFA] rounded-full flex-row justify-center py-2.5 items-center gap-1.5`,
+                  {
+                    opacity: (() => {
+                      if (!startDateChosen || (endAvailable && !endDateChosen)) return 0.3;
+                      if (endAvailable) {
+                        const parseTime = (dateObj: Date, timeStr: string): Date | null => {
+                          const match = String(timeStr).match(/(\d+):(\d+)(am|pm)/i);
+                          if (!match) return null;
+                          let [_, hourStr, minStr, ampm] = match;
+                          let hour = Number(hourStr);
+                          let minute = Number(minStr);
+                          if (ampm === 'pm' && hour !== 12) hour += 12;
+                          if (ampm === 'am' && hour === 12) hour = 0;
+                          const d = new Date(dateObj);
+                          d.setHours(hour, minute, 0, 0);
+                          return d;
+                        };
+                        const startDT = parseTime(localStart, String(locStartTime));
+                        const endDT = parseTime(localEnd, String(locEndTime));
+                        if (startDT && endDT && (endDT.getTime() - startDT.getTime() < 30 * 60000)) return 0.3;
+                      }
+                      return 1;
+                    })()
+                  }
+                ]}
                 onPress={() => {
+                  // Only rely on custom UI and Save button disabling; do not show default alert
                   if (!startDateChosen || (endAvailable && !endDateChosen)) return;
+                  // No need to check 30-min rule here, button is already disabled if not met
                   onSave({ start: localStart, end: localEnd, startTime: locStartTime, endTime: locEndTime, endSet: endAvailable });
                 }}
-                activeOpacity={0.8}
-                disabled={!startDateChosen || (endAvailable && !endDateChosen)}
+                activeOpacity={0.7}
+                disabled={(() => {
+                  if (!startDateChosen || (endAvailable && !endDateChosen)) return true;
+                  if (endAvailable) {
+                    const parseTime = (dateObj: Date, timeStr: string): Date | null => {
+                      const match = String(timeStr).match(/(\d+):(\d+)(am|pm)/i);
+                      if (!match) return null;
+                      let [_, hourStr, minStr, ampm] = match;
+                      let hour = Number(hourStr);
+                      let minute = Number(minStr);
+                      if (ampm === 'pm' && hour !== 12) hour += 12;
+                      if (ampm === 'am' && hour === 12) hour = 0;
+                      const d = new Date(dateObj);
+                      d.setHours(hour, minute, 0, 0);
+                      return d;
+                    };
+                    const startDT = parseTime(localStart, String(locStartTime));
+                    const endDT = parseTime(localEnd, String(locEndTime));
+                    if (startDT && endDT && (endDT.getTime() - startDT.getTime() < 30 * 60000)) return true;
+                  }
+                  return false;
+                })()}
               >
                 <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Save</Text>
               </TouchableOpacity>
