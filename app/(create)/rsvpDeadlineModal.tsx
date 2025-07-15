@@ -73,7 +73,6 @@ const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose,
               style={tw`flex-1 bg-[#7b61ff] rounded-lg py-3`}
               onPress={() => {
                 onSave(selectedDate);
-                onClose();
               }}
             >
               <Text style={[tw`text-white text-center`, { fontFamily: 'Nunito-Bold' }]}>Save</Text>

@@ -404,7 +404,7 @@ export default function CreatePage() {
       >
         <View style={tw`bg-white/10 border border-white/20 flex-row items-center gap-2 rounded-xl px-4 py-3`}>
           <RSVP width={15} height={15}></RSVP>
-          <Text style={[tw`text-gray-400 text-[13px]`, { fontFamily: 'Nunito-ExtraBold' }]}>RSVP deadline</Text>
+          <Text style={[tw`text-gray-400 text-[13px]`, { fontFamily: 'Nunito-ExtraBold' }]}>RSVP deadline: {rsvpDL.toDateString()}</Text>
         </View>
       </TouchableOpacity>
 
@@ -675,7 +675,7 @@ export default function CreatePage() {
       <RSVPDeadlineModal
         visible={showRSVPModal}
         onClose={() => setShowRSVPModal(false)}
-        initialDate={date.start}
+        initialDate={rsvpDL}
         maxDate={date.start}
         minDate={(() => {
           const start = new Date(date.start);
@@ -686,7 +686,20 @@ export default function CreatePage() {
           if (min < now) return now;
           return min;
         })()}
-        onSave={() => {}}
+        onSave={(rsvp) => {
+          // Check if the selected date is within 7 days before the event start date
+          const startDate = new Date(date.start);
+          const selectedDate = new Date(rsvp);
+          const diffMs = startDate.getTime() - selectedDate.getTime();
+          const diffDays = diffMs / (1000 * 60 * 60 * 24);
+          if (diffDays >= 0 && diffDays <= 8) {
+            setRSVPDL(rsvp);
+            setShowRSVPModal(false);
+          } else {
+            alert("RSVP deadline must be within 7 days before the event start date.");
+            return;
+          }
+        }}
       />
     </KeyboardAwareScrollView >
   );
