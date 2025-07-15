@@ -243,6 +243,55 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
                   }}
                   minDate={activeTab === 'start' ? getMinStartDate() : getMinEndDate()}
                   maxDate={activeTab === 'start' ? getMaxStartDate() : getMaxEndDate()}
+                  dayComponent={({ date, state, marking, onPress }) => {
+                    const isSelected = marking && marking.selected;
+                    const isDisabled = state === 'disabled';
+                    // Reduce height to make week rows closer together, but keep selected day a perfect circle
+                    const cellSize = 28;
+                    // Determine if this is today
+                    const todayStr = new Date().toISOString().split('T')[0];
+                    const isToday = date && date.dateString === todayStr;
+                    return (
+                      <TouchableOpacity
+                        disabled={isDisabled || !date}
+                        onPress={() => {
+                          if (onPress && date) onPress(date);
+                        }}
+                        activeOpacity={0.7}
+                        style={[
+                          {
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            alignSelf: 'center',
+                            width: cellSize,
+                            height: cellSize,
+                          },
+                          isSelected && {
+                            backgroundColor: '#7A5CFA',
+                            borderRadius: cellSize / 2,
+                          },
+                        ]}
+                      >
+                        {date ? (
+                          <Text
+                            style={[
+                              { fontFamily: isSelected ? 'Nunito-ExtraBold' : 'Nunito-Medium', fontSize: 13 },
+                              isSelected
+                                ? { color: '#fff' }
+                                : isDisabled
+                                  ? { color: '#3A4A5A' }
+                                  : isToday
+                                    ? { color: '#7A5CFA' }
+                                    : { color: '#fff' },
+                              { textAlign: 'center' },
+                            ]}
+                          >
+                            {date.day}
+                          </Text>
+                        ) : null}
+                      </TouchableOpacity>
+                    );
+                  }}
                 />
               </View>
               {/* Time Picker */}
