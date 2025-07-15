@@ -222,12 +222,22 @@ export default function CreatePage() {
       />
       <View style={tw`w-full h-full bg-black bg-opacity-60`}>
         {/* Top bar */}
-        <View style={tw`flex-row items-center justify-between px-4 mt-10 mb-1.5`}>
-          <View style={tw`flex-row items-center gap-4`}>
-            <TouchableOpacity onPress={() => router.replace('/(home)/home/explore')}><Back /></TouchableOpacity>
+        <View style={tw`relative flex-row items-center px-4 mt-10 mb-1.5 h-10`}> 
+          {/* Back button - absolute left */}
+          <TouchableOpacity
+            onPress={() => router.replace('/(home)/home/explore')}
+            style={[tw`absolute left-3`, { zIndex: 2 }]}
+          >
+            <Back />
+          </TouchableOpacity>
+          {/* Centered title */}
+          <View style={tw`flex-1 items-center justify-center`}>
             <Text style={[tw`text-white text-base`, { fontFamily: 'Nunito-ExtraBold' }]}>Create event</Text>
           </View>
-          <TouchableOpacity style={tw`bg-[#7b61ff] rounded-full px-4 py-1`}>
+          {/* Done button - absolute right */}
+          <TouchableOpacity
+            style={[tw`absolute right-4 bg-[#7b61ff] rounded-full px-4 py-1`, { zIndex: 2 }]}
+          >
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Done</Text>
           </TouchableOpacity>
         </View>
