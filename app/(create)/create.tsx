@@ -38,7 +38,6 @@ import CohostModal from './cohost';
 import DateTimeModal from './dateTimeModal';
 import defaultImages from './defaultimage';
 import ImageModal from './imageModal';
-import LocationModal from './location';
 import MoreSettingsModal from './moreSettingsModal';
 import RSVPDeadlineModal from './rsvpDeadlineModal';
 // Define Friend and Cohost types locally
@@ -614,13 +613,13 @@ export default function CreatePage() {
           onSave={setCohosts}
         />
         {/* Location Modal */}
-        <LocationModal
+        {/* <LocationModal
           visible={showLocationModal}
           onClose={() => setShowLocationModal(false)}
           location={location}
           setLocation={setLocation}
           locations={locations}
-        />
+        /> */}
         <DateTimeModal
           visible={showDateTimeModal}
           onClose={() => {
@@ -730,13 +729,13 @@ export default function CreatePage() {
         onSave={setCohosts}
       />
       {/* Location Modal */}
-      <LocationModal
+      {/* <LocationModal
         visible={showLocationModal}
         onClose={() => setShowLocationModal(false)}
         location={location}
         setLocation={setLocation}
         locations={locations}
-      />
+      /> */}
       <DateTimeModal
         visible={showDateTimeModal}
         onClose={() => {
