@@ -1,6 +1,6 @@
-// import { placesApi } from '@env';
 import React from 'react';
 import { Modal, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import tw from 'twrnc';
 import LocationIcon from '../../assets/icons/location.svg';
 
@@ -38,20 +38,35 @@ export default function LocationModal({ visible, onClose, location, setLocation,
           <Text style={[tw`text-white text-lg font-bold`, { textAlign: 'center', marginBottom: 16 }]}>Event location</Text>
           {/* Search bar */}
           <View style={{ marginBottom: 10 }}>
-            {/* <GooglePlacesAutocomplete
-              placeholder="Search"
+            <GooglePlacesAutocomplete
+              placeholder="Search for a location"
               onPress={(data, details = null) => {
-                console.log(details);
+                // 'details' is provided when fetchDetails = true
+                // You can use data.description, details.geometry.location, etc.
+                setLocation(loc => ({
+                  ...loc,
+                  selected: data.description,
+                  search: data.description
+                }));
               }}
               query={{
-                key: '',
-                language: "en",
+                key: 'AIzaSyAplhl3H34l1SKhR8HFgBgfNucXpW237pc',
+                language: 'en',
               }}
+              fetchDetails={true}
               styles={{
+                textInput: {
+                  backgroundColor: '#fff',
+                  borderRadius: 8,
+                  paddingHorizontal: 10,
+                  fontSize: 16,
+                },
+                listView: {
+                  backgroundColor: '#fff',
+                  borderRadius: 8,
+                },
               }}
-              textInputProps={{
-              }}
-            /> */}
+            />
           </View>
           {/* RSVP checkbox */}
           <TouchableOpacity
