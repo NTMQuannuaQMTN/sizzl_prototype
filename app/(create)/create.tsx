@@ -126,7 +126,8 @@ export default function CreatePage() {
     aptSuite: '',
     notes: '',
   });
-  const [rsvpDL, setRSVPDL] = useState(new Date());
+  const [rsvpDL, setRSVPDL] = useState<Date | null>(null);
+  const [rsvpDLTime, setRSVPDLTime] = useState<string | null>(null);
   const [showCohostModal, setShowCohostModal] = useState(false);
   const [showDateTimeModal, setShowDateTimeModal] = useState(false);
   useEffect(() => {
@@ -306,10 +307,27 @@ export default function CreatePage() {
           {(!date.dateChosen) ? (
             <Text style={[tw`text-gray-400 text-[18px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Set date and time</Text>
           ) : date.endSet ? (
-            <Text style={[tw`text-white text-[18px]`, { fontFamily: 'Nunito-ExtraBold' }]}> 
-              {date.start.toDateString()}, {date.startTime} -{"\n"}
-              {date.end.toDateString()}, {date.endTime}
-            </Text>
+            (() => {
+              const startDateStr = date.start.toDateString();
+              const endDateStr = date.end.toDateString();
+              if (startDateStr === endDateStr) {
+                // Same day: show date on first line, times on second line
+                return (
+                  <Text style={[tw`text-white text-[18px]`, { fontFamily: 'Nunito-ExtraBold' }]}> 
+                    {startDateStr}{"\n"}
+                    {date.startTime} - {date.endTime}
+                  </Text>
+                );
+              } else {
+                // Different days: show both date and time on each line
+                return (
+                  <Text style={[tw`text-white text-[18px]`, { fontFamily: 'Nunito-ExtraBold' }]}> 
+                    {startDateStr}, {date.startTime} -{"\n"}
+                    {endDateStr}, {date.endTime}
+                  </Text>
+                );
+              }
+            })()
           ) : (
             <Text style={[tw`text-white text-[18px]`, { fontFamily: 'Nunito-ExtraBold' }]}> 
               {date.start.toDateString()}{"\n"}
@@ -428,7 +446,9 @@ export default function CreatePage() {
               { fontFamily: 'Nunito-ExtraBold' }
             ]}
           >
-            RSVP deadline: {rsvpDL.toDateString()}
+            {rsvpDL
+              ? `RSVP deadline: ${rsvpDL.toDateString()}, ${rsvpDLTime}`
+              : 'Set RSVP deadline'}
           </Text>
         </View>
       </TouchableOpacity>
@@ -700,7 +720,7 @@ export default function CreatePage() {
       <RSVPDeadlineModal
         visible={showRSVPModal}
         onClose={() => setShowRSVPModal(false)}
-        initialDate={rsvpDL}
+        initialDate={rsvpDL ?? new Date()}
         maxDate={date.start}
         minDate={(() => {
           const start = new Date(date.start);
@@ -711,18 +731,15 @@ export default function CreatePage() {
           if (min < now) return now;
           return min;
         })()}
-        onSave={(rsvp) => {
+        onSave={(selectedDate, selectedTime) => {
           // Check if the selected date is within 7 days before the event start date
           const startDate = new Date(date.start);
-          const selectedDate = new Date(rsvp);
-          const diffMs = startDate.getTime() - selectedDate.getTime();
+          const diffMs = startDate.getTime() - new Date(selectedDate).getTime();
           const diffDays = diffMs / (1000 * 60 * 60 * 24);
           if (diffDays >= 0 && diffDays <= 8) {
-            setRSVPDL(rsvp);
+            setRSVPDL(new Date(selectedDate));
+            setRSVPDLTime(selectedTime);
             setShowRSVPModal(false);
-          } else {
-            alert("RSVP deadline must be within 7 days before the event start date.");
-            return;
           }
         }}
       />

@@ -187,7 +187,7 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
                   onPress={() => setActiveTab('start')}
                 >
                   {!startDateChosen ? (
-                    <Text style={[tw`text-white text-center text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Select date</Text>
+                    <Text style={[tw`text-white text-center text-[13px]`, { fontFamily: 'Nunito-Medium' }]}>Select date</Text>
                   ) : (
                     <Text style={[tw`text-white text-center text-[13px] `, { fontFamily: 'Nunito-Medium' }]}>{localStart.toDateString()}</Text>
                   )}
