@@ -1,3 +1,22 @@
+  // Helper to format RSVP deadline as 'wed, jul 16, 2025'
+  function formatRSVPDate(date: Date): string {
+    const weekday = date.toLocaleDateString('en-US', { weekday: 'short' });
+    const month = date.toLocaleDateString('en-US', { month: 'short' });
+    const day = date.toLocaleDateString('en-US', { day: '2-digit' });
+    const year = date.toLocaleDateString('en-US', { year: 'numeric' });
+    const dayNum = String(Number(day));
+    return `${weekday}, ${month} ${dayNum}, ${year}`;
+  }
+  // Helper to format date as 'Tuesday, Jul 15, 2025'
+  function formatFullDate(date: Date): string {
+    const weekday = date.toLocaleDateString('en-US', { weekday: 'long' });
+    const month = date.toLocaleDateString('en-US', { month: 'short' });
+    const day = date.toLocaleDateString('en-US', { day: '2-digit' });
+    const year = date.toLocaleDateString('en-US', { year: 'numeric' });
+    // Remove any leading zero from day
+    const dayNum = String(Number(day));
+    return `${weekday}, ${month} ${dayNum}, ${year}`;
+  }
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -308,8 +327,8 @@ export default function CreatePage() {
             <Text style={[tw`text-gray-400 text-[18px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Set date and time</Text>
           ) : date.endSet ? (
             (() => {
-              const startDateStr = date.start.toDateString();
-              const endDateStr = date.end.toDateString();
+              const startDateStr = formatFullDate(date.start);
+              const endDateStr = formatFullDate(date.end);
               if (startDateStr === endDateStr) {
                 // Same day: show date on first line, times on second line
                 return (
@@ -330,7 +349,7 @@ export default function CreatePage() {
             })()
           ) : (
             <Text style={[tw`text-white text-[18px]`, { fontFamily: 'Nunito-ExtraBold' }]}> 
-              {date.start.toDateString()}{"\n"}
+              {formatFullDate(date.start)}{"\n"}
               {date.startTime}
             </Text>
           )}
@@ -447,7 +466,7 @@ export default function CreatePage() {
             ]}
           >
             {rsvpDL
-              ? `RSVP deadline: ${rsvpDL.toDateString()}, ${rsvpDLTime}`
+              ? `RSVP deadline: ${formatRSVPDate(rsvpDL)}${rsvpDLTime ? ", " + rsvpDLTime : ''}`
               : 'Set RSVP deadline'}
           </Text>
         </View>

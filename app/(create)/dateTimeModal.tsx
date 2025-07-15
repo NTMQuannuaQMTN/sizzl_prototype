@@ -57,22 +57,28 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
   const slideAnim = useRef(new Animated.Value(1)).current; // 1 = hidden, 0 = visible
   const [shouldRender, setShouldRender] = useState(visible);
 
+  // Track previous visible state
+  const prevVisibleRef = useRef(visible);
   useEffect(() => {
-    if (visible) {
+    if (visible && !prevVisibleRef.current) {
+      // Modal just opened: sync local state with props
+      setLocalStart(startDate);
+      setLocalEnd(endDate);
+      setLocStartTime(startTime);
+      setLocEndTime(endTime);
+      setEndAvailable(endSet);
+      setStartDateChosen(!!startDate);
+      setEndDateChosen(!!(endSet && endDate));
+      setActiveTab('start');
       setShouldRender(true);
-      // Always show today as selected on open
-      const today = new Date();
-      setLocalStart(today);
-      setLocalEnd(today);
-      setStartDateChosen(true);
-      setEndDateChosen(endSet ? true : false);
       Animated.timing(slideAnim, {
         toValue: 0,
         duration: 300,
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }).start();
-    } else {
+    } else if (!visible && prevVisibleRef.current) {
+      // Modal just closed
       Animated.timing(slideAnim, {
         toValue: 1,
         duration: 250,
@@ -82,7 +88,8 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
         setShouldRender(false);
       });
     }
-  }, [visible]);
+    prevVisibleRef.current = visible;
+  }, [visible, startDate, endDate, startTime, endTime, endSet]);
 
   if (!shouldRender) return null;
 
@@ -198,29 +205,50 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
                   onPress={() => {
                     setActiveTab('end');
                     setEndAvailable(true);
-                    // Calculate minimum end time (start time + 30 minutes)
-                    const startMatch = String(locStartTime).match(/(\d+):(\d+)(am|pm)/i);
-                    if (startMatch) {
-                      let [_, hourStr, minStr, ampm] = startMatch;
+                    // Only auto-set end time if end date is same as start date and end time is invalid
+                    const sameDay =
+                      localStart.getFullYear() === localEnd.getFullYear() &&
+                      localStart.getMonth() === localEnd.getMonth() &&
+                      localStart.getDate() === localEnd.getDate();
+                    const parseTime = (dateObj: Date, timeStr: string): Date | null => {
+                      const match = String(timeStr).match(/(\d+):(\d+)(am|pm)/i);
+                      if (!match) return null;
+                      let [_, hourStr, minStr, ampm] = match;
                       let hour = Number(hourStr);
                       let minute = Number(minStr);
                       if (ampm === 'pm' && hour !== 12) hour += 12;
                       if (ampm === 'am' && hour === 12) hour = 0;
-                      let startDateObj = new Date();
-                      startDateObj.setHours(hour, minute, 0, 0);
-                      // Add 30 minutes
-                      startDateObj = new Date(startDateObj.getTime() + 30 * 60000);
-                      // Convert back to time string in the same format as timeOptions
-                      let newHour = startDateObj.getHours();
-                      let newMinute = startDateObj.getMinutes();
+                      const d = new Date(dateObj);
+                      d.setHours(hour, minute, 0, 0);
+                      return d;
+                    };
+                    const startDT = parseTime(localStart, String(locStartTime));
+                    const endDT = parseTime(localEnd, String(locEndTime));
+                    if (
+                      sameDay &&
+                      startDT &&
+                      endDT &&
+                      endDT.getTime() - startDT.getTime() < 30 * 60000
+                    ) {
+                      // Only update end time if it's not at least 30min after start
+                      let minEnd = new Date(startDT.getTime() + 30 * 60000);
+                      let newHour = minEnd.getHours();
+                      let newMinute = minEnd.getMinutes();
                       let newAmpm = newHour < 12 ? 'am' : 'pm';
                       let displayHour = newHour % 12 === 0 ? 12 : newHour % 12;
                       let displayMinute = String(newMinute).padStart(2, '0');
                       let minEndTime = `${displayHour}:${displayMinute}${newAmpm}`;
-                      // Find the first time in timeOptions >= minEndTime
                       let idx = timeOptions.findIndex(t => t === minEndTime);
+                      // If minEnd is on the next day, update end date as well
+                      if (
+                        minEnd.getFullYear() !== localEnd.getFullYear() ||
+                        minEnd.getMonth() !== localEnd.getMonth() ||
+                        minEnd.getDate() !== localEnd.getDate()
+                      ) {
+                        setLocalEnd(new Date(minEnd));
+                        setEndDateChosen(true);
+                      }
                       if (idx === -1) {
-                        // fallback: pick the next available time
                         idx = timeOptions.findIndex(t => {
                           const tMatch = t.match(/(\d+):(\d+)(am|pm)/i);
                           if (!tMatch) return false;
@@ -243,6 +271,7 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
                         }, 0);
                       }
                     }
+                    // Otherwise, do not auto-update end time
                   }}
                 >
                   {!endAvailable ? (

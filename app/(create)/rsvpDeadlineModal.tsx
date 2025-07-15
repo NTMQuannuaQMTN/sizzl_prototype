@@ -304,8 +304,7 @@ const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose,
             const isUnsetStart =
               !maxDate ||
               isNaN(maxDate.getTime()) ||
-              maxDate.getTime() === 0 ||
-              (maxDate.toDateString && maxDate.toDateString() === new Date().toDateString());
+              maxDate.getTime() === 0;
             const match = selectedTime.match(/(\d+):(\d+)(am|pm)/i);
             let hour = 0, minute = 0;
             if (match) {
@@ -328,12 +327,12 @@ const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose,
                 </View>
               );
             }
-            if (combined.getTime() >= maxDate.getTime()) {
+            if (combined.getTime() > maxDate.getTime()) {
               return (
                 <View style={tw`mb-2 w-full px-3`}>
                   <View style={tw`bg-rose-600 rounded-lg p-2.5 items-center`}>
                     <Text style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-Bold', textAlign: 'center' }]}>
-                      ⚠️ The deadline must be before the event's start time
+                    ⚠️ The deadline must be before the event's start time
                     </Text>
                   </View>
                 </View>
@@ -348,7 +347,7 @@ const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose,
                 style={[
                   tw`bg-[#7A5CFA] rounded-full py-3 items-center mb-2`,
                   (() => {
-                    // Disable and fade if RSVP deadline is not before event start time
+                    // Disable and fade if RSVP deadline is after event start time
                     const isUnsetStart =
                       !maxDate ||
                       isNaN(maxDate.getTime()) ||
@@ -365,19 +364,18 @@ const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose,
                     }
                     const combined = new Date(selectedDate);
                     combined.setHours(hour, minute, 0, 0);
-                    if (isUnsetStart || combined.getTime() >= maxDate.getTime()) {
+                    if (isUnsetStart || combined.getTime() > maxDate.getTime()) {
                       return { opacity: 0.3 };
                     }
                     return {};
                   })(),
                 ]}
                 onPress={() => {
-                  // Disable and fade if RSVP deadline is not before event start time
+                  // Disable and fade if RSVP deadline is after event start time
                   const isUnsetStart =
                     !maxDate ||
                     isNaN(maxDate.getTime()) ||
-                    maxDate.getTime() === 0 ||
-                    (maxDate.toDateString && maxDate.toDateString() === new Date().toDateString());
+                    maxDate.getTime() === 0;
                   const match = selectedTime.match(/(\d+):(\d+)(am|pm)/i);
                   let hour = 0, minute = 0;
                   if (match) {
@@ -389,7 +387,7 @@ const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose,
                   }
                   const combined = new Date(selectedDate);
                   combined.setHours(hour, minute, 0, 0);
-                  if (isUnsetStart || combined.getTime() >= maxDate.getTime()) {
+                  if (isUnsetStart || combined.getTime() > maxDate.getTime()) {
                     return;
                   }
                   onSave(combined, selectedTime);
@@ -397,10 +395,9 @@ const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose,
                 activeOpacity={0.7}
                 disabled={(() => {
                   const isUnsetStart =
-                    !maxDate ||
-                    isNaN(maxDate.getTime()) ||
-                    maxDate.getTime() === 0 ||
-                    (maxDate.toDateString && maxDate.toDateString() === new Date().toDateString());
+                  !maxDate ||
+                  isNaN(maxDate.getTime()) ||
+                  maxDate.getTime() === 0;
                   const match = selectedTime.match(/(\d+):(\d+)(am|pm)/i);
                   let hour = 0, minute = 0;
                   if (match) {
@@ -412,7 +409,7 @@ const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose,
                   }
                   const combined = new Date(selectedDate);
                   combined.setHours(hour, minute, 0, 0);
-                  return isUnsetStart || combined.getTime() >= maxDate.getTime();
+                  return isUnsetStart || combined.getTime() > maxDate.getTime();
                 })()}
               >
                 <Text style={[tw`text-white text-center text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Save</Text>
