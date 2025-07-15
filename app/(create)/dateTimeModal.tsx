@@ -37,6 +37,18 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
   const [locEndTime, setLocEndTime] = useState<String>(endTime);
   const [endAvailable, setEndAvailable] = useState<boolean>(endSet);
   const [activeTab, setActiveTab] = useState<'start' | 'end'>('start');
+  // Refs for scroll
+  const scrollRef = useRef<ScrollView>(null);
+  // Helper to get/set selected time index
+  const getSelectedTimeIdx = (tab: 'start' | 'end') => {
+    const val = tab === 'start' ? locStartTime : locEndTime;
+    return timeOptions.findIndex(t => t === val);
+  };
+  const setSelectedTimeByIdx = (tab: 'start' | 'end', idx: number) => {
+    if (idx >= 0 && idx < timeOptions.length) {
+      handleTimeChange(tab, timeOptions[idx]);
+    }
+  };
 
   // Animation logic (copied from imageModal)
   const slideAnim = useRef(new Animated.Value(1)).current; // 1 = hidden, 0 = visible
@@ -121,7 +133,7 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
         <Animated.View
           style={[
             tw`w-full px-0 pt-6 pb-0 rounded-t-2xl`,
-            { backgroundColor: '#080B32', marginBottom: 0, paddingHorizontal: 20, paddingBottom: 32, height: 750 },
+            { backgroundColor: '#080B32', marginBottom: 0, paddingHorizontal: 20, paddingBottom: 0, height: 750 },
             {
               transform: [
                 {
@@ -134,136 +146,206 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
             },
           ]}
         >
-          <Text style={[tw`text-white text-[15px] mb-4`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Set date and time</Text>
-          {/* Tabs */}
-          <View style={tw`flex-row px-3 mb-4`}>
-            <TouchableOpacity
-              style={tw`${activeTab === 'start' ? 'bg-[#7A5CFA]' : 'bg-white/10'} justify-center items-center flex-1 rounded-l-xl py-2`}
-              onPress={() => setActiveTab('start')}
-            >
-              {(!localStart || !locStartTime) ? (
-                <Text style={[tw`text-white text-center text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Start</Text>
-              ) : null}
-              <Text style={[tw`text-white text-center text-[13px] `, { fontFamily: 'Nunito-Medium' }]}>{localStart.toDateString()}</Text>
-              <Text style={[tw`text-white text-center text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>{locStartTime}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={tw`${activeTab === 'end' ? 'bg-[#7A5CFA]' : 'bg-white/10'} justify-center items-center flex-1 rounded-r-xl py-2`}
-              onPress={() => { setActiveTab('end'); setEndAvailable(true); }}
-            >
-              {(!endAvailable || !localEnd || !locEndTime) ? (
-                <>
-                  <Text style={[tw`text-white text-center text-[13px] `, { fontFamily: 'Nunito-Medium' }]}>Optional</Text>
-                  <Text style={[tw`text-white text-center text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>End</Text>
-                </>
-              ) : null}
-              {endAvailable && <Text style={[tw`text-white text-center text-[13px] `, { fontFamily: 'Nunito-Medium' }]}>{localEnd.toDateString()}</Text>}
-              {endAvailable && <Text style={[tw`text-white text-center`, { fontFamily: 'Nunito-ExtraBold' }]}>{locEndTime}</Text>}
-            </TouchableOpacity>
-          </View>
-          {/* Date Picker */}
-            <View style={[tw`mx-3 mb-2 rounded-xl overflow-hidden`]}>
-            <Calendar
-              current={currentDate.toISOString().split('T')[0]}
-              onDayPress={day => {
-                const [year, month, date] = day.dateString.split('-').map(Number);
-                const newDate = new Date(currentDate);
-                newDate.setFullYear(year, month - 1, date);
-
-                // Apply validation based on active tab
-                if (activeTab === 'start') {
-                  // For start date: min = today, max = end date
-                  const minDate = new Date(getMinStartDate());
-                  const maxDate = new Date(getMaxStartDate());
-
-                  if (newDate < minDate) {
-                    newDate.setTime(minDate.getTime());
-                  } else if (newDate > maxDate) {
-                    newDate.setTime(maxDate.getTime());
-                  }
-
-                  setLocalStart(newDate);
-
-                  // Update end date if needed
-                  if (localEnd < newDate) {
-                    setLocalEnd(newDate);
-                  }
-                } else {
-                  // For end date: min = start date, max = 1 year from today
-                  const minDate = new Date(getMinEndDate());
-                  const maxDate = new Date(getMaxEndDate());
-
-                  if (newDate < minDate) {
-                    newDate.setTime(minDate.getTime());
-                  } else if (newDate > maxDate) {
-                    newDate.setTime(maxDate.getTime());
-                  }
-
-                  setLocalEnd(newDate);
-
-                  // Update start date if needed
-                  if (localStart > newDate) {
-                    setLocalStart(newDate);
-                  }
-                }
-              }}
-              theme={{
-                calendarBackground: '#14173C',
-                textSectionTitleColor: '#ffffff',
-                selectedDayBackgroundColor: '#7A5CFA',
-                selectedDayTextColor: '#ffffff',
-                todayTextColor: '#7A5CFA',
-                dayTextColor: '#ffffff',
-                textDisabledColor: '#3A4A5A',
-                monthTextColor: '#ffffff',
-                arrowColor: '#7A5CFA',
-                textDayFontFamily: 'Nunito-Medium',
-                textMonthFontFamily: 'Nunito-ExtraBold',
-                textDayHeaderFontFamily: 'Nunito-Medium',
-                textDayFontSize: 13,
-                textMonthFontSize: 14,
-                textDayHeaderFontSize: 13,
-              }}
-              markedDates={{
-                [currentDate.toISOString().split('T')[0]]: { selected: true, selectedColor: '#7A5CFA' }
-              }}
-              minDate={activeTab === 'start' ? getMinStartDate() : getMinEndDate()}
-              maxDate={activeTab === 'start' ? getMaxStartDate() : getMaxEndDate()}
-            />
-          </View>
-          {/* Time Picker */}
-          <View style={{ maxHeight: 100, backgroundColor: '#16263A', borderRadius: 8, marginBottom: 8 }}>
-            <ScrollView>
-              {(timeOptions).map((t, idx) => (
-                <TouchableOpacity key={t} style={tw`px-4 py-2`} onPress={() => { handleTimeChange(activeTab, t) }}>
-                  <Text style={tw`text-white`}>{t}</Text>
+          <View style={{ flex: 1, flexDirection: 'column' }}>
+            <View style={{ flex: 1 }}>
+              <Text style={[tw`text-white text-[15px] mb-4`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Set date and time</Text>
+              {/* Tabs */}
+              <View style={tw`flex-row px-3 mb-2`}>
+                <TouchableOpacity
+                  style={tw`${activeTab === 'start' ? 'bg-[#7A5CFA]' : 'bg-white/10'} justify-center items-center flex-1 rounded-l-xl py-2.5`}
+                  onPress={() => setActiveTab('start')}
+                >
+                  {(!localStart || !locStartTime) ? (
+                    <Text style={[tw`text-white text-center text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Start</Text>
+                  ) : null}
+                  <Text style={[tw`text-white text-center text-[13px] `, { fontFamily: 'Nunito-Medium' }]}>{localStart.toDateString()}</Text>
+                  <Text style={[tw`text-white text-center text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>{locStartTime}</Text>
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-          {/* Save/Cancel */}
-          <View style={tw`py-3 px-4`}>
-            <TouchableOpacity
-              style={tw`bg-[#7A5CFA] rounded-full flex-row justify-center py-2.5 items-center gap-1.5`}
-              onPress={() => { onSave({ start: localStart, end: localEnd, startTime: locStartTime, endTime: locEndTime, endSet: endAvailable }); }}
-              activeOpacity={0.8}
-            >
-              <Text style={[tw`text-white text-[14px]`, { fontWeight: 'bold' }]}>Save</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={tw`bg-white/5 rounded-full py-2.5 items-center mt-2`}
-              onPress={() => {
-                setLocalStart(startDate);
-                setLocalEnd(endDate);
-                setEndAvailable(endSet);
-                setLocStartTime(startTime);
-                setLocEndTime(endTime);
-                onClose();
-              }}
-              activeOpacity={0.8}
-            >
-              <Text style={[tw`text-white text-[14px]`, { fontWeight: 'bold' }]}>Cancel</Text>
-            </TouchableOpacity>
+                <TouchableOpacity
+                  style={tw`${activeTab === 'end' ? 'bg-[#7A5CFA]' : 'bg-white/10'} justify-center items-center flex-1 rounded-r-xl py-2.5`}
+                  onPress={() => { setActiveTab('end'); setEndAvailable(true); }}
+                >
+                  {(!endAvailable || !localEnd || !locEndTime) ? (
+                    <>
+                      <Text style={[tw`text-white text-center text-[13px] `, { fontFamily: 'Nunito-Medium' }]}>Optional</Text>
+                      <Text style={[tw`text-white text-center text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>End</Text>
+                    </>
+                  ) : null}
+                  {endAvailable && <Text style={[tw`text-white text-center text-[13px] `, { fontFamily: 'Nunito-Medium' }]}>{localEnd.toDateString()}</Text>}
+                  {endAvailable && <Text style={[tw`text-white text-center`, { fontFamily: 'Nunito-ExtraBold' }]}>{locEndTime}</Text>}
+                </TouchableOpacity>
+              </View>
+              {/* Date Picker */}
+              <View style={[tw`mx-3 mb-2 rounded-xl overflow-hidden`]}>
+                <Calendar
+                  current={currentDate.toISOString().split('T')[0]}
+                  onDayPress={day => {
+                    const [year, month, date] = day.dateString.split('-').map(Number);
+                    const newDate = new Date(currentDate);
+                    newDate.setFullYear(year, month - 1, date);
+
+                    // Apply validation based on active tab
+                    if (activeTab === 'start') {
+                      // For start date: min = today, max = end date
+                      const minDate = new Date(getMinStartDate());
+                      const maxDate = new Date(getMaxStartDate());
+
+                      if (newDate < minDate) {
+                        newDate.setTime(minDate.getTime());
+                      } else if (newDate > maxDate) {
+                        newDate.setTime(maxDate.getTime());
+                      }
+
+                      setLocalStart(newDate);
+
+                      // Update end date if needed
+                      if (localEnd < newDate) {
+                        setLocalEnd(newDate);
+                      }
+                    } else {
+                      // For end date: min = start date, max = 1 year from today
+                      const minDate = new Date(getMinEndDate());
+                      const maxDate = new Date(getMaxEndDate());
+
+                      if (newDate < minDate) {
+                        newDate.setTime(minDate.getTime());
+                      } else if (newDate > maxDate) {
+                        newDate.setTime(maxDate.getTime());
+                      }
+
+                      setLocalEnd(newDate);
+
+                      // Update start date if needed
+                      if (localStart > newDate) {
+                        setLocalStart(newDate);
+                      }
+                    }
+                  }}
+                  theme={{
+                    calendarBackground: '#212346',
+                    textSectionTitleColor: '#ffffff',
+                    selectedDayBackgroundColor: '#7A5CFA',
+                    selectedDayTextColor: '#ffffff',
+                    todayTextColor: '#7A5CFA',
+                    dayTextColor: '#ffffff',
+                    textDisabledColor: '#3A4A5A',
+                    monthTextColor: '#ffffff',
+                    arrowColor: '#7A5CFA',
+                    textDayFontFamily: 'Nunito-Medium',
+                    textMonthFontFamily: 'Nunito-ExtraBold',
+                    textDayHeaderFontFamily: 'Nunito-Medium',
+                    textDayFontSize: 13,
+                    textMonthFontSize: 14,
+                    textDayHeaderFontSize: 13,
+                  }}
+                  markedDates={{
+                    [currentDate.toISOString().split('T')[0]]: { selected: true, selectedColor: '#7A5CFA' }
+                  }}
+                  minDate={activeTab === 'start' ? getMinStartDate() : getMinEndDate()}
+                  maxDate={activeTab === 'start' ? getMaxStartDate() : getMaxEndDate()}
+                />
+              </View>
+              {/* Time Picker */}
+              <View style={tw`mx-3 items-center bg-white/10 rounded-xl mb-2`}>
+                {/* For 3 visible items, each item is ~43.33px tall (130/3) */}
+                <View style={{ height: 130, justifyContent: 'center' }}>
+                  {/* Center indicator overlay */}
+                  <View
+                    pointerEvents="none"
+                    style={{
+                      position: 'absolute',
+                      top: 43.33, // 1 item height
+                      left: 0,
+                      right: 0,
+                      height: 43.33,
+                      borderRadius: 10,
+                      backgroundColor: 'rgba(122,92,250,0.15)',
+                      borderWidth: 1,
+                      borderColor: '#7A5CFA',
+                      zIndex: 10,
+                    }}
+                  />
+                  <ScrollView
+                    ref={scrollRef}
+                    showsVerticalScrollIndicator={false}
+                    snapToInterval={43.33}
+                    decelerationRate="fast"
+                    contentContainerStyle={{ paddingVertical: 43.33 }}
+                    style={{ maxHeight: 130 }}
+                    onMomentumScrollEnd={e => {
+                      const ITEM_HEIGHT = 43.33;
+                      const offsetY = e.nativeEvent.contentOffset.y;
+                      const idx = Math.round(offsetY / ITEM_HEIGHT);
+                      setSelectedTimeByIdx(activeTab, idx);
+                    }}
+                    onScrollEndDrag={e => {
+                      // fallback for some Androids
+                      const ITEM_HEIGHT = 43.33;
+                      const offsetY = e.nativeEvent.contentOffset.y;
+                      const idx = Math.round(offsetY / ITEM_HEIGHT);
+                      setSelectedTimeByIdx(activeTab, idx);
+                    }}
+                    scrollEventThrottle={16}
+                    // initialScrollIndex is not valid for ScrollView; use scrollTo in onLayout
+                    onLayout={() => {
+                      // Scroll to selected time on open
+                      setTimeout(() => {
+                        const ITEM_HEIGHT = 43.33;
+                        const idx = getSelectedTimeIdx(activeTab);
+                        if (scrollRef.current && idx >= 0) {
+                          scrollRef.current.scrollTo({ y: idx * ITEM_HEIGHT, animated: false });
+                        }
+                      }, 0);
+                    }}
+                  >
+                    {timeOptions.map((t, idx) => {
+                      const isSelected = (activeTab === 'start' ? locStartTime : locEndTime) === t;
+                      return (
+                        <View
+                          key={t}
+                          style={[tw`px-4`, { height: 43.33, justifyContent: 'center', alignItems: 'center' }]}
+                        >
+                          <Text
+                            style={[
+                              isSelected
+                                ? tw`text-white`
+                                : tw`text-gray-400`,
+                              { fontFamily: isSelected ? 'Nunito-ExtraBold' : 'Nunito-Medium', fontSize: 14 },
+                            ]}
+                          >
+                            {t}
+                          </Text>
+                        </View>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+              </View>
+            </View>
+            {/* Save/Cancel always at bottom */}
+            <View style={tw`py-3 px-4`}>
+              <TouchableOpacity
+                style={tw`bg-[#7A5CFA] rounded-full flex-row justify-center py-2.5 items-center gap-1.5`}
+                onPress={() => { onSave({ start: localStart, end: localEnd, startTime: locStartTime, endTime: locEndTime, endSet: endAvailable }); }}
+                activeOpacity={0.8}
+              >
+                <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Save</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={tw`bg-white/5 rounded-full py-2.5 items-center mt-2`}
+                onPress={() => {
+                  setLocalStart(startDate);
+                  setLocalEnd(endDate);
+                  setEndAvailable(endSet);
+                  setLocStartTime(startTime);
+                  setLocEndTime(endTime);
+                  onClose();
+                }}
+                activeOpacity={0.8}
+              >
+                <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </Animated.View>
       </View>
