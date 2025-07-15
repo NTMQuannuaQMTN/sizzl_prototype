@@ -94,6 +94,7 @@ export default function CreatePage() {
         startTime: startTime,
         endTime: '12:00am',
         endSet: false,
+        dateChosen: false,
       };
     })()
   });
@@ -301,7 +302,19 @@ export default function CreatePage() {
           onPress={() => setShowDateTimeModal(true)}
           activeOpacity={0.7}
         >
-          <Text style={[tw`text-gray-400 text-[18px]`, { fontFamily: 'Nunito-ExtraBold' }]}>{date.start.toDateString()} {date.startTime} {date.endSet && `- ${date.end.toDateString()} ${date.endTime}`}</Text>
+          {(!date.dateChosen) ? (
+            <Text style={[tw`text-gray-400 text-[18px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Set date and time</Text>
+          ) : date.endSet ? (
+            <Text style={[tw`text-white text-[18px]`, { fontFamily: 'Nunito-ExtraBold' }]}> 
+              {date.start.toDateString()}, {date.startTime} -{"\n"}
+              {date.end.toDateString()}, {date.endTime}
+            </Text>
+          ) : (
+            <Text style={[tw`text-white text-[18px]`, { fontFamily: 'Nunito-ExtraBold' }]}> 
+              {date.start.toDateString()}{"\n"}
+              {date.startTime}
+            </Text>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -633,8 +646,6 @@ export default function CreatePage() {
           const endDateTime = combineDateAndTime(end, String(endTime || '12:00am'));
 
           // 1. Start must not be before now
-          console.log(startDateTime.getTime());
-          console.log(now.getTime());
           if (startDateTime.getTime() < now.getTime()) {
             alert("Start date and time must not be before the current time.");
             return;
@@ -647,12 +658,14 @@ export default function CreatePage() {
           }
 
           // If valid, update date state and close modal
-          setDate(({
+          setDate((prev) => ({
+            ...prev,
             start: start,
-            startTime: date.startTime,
+            startTime: String(startTime),
             end: end,
-            endTime: date.endTime,
+            endTime: String(endTime),
             endSet: endSet,
+            dateChosen: true,
           }));
           setShowDateTimeModal(false);
         }}
