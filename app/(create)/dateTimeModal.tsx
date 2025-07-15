@@ -37,6 +37,9 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
   const [locEndTime, setLocEndTime] = useState<String>(endTime);
   const [endAvailable, setEndAvailable] = useState<boolean>(endSet);
   const [activeTab, setActiveTab] = useState<'start' | 'end'>('start');
+  // Track if user has chosen a date
+  const [startDateChosen, setStartDateChosen] = useState(false);
+  const [endDateChosen, setEndDateChosen] = useState(false);
   // Refs for scroll
   const scrollRef = useRef<ScrollView>(null);
   // Helper to get/set selected time index
@@ -57,6 +60,12 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
   useEffect(() => {
     if (visible) {
       setShouldRender(true);
+      // Always show today as selected on open
+      const today = new Date();
+      setLocalStart(today);
+      setLocalEnd(today);
+      setStartDateChosen(true);
+      setEndDateChosen(endSet ? true : false);
       Animated.timing(slideAnim, {
         toValue: 0,
         duration: 300,
@@ -148,30 +157,102 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
         >
           <View style={{ flex: 1, flexDirection: 'column' }}>
             <View style={{ flex: 1 }}>
-              <Text style={[tw`text-white text-[15px] mb-4`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Set date and time</Text>
+              <View style={[tw`mb-4 flex-row items-center`, { minHeight: 24 }]}> 
+                <TouchableOpacity
+                  style={[tw`px-3 py-1`, { minWidth: 50, alignItems: 'flex-start', justifyContent: 'center' }]}
+                  onPress={() => {
+                    setLocalStart(startDate);
+                    setLocalEnd(endDate);
+                    setEndAvailable(false);
+                    setLocStartTime(startTime);
+                    setLocEndTime(endTime);
+                    setStartDateChosen(false);
+                    setEndDateChosen(false);
+                    setActiveTab('start');
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-Bold' }]}>Clear</Text>
+                </TouchableOpacity>
+                <View style={{ flex: 1, alignItems: 'center' }}>
+                  <Text style={[tw`text-white -ml-2 text-[15px]`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Set date and time</Text>
+                </View>
+                {/* Spacer for symmetry */}
+                <View style={{ minWidth: 50 }} />
+              </View>
               {/* Tabs */}
               <View style={tw`flex-row px-3 mb-2`}>
                 <TouchableOpacity
                   style={tw`${activeTab === 'start' ? 'bg-[#7A5CFA]' : 'bg-white/10'} justify-center items-center flex-1 rounded-l-xl py-2.5`}
                   onPress={() => setActiveTab('start')}
                 >
-                  {(!localStart || !locStartTime) ? (
-                    <Text style={[tw`text-white text-center text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Start</Text>
-                  ) : null}
-                  <Text style={[tw`text-white text-center text-[13px] `, { fontFamily: 'Nunito-Medium' }]}>{localStart.toDateString()}</Text>
+                  {!startDateChosen ? (
+                    <Text style={[tw`text-white text-center text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Select date</Text>
+                  ) : (
+                    <Text style={[tw`text-white text-center text-[13px] `, { fontFamily: 'Nunito-Medium' }]}>{localStart.toDateString()}</Text>
+                  )}
                   <Text style={[tw`text-white text-center text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>{locStartTime}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={tw`${activeTab === 'end' ? 'bg-[#7A5CFA]' : 'bg-white/10'} justify-center items-center flex-1 rounded-r-xl py-2.5`}
-                  onPress={() => { setActiveTab('end'); setEndAvailable(true); }}
+                  onPress={() => {
+                    setActiveTab('end');
+                    setEndAvailable(true);
+                    // Calculate minimum end time (start time + 30 minutes)
+                    const startMatch = String(locStartTime).match(/(\d+):(\d+)(am|pm)/i);
+                    if (startMatch) {
+                      let [_, hourStr, minStr, ampm] = startMatch;
+                      let hour = Number(hourStr);
+                      let minute = Number(minStr);
+                      if (ampm === 'pm' && hour !== 12) hour += 12;
+                      if (ampm === 'am' && hour === 12) hour = 0;
+                      let startDateObj = new Date();
+                      startDateObj.setHours(hour, minute, 0, 0);
+                      // Add 30 minutes
+                      startDateObj = new Date(startDateObj.getTime() + 30 * 60000);
+                      // Convert back to time string in the same format as timeOptions
+                      let newHour = startDateObj.getHours();
+                      let newMinute = startDateObj.getMinutes();
+                      let newAmpm = newHour < 12 ? 'am' : 'pm';
+                      let displayHour = newHour % 12 === 0 ? 12 : newHour % 12;
+                      let displayMinute = String(newMinute).padStart(2, '0');
+                      let minEndTime = `${displayHour}:${displayMinute}${newAmpm}`;
+                      // Find the first time in timeOptions >= minEndTime
+                      let idx = timeOptions.findIndex(t => t === minEndTime);
+                      if (idx === -1) {
+                        // fallback: pick the next available time
+                        idx = timeOptions.findIndex(t => {
+                          const tMatch = t.match(/(\d+):(\d+)(am|pm)/i);
+                          if (!tMatch) return false;
+                          let [__, h, m, ap] = tMatch;
+                          let th = Number(h);
+                          let tm = Number(m);
+                          if (ap === 'pm' && th !== 12) th += 12;
+                          if (ap === 'am' && th === 12) th = 0;
+                          return th > newHour || (th === newHour && tm >= newMinute);
+                        });
+                      }
+                      if (idx !== -1) {
+                        setLocEndTime(timeOptions[idx]);
+                        setEndDateChosen(true);
+                        setTimeout(() => {
+                          const ITEM_HEIGHT = 43.33;
+                          if (scrollRef.current) {
+                            scrollRef.current.scrollTo({ y: idx * ITEM_HEIGHT, animated: false });
+                          }
+                        }, 0);
+                      }
+                    }
+                  }}
                 >
-                  {(!endAvailable || !localEnd || !locEndTime) ? (
+                  {!endAvailable ? (
                     <>
                       <Text style={[tw`text-white text-center text-[13px] `, { fontFamily: 'Nunito-Medium' }]}>Optional</Text>
                       <Text style={[tw`text-white text-center text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>End</Text>
                     </>
-                  ) : null}
-                  {endAvailable && <Text style={[tw`text-white text-center text-[13px] `, { fontFamily: 'Nunito-Medium' }]}>{localEnd.toDateString()}</Text>}
+                  ) : (
+                    <Text style={[tw`text-white text-center text-[13px] `, { fontFamily: 'Nunito-Medium' }]}>{localEnd.toDateString()}</Text>
+                  )}
                   {endAvailable && <Text style={[tw`text-white text-center`, { fontFamily: 'Nunito-ExtraBold' }]}>{locEndTime}</Text>}
                 </TouchableOpacity>
               </View>
@@ -197,10 +278,12 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
                       }
 
                       setLocalStart(newDate);
+                      setStartDateChosen(true);
 
                       // Update end date if needed
                       if (localEnd < newDate) {
                         setLocalEnd(newDate);
+                        setEndDateChosen(false); // force user to re-pick end date
                       }
                     } else {
                       // For end date: min = start date, max = 1 year from today
@@ -214,10 +297,12 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
                       }
 
                       setLocalEnd(newDate);
+                      setEndDateChosen(true);
 
                       // Update start date if needed
                       if (localStart > newDate) {
                         setLocalStart(newDate);
+                        setStartDateChosen(false); // force user to re-pick start date
                       }
                     }
                   }}
@@ -369,14 +454,94 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
                     })}
                   </ScrollView>
                 </View>
+                {/* Custom warning moved below */}
               </View>
             </View>
+            {/* Custom warning for end time/date < 30 mins after start, now above Save button */}
+            {activeTab === 'end' && endAvailable && (() => {
+              // Calculate start and end Date objects with selected times
+              const parseTime = (dateObj: Date, timeStr: string): Date | null => {
+                const match = String(timeStr).match(/(\d+):(\d+)(am|pm)/i);
+                if (!match) return null;
+                let [_, hourStr, minStr, ampm] = match;
+                let hour = Number(hourStr);
+                let minute = Number(minStr);
+                if (ampm === 'pm' && hour !== 12) hour += 12;
+                if (ampm === 'am' && hour === 12) hour = 0;
+                const d = new Date(dateObj);
+                d.setHours(hour, minute, 0, 0);
+                return d;
+              };
+              const startDT = parseTime(localStart, String(locStartTime));
+              const endDT = parseTime(localEnd, String(locEndTime));
+              if (startDT && endDT && (endDT.getTime() - startDT.getTime() < 30 * 60000)) {
+                return (
+                  <View style={tw`mb-1 w-full px-3`}>
+                    <View style={tw`bg-rose-600 rounded-lg p-2.5 items-center`}>
+                      <Text style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-Bold', textAlign: 'center' }]}>End date & time must be at least 30 minutes after start.</Text>
+                    </View>
+                  </View>
+                );
+              }
+              return null;
+            })()}
             {/* Save/Cancel always at bottom */}
             <View style={tw`py-3 px-4`}>
               <TouchableOpacity
-                style={tw`bg-[#7A5CFA] rounded-full flex-row justify-center py-2.5 items-center gap-1.5`}
-                onPress={() => { onSave({ start: localStart, end: localEnd, startTime: locStartTime, endTime: locEndTime, endSet: endAvailable }); }}
-                activeOpacity={0.8}
+                style={[
+                  tw`bg-[#7A5CFA] rounded-full flex-row justify-center py-2.5 items-center gap-1.5`,
+                  {
+                    opacity: (() => {
+                      if (!startDateChosen || (endAvailable && !endDateChosen)) return 0.3;
+                      if (endAvailable) {
+                        const parseTime = (dateObj: Date, timeStr: string): Date | null => {
+                          const match = String(timeStr).match(/(\d+):(\d+)(am|pm)/i);
+                          if (!match) return null;
+                          let [_, hourStr, minStr, ampm] = match;
+                          let hour = Number(hourStr);
+                          let minute = Number(minStr);
+                          if (ampm === 'pm' && hour !== 12) hour += 12;
+                          if (ampm === 'am' && hour === 12) hour = 0;
+                          const d = new Date(dateObj);
+                          d.setHours(hour, minute, 0, 0);
+                          return d;
+                        };
+                        const startDT = parseTime(localStart, String(locStartTime));
+                        const endDT = parseTime(localEnd, String(locEndTime));
+                        if (startDT && endDT && (endDT.getTime() - startDT.getTime() < 30 * 60000)) return 0.3;
+                      }
+                      return 1;
+                    })()
+                  }
+                ]}
+                onPress={() => {
+                  // Only rely on custom UI and Save button disabling; do not show default alert
+                  if (!startDateChosen || (endAvailable && !endDateChosen)) return;
+                  // No need to check 30-min rule here, button is already disabled if not met
+                  onSave({ start: localStart, end: localEnd, startTime: locStartTime, endTime: locEndTime, endSet: endAvailable });
+                }}
+                activeOpacity={0.7}
+                disabled={(() => {
+                  if (!startDateChosen || (endAvailable && !endDateChosen)) return true;
+                  if (endAvailable) {
+                    const parseTime = (dateObj: Date, timeStr: string): Date | null => {
+                      const match = String(timeStr).match(/(\d+):(\d+)(am|pm)/i);
+                      if (!match) return null;
+                      let [_, hourStr, minStr, ampm] = match;
+                      let hour = Number(hourStr);
+                      let minute = Number(minStr);
+                      if (ampm === 'pm' && hour !== 12) hour += 12;
+                      if (ampm === 'am' && hour === 12) hour = 0;
+                      const d = new Date(dateObj);
+                      d.setHours(hour, minute, 0, 0);
+                      return d;
+                    };
+                    const startDT = parseTime(localStart, String(locStartTime));
+                    const endDT = parseTime(localEnd, String(locEndTime));
+                    if (startDT && endDT && (endDT.getTime() - startDT.getTime() < 30 * 60000)) return true;
+                  }
+                  return false;
+                })()}
               >
                 <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Save</Text>
               </TouchableOpacity>
@@ -388,6 +553,8 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
                   setEndAvailable(endSet);
                   setLocStartTime(startTime);
                   setLocEndTime(endTime);
+                  setStartDateChosen(false);
+                  setEndDateChosen(false);
                   onClose();
                 }}
                 activeOpacity={0.8}
