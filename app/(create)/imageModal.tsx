@@ -12,6 +12,7 @@ interface ImageModalProps {
     onSelect: (img: any) => void;
 }
 
+
 export default function ImageModal({ visible, onClose, imageOptions, onSelect }: ImageModalProps) {
     const pickImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
@@ -25,13 +26,24 @@ export default function ImageModal({ visible, onClose, imageOptions, onSelect }:
         }
     };
 
+    // Shuffle function
+    function shuffleArray<T>(array: T[]): T[] {
+        const arr = array.slice();
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
 
     // Animation logic similar to profile.tsx modal, but keep mounted until slide-down finishes
     const slideAnim = React.useRef(new Animated.Value(1)).current; // 1 = hidden, 0 = visible
     const [shouldRender, setShouldRender] = React.useState(visible);
+    const [shuffledImages, setShuffledImages] = React.useState(imageOptions);
 
     React.useEffect(() => {
         if (visible) {
+            setShuffledImages(shuffleArray(imageOptions));
             setShouldRender(true);
             Animated.timing(slideAnim, {
                 toValue: 0,
@@ -49,7 +61,7 @@ export default function ImageModal({ visible, onClose, imageOptions, onSelect }:
                 setShouldRender(false);
             });
         }
-    }, [visible]);
+    }, [visible, imageOptions]);
 
     if (!shouldRender) return null;
 
@@ -61,7 +73,7 @@ export default function ImageModal({ visible, onClose, imageOptions, onSelect }:
             onRequestClose={onClose}
             statusBarTranslucent
         >
-            <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end', alignItems: 'center' }}>
+            <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end', alignItems: 'center' }}>
                 <TouchableOpacity
                     style={{ position: 'absolute', width: '100%', height: '100%' }}
                     activeOpacity={1}
@@ -97,7 +109,7 @@ export default function ImageModal({ visible, onClose, imageOptions, onSelect }:
                             nestedScrollEnabled={true}
                             scrollEnabled={true}
                         >
-                            {imageOptions.map((img, idx) => (
+                            {shuffledImages.map((img, idx) => (
                                 <TouchableOpacity
                                     key={idx}
                                     onPress={() => { onSelect(img); onClose(); }}

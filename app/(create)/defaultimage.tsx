@@ -11,6 +11,19 @@ const defaultImages = [
   require('../../assets/images/default_7.png'),
   require('../../assets/images/default_8.png'),
   require('../../assets/images/default_9.png'),
+  require('../../assets/images/default_10.png'),
+  require('../../assets/images/default_11.png'),
+  require('../../assets/images/default_12.png'),
+  require('../../assets/images/default_13.png'),
+  require('../../assets/images/default_14.png'),
+  require('../../assets/images/default_15.png'),
+  require('../../assets/images/default_16.png'),
+  require('../../assets/images/default_17.png'),
+  require('../../assets/images/default_18.png'),
+  require('../../assets/images/default_19.png'),
+  require('../../assets/images/default_20.png'),
+  require('../../assets/images/default_21.png'),
+  require('../../assets/images/default_22.png'),
 ];
 
 export default defaultImages;
