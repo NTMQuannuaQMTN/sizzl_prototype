@@ -159,7 +159,7 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
             <View style={{ flex: 1 }}>
               <View style={[tw`mb-4 flex-row items-center`, { minHeight: 24 }]}> 
                 <TouchableOpacity
-                  style={[tw`px-3 py-1`, { minWidth: 50, alignItems: 'flex-start', justifyContent: 'center' }]}
+                  style={[tw`px-4 py-1`, { minWidth: 50, alignItems: 'flex-start', justifyContent: 'center' }]}
                   onPress={() => {
                     setLocalStart(startDate);
                     setLocalEnd(endDate);
@@ -172,10 +172,10 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
                   }}
                   activeOpacity={0.7}
                 >
-                  <Text style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-Bold' }]}>Clear</Text>
+                  <Text style={[tw`text-[#7A5CFA] text-[13px]`, { fontFamily: 'Nunito-Bold' }]}>Clear</Text>
                 </TouchableOpacity>
                 <View style={{ flex: 1, alignItems: 'center' }}>
-                  <Text style={[tw`text-white -ml-2 text-[15px]`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Set date and time</Text>
+                  <Text style={[tw`text-white -ml-3 text-[15px]`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Set date and time</Text>
                 </View>
                 {/* Spacer for symmetry */}
                 <View style={{ minWidth: 50 }} />
@@ -443,7 +443,7 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
                             style={[
                               isSelected
                                 ? tw`text-white`
-                                : tw`text-gray-400`,
+                                : tw`text-white/20`,
                               { fontFamily: isSelected ? 'Nunito-ExtraBold' : 'Nunito-Medium', fontSize: 14 },
                             ]}
                           >
@@ -476,9 +476,9 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
               const endDT = parseTime(localEnd, String(locEndTime));
               if (startDT && endDT && (endDT.getTime() - startDT.getTime() < 30 * 60000)) {
                 return (
-                  <View style={tw`mb-1 w-full px-3`}>
+                  <View style={tw`w-full px-3`}>
                     <View style={tw`bg-rose-600 rounded-lg p-2.5 items-center`}>
-                      <Text style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-Bold', textAlign: 'center' }]}>End date & time must be at least 30 minutes after start.</Text>
+                      <Text style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-Bold', textAlign: 'center' }]}>⚠️ The end must be at least 30 minutes after the start.</Text>
                     </View>
                   </View>
                 );
