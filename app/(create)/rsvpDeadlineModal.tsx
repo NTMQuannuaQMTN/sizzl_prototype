@@ -14,6 +14,10 @@ interface RSVPDeadlineModalProps {
 
 const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose, initialDate, minDate, maxDate, onSave }) => {
   const [selectedDate, setSelectedDate] = useState(initialDate);
+  // Set minDate to today in local time zone, formatted as 'YYYY-MM-DD'
+  const today = new Date();
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  const localTodayStr = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
 
   return (
     <Modal
@@ -35,7 +39,7 @@ const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose,
               const selected = new Date(Date.UTC(year, month - 1, dayNum));
               setSelectedDate(selected);
             }}
-            minDate={minDate.toISOString().split('T')[0]}
+            minDate={localTodayStr}
             maxDate={maxDate.toISOString().split('T')[0]}
             markedDates={{
               [selectedDate.toISOString().split('T')[0]]: {

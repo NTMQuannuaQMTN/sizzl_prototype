@@ -16,6 +16,7 @@ import PfpDefault from '../../assets/icons/pfpdefault.svg';
 import Private from '../../assets/icons/private.svg';
 import Public from '../../assets/icons/public.svg';
 import RSVP from '../../assets/icons/time.svg';
+import RSVPWhite from '../../assets/icons/timewhite.svg';
 import CohostModal from './cohost';
 import DateTimeModal from './dateTimeModal';
 import defaultImages from './defaultimage';
@@ -416,8 +417,19 @@ export default function CreatePage() {
         onPress={() => setShowRSVPModal(true)}
       >
         <View style={tw`bg-white/10 border border-white/20 flex-row items-center gap-2 rounded-xl px-4 py-3`}>
-          <RSVP width={15} height={15}></RSVP>
-          <Text style={[tw`text-gray-400 text-[13px]`, { fontFamily: 'Nunito-ExtraBold' }]}>RSVP deadline: {rsvpDL.toDateString()}</Text>
+          {rsvpDL ? (
+            <RSVPWhite width={14} height={14} />
+          ) : (
+            <RSVP width={14} height={14} />
+          )}
+          <Text
+            style={[
+              tw`${rsvpDL ? 'text-white' : 'text-gray-400'} text-[13px]`,
+              { fontFamily: 'Nunito-ExtraBold' }
+            ]}
+          >
+            RSVP deadline: {rsvpDL.toDateString()}
+          </Text>
         </View>
       </TouchableOpacity>
 
