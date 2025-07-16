@@ -54,7 +54,7 @@ export default function BotBar({ currentTab = 'home', selfView = false }: { curr
         {/* Home Tab */}
         <TouchableOpacity
           onPress={() => {
-            if (currentTab !== 'home') router.replace('/home/explore');
+            if (currentTab !== 'home') router.replace('/home/homepage');
           }}
           style={tw`flex-1 items-center justify-center`}
           disabled={currentTab === 'home'}

@@ -68,7 +68,7 @@ export default function FriendsList() {
             <View style={tw`relative flex-row items-center px-4 mt-10 mb-1.5 h-10`}>
                 {/* Back button - absolute left */}
                 <TouchableOpacity
-                    onPress={() => router.replace('/(home)/home/explore')}
+                    onPress={() => router.replace('/(home)/home/homepage')}
                     style={[tw`absolute left-3`, { zIndex: 2 }]}
                 >
                     <Back />
@@ -90,7 +90,7 @@ export default function FriendsList() {
                         <TouchableOpacity
                             style={tw`mt-5 bg-[#7A5CFA] items-center justify-center px-6 py-2 rounded-xl`}
                             activeOpacity={0.7}
-                            // onPress={() => router.replace('/(home)/home/explore')}
+                            // onPress={() => router.replace('/(home)/home/homepage')}
                         >
                             <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Start exploring!</Text>
                         </TouchableOpacity>
