@@ -268,7 +268,7 @@ export default function CreatePage() {
         console.log(dataEvent[0].id);
         return dataEvent[0].id; // <-- return the new id
       }
-      return null;
+      return id;
     } else {
       if (id === '') {
         // Insert new event if id is empty
@@ -317,7 +317,7 @@ export default function CreatePage() {
         console.log(dataEvent[0].id);
         return dataEvent[0].id; // <-- return the new id
       }
-      return null;
+      return id;
     }
   }
 
