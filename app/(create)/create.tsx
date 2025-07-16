@@ -434,7 +434,7 @@ export default function CreatePage() {
         <View style={tw`relative flex-row items-center px-4 mt-10 mb-1.5 h-10`}>
           {/* Back button - absolute left */}
           <TouchableOpacity
-            onPress={() => router.replace('/(home)/home/explore')}
+            onPress={() => router.replace('/(home)/home/homepage')}
             style={[tw`absolute left-3`, { zIndex: 2 }]}
           >
             <Back />
