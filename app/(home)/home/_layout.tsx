@@ -9,7 +9,7 @@ export default function HomeStackLayout() {
           headerShown: false,
         }}
       >
-        <Stack.Screen name="explore" options={{ headerShown: false }} />
+        <Stack.Screen name="homepage" options={{ headerShown: false }} />
       </Stack>
     </SafeAreaProvider>
   );
