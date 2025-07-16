@@ -43,7 +43,7 @@ export default function FriendsList() {
                     } else {
                         let { data: profiles, error: profileError } = await supabase
                             .from('users')
-                            .select('id, username, profile_image')
+                            .select('id, username, firstname, lastname, profile_image')
                             .in('id', otherUserIds);
                         if (profileError || !profiles) {
                             setFriends([]);
@@ -70,7 +70,7 @@ export default function FriendsList() {
             <View style={tw`relative flex-row items-center px-4 mt-10 mb-1.5 h-10`}>
                 {/* Back button - absolute left */}
                 <TouchableOpacity
-                    onPress={() => router.replace('/(home)/home/homepage')}
+                    onPress={() => router.back()}
                     style={[tw`absolute left-3`, { zIndex: 2 }]}
                 >
                     <Back />
@@ -78,13 +78,16 @@ export default function FriendsList() {
                 {/* Centered title */}
                 <View style={tw`flex-1 items-center justify-center`}>
                     <Text style={[tw`text-white text-base`, { fontFamily: 'Nunito-ExtraBold' }]}>Friends</Text>
+                    <Text style={[tw`text-gray-400 text-xs -mt-0.5`, { fontFamily: 'Nunito-Medium' }]}>
+                        {friends.length} friend{friends.length === 1 ? '' : 's'}
+                    </Text>
                 </View>
             </View>
 
             {/* Friend List */}
             <View style={tw`flex-1 px-4 pt-2`}>
                 {loading ? (
-                    <Text style={tw`text-white text-center mt-10`}>Loading...</Text>
+                    <Text style={[tw`text-white text-center mt-10`, { fontFamily: 'Nunito-ExtraBold' }]}>Loading...</Text>
                 ) : friends.length === 0 ? (
                     <View style={tw`-mt-20 flex-1 justify-center items-center`}>
                         <Text style={[tw`text-white text-center text-[17px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Oops, no friends yet 😔</Text>
@@ -92,22 +95,32 @@ export default function FriendsList() {
                         <TouchableOpacity
                             style={tw`mt-5 bg-[#7A5CFA] items-center justify-center px-6 py-2 rounded-xl`}
                             activeOpacity={0.7}
-                        // onPress={() => router.replace('/(home)/home/homepage')}
+                            onPress={() => router.push('/(community)/explorefriends')}
                         >
                             <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Start exploring!</Text>
                         </TouchableOpacity>
                     </View>
                 ) : (
                     friends.map((friend) => (
-                        <View key={friend.id} style={tw`flex-row items-center mb-4 bg-[#1a1a3c] rounded-lg p-3`}>
+                        <TouchableOpacity
+                            key={friend.id}
+                            style={tw`flex-row items-center mb-4 bg-white/10 rounded-xl p-3`}
+                            activeOpacity={0.7}
+                            onPress={() => router.replace({ pathname: '/(profile)/profile', params: { user_id: friend.id } })}
+                        >
                             <Image
-                                source={friend.profile_image || require('../../assets/images/default_1.png')}
+                                source={friend.profile_image || require('../../assets/images/pfp-default.png')}
                                 style={{ width: 40, height: 40, borderRadius: 20, marginRight: 12 }}
                             />
-                            <Text style={[tw`text-white text-base`, { fontFamily: 'Nunito-Bold' }]}>
-                                {friend.username || 'Unknown'}
-                            </Text>
-                        </View>
+                            <View>
+                                <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}> 
+                                    {friend.firstname || ''} {friend.lastname || ''}
+                                </Text>
+                                <Text style={[tw`text-gray-400 text-[13px] -mt-0.5`, { fontFamily: 'Nunito-Medium' }]}>
+                                    @{friend.username || 'Unknown'}
+                                </Text>
+                            </View>
+                        </TouchableOpacity>
                     ))
                 )}
             </View>
