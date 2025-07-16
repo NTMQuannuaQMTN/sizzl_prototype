@@ -17,16 +17,15 @@ function formatFullDate(date: Date): string {
   const dayNum = String(Number(day));
   return `${weekday}, ${month} ${dayNum}, ${year}`;
 }
+
+import { supabase } from '@/utils/supabase';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import tw from 'twrnc';
 import { useUserStore } from '../store/userStore';
 
-import { supabase } from '@/utils/supabase';
-import Private from '../../assets/icons/private.svg';
-import Public from '../../assets/icons/public.svg';
 import Back from '../../assets/icons/back.svg';
 import Camera from '../../assets/icons/camera_icon.svg';
 import Host from '../../assets/icons/host.svg';
@@ -34,6 +33,8 @@ import HostWhite from '../../assets/icons/hostwhite-icon.svg';
 import Location from '../../assets/icons/location.svg';
 import LocationWhite from '../../assets/icons/locationwhite-icon.svg';
 import PfpDefault from '../../assets/icons/pfpdefault.svg';
+import Private from '../../assets/icons/private.svg';
+import Public from '../../assets/icons/public.svg';
 import RSVP from '../../assets/icons/time.svg';
 import RSVPWhite from '../../assets/icons/timewhite.svg';
 import CohostModal from './cohost';
@@ -53,6 +54,7 @@ interface Friend {
 
 export default function CreatePage() {
   const [title, setTitle] = useState('');
+  const [id, setID] = useState('');
   const [publicEvent, setPublic] = useState(true);
   const [date, setDate] = useState({
     // Set startDate and startTime to the closest future time selectable in the modal (15 minute interval)
@@ -118,6 +120,7 @@ export default function CreatePage() {
   });
   const imageOptions = defaultImages;
   const [image, setImage] = useState(imageOptions[Math.floor(Math.random() * imageOptions.length)]);
+  const [imageURL, setImageURL] = useState('');
 
   const { user } = useUserStore();
   const [cohosts, setCohosts] = useState<(Friend | string)[]>([]);
@@ -162,7 +165,207 @@ export default function CreatePage() {
   const [friends, setFriends] = useState<Friend[]>([]);
 
   const addEvent = async () => {
-    
+    console.log('adding');
+    // Check if event title, date, and RSVP deadline are available
+    // You can show an alert, toast, or return early
+    // Combine start date and start time into a single Date object for 'start'
+    const startDateTime = new Date(
+      date.start.getFullYear(),
+      date.start.getMonth(),
+      date.start.getDate(),
+      (() => {
+        // Parse hour and minute from date.startTime (e.g., "7:15pm")
+        const match = /^(\d{1,2}):(\d{2})(am|pm)$/i.exec(date.startTime);
+        if (!match) return 0;
+        let hour = parseInt(match[1], 10);
+        const ampm = match[3];
+        if (ampm.toLowerCase() === 'pm' && hour !== 12) hour += 12;
+        if (ampm.toLowerCase() === 'am' && hour === 12) hour = 0;
+        return hour;
+      })(),
+      (() => {
+        const match = /^(\d{1,2}):(\d{2})(am|pm)$/i.exec(date.startTime);
+        if (!match) return 0;
+        return parseInt(match[2], 10);
+      })(),
+      0,
+      0
+    );
+
+    // Combine end date and end time into a single Date object for 'end'
+    const endDateTime = new Date(
+      date.end.getFullYear(),
+      date.end.getMonth(),
+      date.end.getDate(),
+      (() => {
+        // Parse hour and minute from date.endTime (e.g., "7:15pm")
+        const match = /^(\d{1,2}):(\d{2})(am|pm)$/i.exec(date.endTime);
+        if (!match) return 0;
+        let hour = parseInt(match[1], 10);
+        const ampm = match[3];
+        if (ampm.toLowerCase() === 'pm' && hour !== 12) hour += 12;
+        if (ampm.toLowerCase() === 'am' && hour === 12) hour = 0;
+        return hour;
+      })(),
+      (() => {
+        const match = /^(\d{1,2}):(\d{2})(am|pm)$/i.exec(date.endTime);
+        if (!match) return 0;
+        return parseInt(match[2], 10);
+      })(),
+      0,
+      0
+    );
+
+    let draftErr;
+    let dataEvent;
+
+    if (title === '' || !date.dateChosen || !rsvpDL) {
+      if (id === '') {
+        // Insert new event if id is empty
+        ({ data: dataEvent, error: draftErr } = await supabase.from('events')
+          .insert([{
+            title: title, public: publicEvent,
+            start: (date.dateChosen ? startDateTime : null),
+            end: (date.endSet ? endDateTime : null),
+            location_add: 'Ahihi', location_name: 'Ahihi',
+            location_more: 'Ahihi', location_note: 'Ahihi',
+            rsvpfirst: location.rsvpFirst, rsvp_deadline: rsvpDL,
+            bio: bio, cash_prize: specialBox.cash ? special.cash : null,
+            free_food: specialBox.food ? special.food : null,
+            free_merch: specialBox.merch ? special.merch : null,
+            cool_prize: specialBox.coolPrize ? special.coolPrize : null,
+            host_id: user.id, public_list: list.public, maybe: list.maybe,
+            done: false,
+          }])
+          .select('id') // Request the id of the inserted event
+        );
+      } else {
+        // Update existing event if id is not empty
+        ({ error: draftErr } = await supabase.from('events')
+          .update({
+            title: title, public: publicEvent,
+            start: (date.dateChosen ? startDateTime : null),
+            end: (date.endSet ? endDateTime : null),
+            location_add: 'Ahihi', location_name: 'Ahihi',
+            location_more: 'Ahihi', location_note: 'Ahihi',
+            rsvpfirst: location.rsvpFirst, rsvp_deadline: rsvpDL,
+            bio: bio, cash_prize: specialBox.cash ? special.cash : null,
+            free_food: specialBox.food ? special.food : null,
+            free_merch: specialBox.merch ? special.merch : null,
+            cool_prize: specialBox.coolPrize ? special.coolPrize : null,
+            host_id: user.id, public_list: list.public, maybe: list.maybe,
+            done: false,
+          })
+          .eq('id', id));
+      }
+
+      if (true) {
+        Alert.alert('Err');
+      }
+      if (dataEvent) { setID(dataEvent[0].id) }
+    } else {
+      if (id === '') {
+        // Insert new event if id is empty
+        ({ data: dataEvent, error: draftErr } = await supabase.from('events')
+          .insert([{
+            title: title, public: publicEvent,
+            start: (date.dateChosen ? startDateTime : null),
+            end: (date.endSet ? endDateTime : null),
+            location_add: 'Ahihi', location_name: 'Ahihi',
+            location_more: 'Ahihi', location_note: 'Ahihi',
+            rsvpfirst: location.rsvpFirst, rsvp_deadline: rsvpDL,
+            bio: bio, cash_prize: specialBox.cash ? special.cash : null,
+            free_food: specialBox.food ? special.food : null,
+            free_merch: specialBox.merch ? special.merch : null,
+            cool_prize: specialBox.coolPrize ? special.coolPrize : null,
+            host_id: user.id, public_list: list.public, maybe: list.maybe,
+            done: true,
+          }])
+          .select('id') // Request the id of the inserted event
+        );
+
+        if (dataEvent) { setID(dataEvent[0].id) }
+      } else {
+        // Update existing event if id is not empty
+        ({ error: draftErr } = await supabase.from('events')
+          .update({
+            title: title, public: publicEvent,
+            start: (date.dateChosen ? startDateTime : null),
+            end: (date.endSet ? endDateTime : null),
+            location_add: 'Ahihi', location_name: 'Ahihi',
+            location_more: 'Ahihi', location_note: 'Ahihi',
+            rsvpfirst: location.rsvpFirst, rsvp_deadline: rsvpDL,
+            bio: bio, cash_prize: specialBox.cash ? special.cash : null,
+            free_food: specialBox.food ? special.food : null,
+            free_merch: specialBox.merch ? special.merch : null,
+            cool_prize: specialBox.coolPrize ? special.coolPrize : null,
+            host_id: user.id, public_list: list.public, maybe: list.maybe,
+            done: true,
+          })
+          .eq('id', id));
+      }
+
+      if (true) {
+        Alert.alert('Err');
+      }
+    }
+
+    // If image is not a number, upload to storage and update event with imageURL
+    if (image && typeof image !== 'number') {
+      try {
+        // Generate a unique filename for the image
+        const filePath = `event_cover/${id}`;
+
+        const response = await fetch(image);
+        const blob = await response.blob();
+
+        const { error: uploadError } = await supabase.storage
+          .from('sizzl-profileimg')
+          .upload(filePath, blob);
+
+        if (uploadError) {
+          console.error('Upload error:', uploadError);
+          return;
+        }
+
+        const { data: urlData } = await supabase.storage
+          .from('sizzl-profileimg')
+          .getPublicUrl(filePath);
+
+        const publicUrl = urlData?.publicUrl;
+        setImageURL(publicUrl);
+      } catch (err) {
+        console.error('Image upload exception:', err);
+        Alert.alert('Image upload failed');
+      }
+    } else {
+      setImageURL(`default_${image - 28}`)
+    }
+
+    // Why I check and there is no update?
+    // The update may not happen if imageURL is undefined/null, or if the id is wrong, or if the value is the same as before.
+    // Let's log more details for debugging:
+    console.log("Attempting to update event image", { id, imageURL });
+
+    if (!id) {
+      console.error("No event id provided for update.");
+    } else if (!imageURL) {
+      console.error("No imageURL provided for update.");
+    } else {
+      const { data: checkData, error: setAvatarError } = await supabase
+        .from('events')
+        .update({ image: imageURL })
+        .eq('id', id)
+        .select();
+
+      if (setAvatarError) {
+        console.error("Set error:", setAvatarError);
+      } else if (!checkData || checkData.length === 0) {
+        console.warn("Update succeeded but no rows returned. Possible reasons: id not found, or image value unchanged.");
+      } else {
+        console.log("Update result:", checkData);
+      }
+    }
   }
 
   useEffect(() => {
@@ -228,7 +431,7 @@ export default function CreatePage() {
       />
       <View style={tw`w-full h-full bg-black bg-opacity-60`}>
         {/* Top bar */}
-        <View style={tw`relative flex-row items-center px-4 mt-10 mb-1.5 h-10`}> 
+        <View style={tw`relative flex-row items-center px-4 mt-10 mb-1.5 h-10`}>
           {/* Back button - absolute left */}
           <TouchableOpacity
             onPress={() => router.replace('/(home)/home/explore')}
@@ -243,7 +446,7 @@ export default function CreatePage() {
           {/* Done button - absolute right */}
           <TouchableOpacity
             style={[tw`absolute right-4 bg-[#7b61ff] rounded-full px-4 py-1`, { zIndex: 2 }]}
-          onPress={() => addEvent()}>
+            onPress={() => addEvent()}>
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Done</Text>
           </TouchableOpacity>
         </View>
