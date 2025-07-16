@@ -20,16 +20,16 @@ export default function Homepage() {
             {/* Tab Switcher */}
             <View style={tw`flex-row justify-around mt-4 mb-2`}>
                 <TouchableOpacity
-                    style={tw`flex-1 items-center py-2 ${activeTab === 'explore' ? 'bg-white rounded-full' : ''}`}
+                    style={tw`flex-1 items-center py-2 ${activeTab === 'explore' ? 'bg-[#7A5CFA] rounded-full' : ''}`}
                     onPress={() => setActiveTab('explore')}
                 >
-                    <Text style={[tw`${activeTab === 'explore' ? 'text-indigo-900' : 'text-white'}`, { fontFamily: 'Nunito-ExtraBold' }]}>Explore</Text>
+                    <Text style={[tw`text-[15px] ${activeTab === 'explore' ? 'text-white' : 'text-gray-400'}`, { fontFamily: 'Nunito-ExtraBold' }]}>Explore</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={tw`flex-1 items-center py-2 ${activeTab === 'yourevents' ? 'bg-white rounded-full' : ''}`}
+                    style={tw`flex-1 items-center py-2 ${activeTab === 'yourevents' ? 'bg-[#7A5CFA] rounded-full' : ''}`}
                     onPress={() => setActiveTab('yourevents')}
                 >
-                    <Text style={[tw`${activeTab === 'yourevents' ? 'text-indigo-900' : 'text-white'}`, { fontFamily: 'Nunito-ExtraBold' }]}>Your events</Text>
+                    <Text style={[tw`text-[15px] ${activeTab === 'yourevents' ? 'text-white' : 'text-gray-400'}`, { fontFamily: 'Nunito-ExtraBold' }]}>Your events</Text>
                 </TouchableOpacity>
             </View>
 
