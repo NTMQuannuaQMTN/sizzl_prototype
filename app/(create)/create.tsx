@@ -263,7 +263,12 @@ export default function CreatePage() {
       if (true) {
         Alert.alert('Err');
       }
-      if (dataEvent) { setID(dataEvent[0].id) }
+      if (dataEvent) {
+        setID(dataEvent[0].id);
+        console.log(dataEvent[0].id);
+        return dataEvent[0].id; // <-- return the new id
+      }
+      return null;
     } else {
       if (id === '') {
         // Insert new event if id is empty
@@ -284,8 +289,6 @@ export default function CreatePage() {
           }])
           .select('id') // Request the id of the inserted event
         );
-
-        if (dataEvent) { setID(dataEvent[0].id) }
       } else {
         // Update existing event if id is not empty
         ({ error: draftErr } = await supabase.from('events')
@@ -309,15 +312,22 @@ export default function CreatePage() {
       if (true) {
         Alert.alert('Err');
       }
+      if (dataEvent) {
+        setID(dataEvent[0].id);
+        console.log(dataEvent[0].id);
+        return dataEvent[0].id; // <-- return the new id
+      }
+      return null;
     }
   }
 
-  const updateImage = async () => {
+  const updateImage = async (eventId: string) => {
     console.log('updating');
+    let imgURL = '';
     if (image && typeof image !== 'number') {
       try {
         // Generate a unique filename for the image
-        const filePath = `event_cover/${id}`;
+        const filePath = `event_cover/${eventId}`;
 
         const response = await fetch(image);
         const blob = await response.blob();
@@ -337,29 +347,31 @@ export default function CreatePage() {
 
         const publicUrl = urlData?.publicUrl;
         setImageURL(publicUrl);
+        imgURL = publicUrl;
       } catch (err) {
         console.error('Image upload exception:', err);
         Alert.alert('Image upload failed');
       }
     } else {
       setImageURL(`default_${image - 28}`);
+      imgURL = `default_${image - 28}`;
     }
 
     // Now, after all awaits above, update the event image
     // Why I check and there is no update?
     // The update may not happen if imageURL is undefined/null, or if the id is wrong, or if the value is the same as before.
     // Let's log more details for debugging:
-    console.log("Attempting to update event image", { id, imageURL });
+    console.log("Attempting to update event image", { eventId, imageURL });
 
-    if (!id) {
+    if (!eventId) {
       console.error("No event id provided for update.");
-    } else if (!imageURL) {
+    } else if (!imgURL) {
       console.error("No imageURL provided for update.");
     } else {
       const { data: checkData, error: setAvatarError } = await supabase
         .from('events')
-        .update({ image: imageURL })
-        .eq('id', id)
+        .update({ image: imgURL })
+        .eq('id', eventId)
         .select();
 
       if (setAvatarError) {
@@ -394,12 +406,6 @@ export default function CreatePage() {
     }
     if (!showCohostModal) fetchFriends();
   }, [showCohostModal]);
-
-  useEffect(() => {
-    if (id) {
-      updateImage();
-    }
-  }, [id]);
 
   return (
     <KeyboardAwareScrollView
@@ -457,8 +463,10 @@ export default function CreatePage() {
           <TouchableOpacity
             style={[tw`absolute right-4 bg-[#7b61ff] rounded-full px-4 py-1`, { zIndex: 2 }]}
             onPress={async () => {
-              await addEvent();
-              setTimeout(async () => updateImage(), 10)
+              const newId = await addEvent();
+              if (newId) {
+                await updateImage(newId);
+              }
             }}>
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Done</Text>
           </TouchableOpacity>
