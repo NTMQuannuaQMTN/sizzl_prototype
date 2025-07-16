@@ -1,9 +1,9 @@
 import { supabase } from '@/utils/supabase';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 import { useUserStore } from '../store/userStore';
 
@@ -14,24 +14,50 @@ export default function FriendsList() {
     const [friends, setFriends] = React.useState<any[]>([]);
     const [loading, setLoading] = React.useState(true);
     const { user } = useUserStore();
+    const { user_id, relation } = useLocalSearchParams();
 
     React.useEffect(() => {
         // Fetch friends from supabase
         const fetchFriends = async () => {
             setLoading(true);
             try {
-                const userId = user.id;
+                const userId = user_id;
                 if (!userId) {
                     setFriends([]);
                     setLoading(false);
                     return;
                 }
 
-                // Fetch all rows where user_id or friend is current user
-                let { data: friendRows, error } = await supabase
-                    .from('friends')
-                    .select('friend')
-                    .eq('user_id', userId);
+                let friendRows, error;
+
+                if (relation === 'Stranger') {
+                    const { data: mutualCheck, error: mutualErr } = await supabase
+                        .from('friends')
+                        .select('friend')
+                        .eq('user_id', userId);
+
+                    console.log(mutualCheck);
+
+                    if (mutualErr || !mutualCheck || mutualCheck.length === 0) {
+                        Alert.alert('Hmm');
+                        setFriends([]);
+                    } else {
+                        ({ data: friendRows, error } = await supabase
+                            .from('friends')
+                            .select('friend')
+                            .eq('user_id', user.id)
+                            .in('friend', mutualCheck?.map(a => a.friend)));
+
+                        if (error || !friendRows || friendRows.length === 0) {
+                            setFriends([]);
+                        }
+                    }
+                } else {
+                    ({ data: friendRows, error } = await supabase
+                        .from('friends')
+                        .select('friend')
+                        .eq('user_id', userId));
+                }
                 if (error || !friendRows || friendRows.length === 0) {
                     setFriends([]);
                 } else {
@@ -113,7 +139,7 @@ export default function FriendsList() {
                                 style={{ width: 40, height: 40, borderRadius: 20, marginRight: 12 }}
                             />
                             <View>
-                                <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}> 
+                                <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>
                                     {friend.firstname || ''} {friend.lastname || ''}
                                 </Text>
                                 <Text style={[tw`text-gray-400 text-[13px] -mt-0.5`, { fontFamily: 'Nunito-Medium' }]}>

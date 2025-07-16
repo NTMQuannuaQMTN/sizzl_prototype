@@ -525,7 +525,7 @@ export default function ProfilePage() {
   // Loading screen UI
   if (loading) {
     return (
-      <View style={[tw`flex-1 justify-center items-center`, { backgroundColor: bgpopup, minHeight: '100%' }]}> 
+      <View style={[tw`flex-1 justify-center items-center`, { backgroundColor: bgpopup, minHeight: '100%' }]}>
         <Text style={[tw`text-white text-lg mt-6`, { fontFamily: 'Nunito-ExtraBold' }]}>Loading profile...</Text>
       </View>
     );
@@ -579,7 +579,7 @@ export default function ProfilePage() {
 
         {/* Profile picture: show image if present, otherwise SVG fallback, fast like BotBar */}
         <View style={tw`mt-4 mb-2`}>
-        <View style={[tw`rounded-full border-2 border-white items-center justify-center bg-white/10`, { width: 120, height: 120, overflow: 'hidden' }]}> 
+          <View style={[tw`rounded-full border-2 border-white items-center justify-center bg-white/10`, { width: 120, height: 120, overflow: 'hidden' }]}>
             {userView?.profile_image ? (
               <Image
                 source={{ uri: userView.profile_image }}
@@ -600,9 +600,9 @@ export default function ProfilePage() {
           <Text style={[tw`text-gray-400 mx-1.5 text-[10px]`, { fontFamily: 'Nunito-Medium' }]}>•</Text>
           <TouchableOpacity
             activeOpacity={0.5}
-            onPress={() => router.push('/(profile)/friendslist')}
+            onPress={() => router.push({ pathname: '/(profile)/friendslist', params: { user_id: user_id, relation: (self ? 'Self' : friendStat === 'friend' ? 'Friend' : 'Stranger') } })}
           >
-            <Text style={[tw`text-gray-400 text-[14px]`, { fontFamily: 'Nunito-Medium' }]}> 
+            <Text style={[tw`text-gray-400 text-[14px]`, { fontFamily: 'Nunito-Medium' }]}>
               {userView?.friend_count} {userView?.friend_count === 1 || userView?.friend_count === 0 ? 'friend' : 'friends'}
             </Text>
           </TouchableOpacity>
@@ -710,7 +710,7 @@ export default function ProfilePage() {
       </ScrollView>
       <BotBar currentTab="profile" selfView={self} />
 
-    {/* QR Code Modal removed: now navigates to QRProfile page */}
+      {/* QR Code Modal removed: now navigates to QRProfile page */}
 
       {/* Friend request modal with slide-up animation */}
       {showFriendModal && userView && (
@@ -795,24 +795,24 @@ export default function ProfilePage() {
           </Animated.View>
         </TouchableOpacity>
       )}
-    {/* Added Alert UI */}
-    {addedAlertVisible && userView && (
-      <Animated.View
-        style={[
-          tw`absolute w-full left-0 top-0 z-100 items-center justify-center`,
-          { height: '100%', opacity: addedAlertAnim }
-        ]}
-      >
-        <View style={[tw`absolute w-full h-full left-0 top-0`, { backgroundColor: 'rgba(0,0,0,0.5)' }]} />
-        <View style={[tw`bg-[#22C55E] px-6 py-4 rounded-2xl shadow-lg shadow-black/30 items-center`, { width: 280, maxWidth: '90%' }]}> 
-          <Image
-            source={require('../../assets/images/shakehandsmeme.jpeg')}
-            style={{ width: 120, height: 120, borderRadius: 10, marginBottom: 10, resizeMode: 'cover' }}
-          />
-          <Text style={[tw`text-white text-[15px] text-center leading-[1.25]`, { fontFamily: 'Nunito-ExtraBold' }]}>Congrats! Now you and {userView.firstname} are friends 🥳</Text>
-        </View>
-      </Animated.View>
-    )}
+      {/* Added Alert UI */}
+      {addedAlertVisible && userView && (
+        <Animated.View
+          style={[
+            tw`absolute w-full left-0 top-0 z-100 items-center justify-center`,
+            { height: '100%', opacity: addedAlertAnim }
+          ]}
+        >
+          <View style={[tw`absolute w-full h-full left-0 top-0`, { backgroundColor: 'rgba(0,0,0,0.5)' }]} />
+          <View style={[tw`bg-[#22C55E] px-6 py-4 rounded-2xl shadow-lg shadow-black/30 items-center`, { width: 280, maxWidth: '90%' }]}>
+            <Image
+              source={require('../../assets/images/shakehandsmeme.jpeg')}
+              style={{ width: 120, height: 120, borderRadius: 10, marginBottom: 10, resizeMode: 'cover' }}
+            />
+            <Text style={[tw`text-white text-[15px] text-center leading-[1.25]`, { fontFamily: 'Nunito-ExtraBold' }]}>Congrats! Now you and {userView.firstname} are friends 🥳</Text>
+          </View>
+        </Animated.View>
+      )}
     </ProfileBackgroundWrapper>
   );
 }
