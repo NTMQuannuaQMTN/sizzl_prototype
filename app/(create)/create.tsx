@@ -54,7 +54,6 @@ interface Friend {
 
 export default function CreatePage() {
   const [title, setTitle] = useState('');
-  const [id, setID] = useState('');
   const [publicEvent, setPublic] = useState(true);
   const [date, setDate] = useState({
     // Set startDate and startTime to the closest future time selectable in the modal (15 minute interval)
@@ -120,6 +119,7 @@ export default function CreatePage() {
   });
   const imageOptions = defaultImages;
   const [image, setImage] = useState(imageOptions[Math.floor(Math.random() * imageOptions.length)]);
+  const [id, setID] = useState('');
   const [imageURL, setImageURL] = useState('');
 
   const { user } = useUserStore();
@@ -309,8 +309,10 @@ export default function CreatePage() {
         Alert.alert('Err');
       }
     }
+  }
 
-    // If image is not a number, upload to storage and update event with imageURL
+  const updateImage = async () => {
+    console.log('updating');
     if (image && typeof image !== 'number') {
       try {
         // Generate a unique filename for the image
@@ -339,9 +341,10 @@ export default function CreatePage() {
         Alert.alert('Image upload failed');
       }
     } else {
-      setImageURL(`default_${image - 28}`)
+      setImageURL(`default_${image - 28}`);
     }
 
+    // Now, after all awaits above, update the event image
     // Why I check and there is no update?
     // The update may not happen if imageURL is undefined/null, or if the id is wrong, or if the value is the same as before.
     // Let's log more details for debugging:
@@ -390,6 +393,12 @@ export default function CreatePage() {
     }
     if (!showCohostModal) fetchFriends();
   }, [showCohostModal]);
+
+  useEffect(() => {
+    if (id) {
+      updateImage();
+    }
+  }, [id]);
 
   return (
     <KeyboardAwareScrollView
@@ -446,7 +455,10 @@ export default function CreatePage() {
           {/* Done button - absolute right */}
           <TouchableOpacity
             style={[tw`absolute right-4 bg-[#7b61ff] rounded-full px-4 py-1`, { zIndex: 2 }]}
-            onPress={() => addEvent()}>
+            onPress={async () => {
+              await addEvent();
+              setTimeout(async () => updateImage(), 10)
+            }}>
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Done</Text>
           </TouchableOpacity>
         </View>
