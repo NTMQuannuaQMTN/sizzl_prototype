@@ -1,52 +1,54 @@
+import { supabase } from '@/utils/supabase';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
+import { useUserStore } from '../store/userStore';
+
 import Back from '../../assets/icons/back.svg';
 
 export default function FriendsList() {
     const router = useRouter();
     const [friends, setFriends] = React.useState<any[]>([]);
     const [loading, setLoading] = React.useState(true);
+    const { user } = useUserStore();
 
     React.useEffect(() => {
         // Fetch friends from supabase
         const fetchFriends = async () => {
             setLoading(true);
             try {
-                const { getUserId } = require('../store/userStore');
-                const userId = getUserId();
+                const userId = user.id;
                 if (!userId) {
                     setFriends([]);
                     setLoading(false);
                     return;
                 }
-                const { supabase } = require('../../utils/supabase');
+
                 // Fetch all rows where user_id or friend is current user
                 let { data: friendRows, error } = await supabase
                     .from('friends')
-                    .select('id, user_id, friend')
-                    .or(`user_id.eq.${userId},friend.eq.${userId}`);
+                    .select('friend')
+                    .eq('user_id', userId);
                 if (error || !friendRows || friendRows.length === 0) {
                     setFriends([]);
                 } else {
-                    // Get the other user's id for each row
-                    let otherUserIds = friendRows.map((row: any) => row.user_id === userId ? row.friend : row.user_id);
+                    let otherUserIds = friendRows.map((row: any) => row.friend);
                     // Deduplicate
                     otherUserIds = Array.from(new Set(otherUserIds));
                     if (otherUserIds.length === 0) {
                         setFriends([]);
                     } else {
                         let { data: profiles, error: profileError } = await supabase
-                            .from('profiles')
-                            .select('id, username, avatar_url')
+                            .from('users')
+                            .select('id, username, profile_image')
                             .in('id', otherUserIds);
                         if (profileError || !profiles) {
                             setFriends([]);
                         } else {
-                            setFriends(profiles.map((p: any) => ({ id: p.id, profiles: p })));
+                            setFriends(profiles.map((p: any) => (p)));
                         }
                     }
                 }
@@ -90,7 +92,7 @@ export default function FriendsList() {
                         <TouchableOpacity
                             style={tw`mt-5 bg-[#7A5CFA] items-center justify-center px-6 py-2 rounded-xl`}
                             activeOpacity={0.7}
-                            // onPress={() => router.replace('/(home)/home/homepage')}
+                        // onPress={() => router.replace('/(home)/home/homepage')}
                         >
                             <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Start exploring!</Text>
                         </TouchableOpacity>
@@ -99,11 +101,11 @@ export default function FriendsList() {
                     friends.map((friend) => (
                         <View key={friend.id} style={tw`flex-row items-center mb-4 bg-[#1a1a3c] rounded-lg p-3`}>
                             <Image
-                                source={friend.profiles?.avatar_url || require('../../assets/images/default_1.png')}
+                                source={friend.profile_image || require('../../assets/images/default_1.png')}
                                 style={{ width: 40, height: 40, borderRadius: 20, marginRight: 12 }}
                             />
                             <Text style={[tw`text-white text-base`, { fontFamily: 'Nunito-Bold' }]}>
-                                {friend.profiles?.username || 'Unknown'}
+                                {friend.username || 'Unknown'}
                             </Text>
                         </View>
                     ))
