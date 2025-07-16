@@ -1,0 +1,114 @@
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import React from 'react';
+import { Text, TouchableOpacity, View } from 'react-native';
+import tw from 'twrnc';
+import Back from '../../assets/icons/back.svg';
+
+export default function FriendsList() {
+    const router = useRouter();
+    const [friends, setFriends] = React.useState<any[]>([]);
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        // Fetch friends from supabase
+        const fetchFriends = async () => {
+            setLoading(true);
+            try {
+                const { getUserId } = require('../store/userStore');
+                const userId = getUserId();
+                if (!userId) {
+                    setFriends([]);
+                    setLoading(false);
+                    return;
+                }
+                const { supabase } = require('../../utils/supabase');
+                // Fetch all rows where user_id or friend is current user
+                let { data: friendRows, error } = await supabase
+                    .from('friends')
+                    .select('id, user_id, friend')
+                    .or(`user_id.eq.${userId},friend.eq.${userId}`);
+                if (error || !friendRows || friendRows.length === 0) {
+                    setFriends([]);
+                } else {
+                    // Get the other user's id for each row
+                    let otherUserIds = friendRows.map((row: any) => row.user_id === userId ? row.friend : row.user_id);
+                    // Deduplicate
+                    otherUserIds = Array.from(new Set(otherUserIds));
+                    if (otherUserIds.length === 0) {
+                        setFriends([]);
+                    } else {
+                        let { data: profiles, error: profileError } = await supabase
+                            .from('profiles')
+                            .select('id, username, avatar_url')
+                            .in('id', otherUserIds);
+                        if (profileError || !profiles) {
+                            setFriends([]);
+                        } else {
+                            setFriends(profiles.map((p: any) => ({ id: p.id, profiles: p })));
+                        }
+                    }
+                }
+            } catch (err) {
+                setFriends([]);
+            }
+            setLoading(false);
+        };
+        fetchFriends();
+    }, []);
+
+    return (
+        <LinearGradient
+            colors={["#080B32", "#0E1241", "#291C56", "#392465", "#51286A"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={{ flex: 1 }}
+        >
+            <View style={tw`relative flex-row items-center px-4 mt-10 mb-1.5 h-10`}>
+                {/* Back button - absolute left */}
+                <TouchableOpacity
+                    onPress={() => router.replace('/(home)/home/explore')}
+                    style={[tw`absolute left-3`, { zIndex: 2 }]}
+                >
+                    <Back />
+                </TouchableOpacity>
+                {/* Centered title */}
+                <View style={tw`flex-1 items-center justify-center`}>
+                    <Text style={[tw`text-white text-base`, { fontFamily: 'Nunito-ExtraBold' }]}>Friends</Text>
+                </View>
+            </View>
+
+            {/* Friend List */}
+            <View style={tw`flex-1 px-4 pt-2`}>
+                {loading ? (
+                    <Text style={tw`text-white text-center mt-10`}>Loading...</Text>
+                ) : friends.length === 0 ? (
+                    <View style={tw`-mt-20 flex-1 justify-center items-center`}>
+                        <Text style={[tw`text-white text-center text-[17px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Oops, no friends yet 😔</Text>
+                        <Text style={[tw`text-white text-center text-[15px] mt-0.5`, { fontFamily: 'Nunito-Medium' }]}>Your friends might be on Sizzl. Let's explore!</Text>
+                        <TouchableOpacity
+                            style={tw`mt-5 bg-[#7A5CFA] items-center justify-center px-6 py-2 rounded-xl`}
+                            activeOpacity={0.7}
+                            // onPress={() => router.replace('/(home)/home/explore')}
+                        >
+                            <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Start exploring!</Text>
+                        </TouchableOpacity>
+                    </View>
+                ) : (
+                    friends.map((friend) => (
+                        <View key={friend.id} style={tw`flex-row items-center mb-4 bg-[#1a1a3c] rounded-lg p-3`}>
+                            <Image
+                                source={friend.profiles?.avatar_url || require('../../assets/images/default_1.png')}
+                                style={{ width: 40, height: 40, borderRadius: 20, marginRight: 12 }}
+                            />
+                            <Text style={[tw`text-white text-base`, { fontFamily: 'Nunito-Bold' }]}>
+                                {friend.profiles?.username || 'Unknown'}
+                            </Text>
+                        </View>
+                    ))
+                )}
+            </View>
+        </LinearGradient>
+    );
+}

@@ -565,13 +565,13 @@ export default function ProfilePage() {
                     });
                   }
                 }}
-                style={tw`mr-2.5`}
+                style={tw`mr-4.5`}
                 accessibilityLabel="Show QR code"
               >
                 <QrIcon width={20} height={20} />
               </TouchableOpacity>
               <TouchableOpacity>
-                <SettingIcon width={20} height={20} style={tw`m-2`} />
+                <SettingIcon width={20} height={20} />
               </TouchableOpacity>
             </View>
           )}
@@ -598,9 +598,14 @@ export default function ProfilePage() {
         <View style={tw`flex-row items-center mb-2.5`}>
           <Text style={[tw`text-gray-400 text-[14px]`, { fontFamily: 'Nunito-Medium' }]}>@{userView?.username}</Text>
           <Text style={[tw`text-gray-400 mx-1.5 text-[10px]`, { fontFamily: 'Nunito-Medium' }]}>•</Text>
-          <Text style={[tw`text-gray-400 text-[14px]`, { fontFamily: 'Nunito-Medium' }]}> 
-            {userView?.friend_count} {userView?.friend_count === 1 || userView?.friend_count === 0 ? 'friend' : 'friends'}
-          </Text>
+          <TouchableOpacity
+            activeOpacity={0.5}
+            onPress={() => router.push('/(profile)/friendslist')}
+          >
+            <Text style={[tw`text-gray-400 text-[14px]`, { fontFamily: 'Nunito-Medium' }]}> 
+              {userView?.friend_count} {userView?.friend_count === 1 || userView?.friend_count === 0 ? 'friend' : 'friends'}
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/* Bio */}

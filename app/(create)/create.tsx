@@ -624,11 +624,11 @@ export default function CreatePage() {
         {/* More settings modal */}
         <View style={tw`px-4 mb-16`}>
           <TouchableOpacity
-            style={tw`flex-row items-center gap-2.5 bg-white/10 rounded-xl px-3.5 py-2 mt-2`}
+            style={tw`flex-row items-center justify-center gap-2.5 bg-white/10 border border-white/20 rounded-xl px-3.5 py-2 mt-2`}
             onPress={() => setShowMoreSettingsModal(true)}
             activeOpacity={0.7}
           >
-            <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>More settings</Text>
+            <Text style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-ExtraBold' }]}>More settings</Text>
           </TouchableOpacity>
         </View>
         {/* </KeyboardAwareScrollView > */}
