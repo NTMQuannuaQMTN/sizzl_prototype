@@ -20,6 +20,7 @@ function formatFullDate(date: Date): string {
 
 import { supabase } from '@/utils/supabase';
 import { Ionicons } from '@expo/vector-icons';
+import * as FileSystem from 'expo-file-system';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -221,121 +222,87 @@ export default function CreatePage() {
     let draftErr;
     let dataEvent;
 
-    if (title === '' || !date.dateChosen || !rsvpDL) {
-      if (id === '') {
-        // Insert new event if id is empty
-        ({ data: dataEvent, error: draftErr } = await supabase.from('events')
-          .insert([{
-            title: title, public: publicEvent,
-            start: (date.dateChosen ? startDateTime : null),
-            end: (date.endSet ? endDateTime : null),
-            location_add: 'Ahihi', location_name: 'Ahihi',
-            location_more: 'Ahihi', location_note: 'Ahihi',
-            rsvpfirst: location.rsvpFirst, rsvp_deadline: rsvpDL,
-            bio: bio, cash_prize: specialBox.cash ? special.cash : null,
-            free_food: specialBox.food ? special.food : null,
-            free_merch: specialBox.merch ? special.merch : null,
-            cool_prize: specialBox.coolPrize ? special.coolPrize : null,
-            host_id: user.id, public_list: list.public, maybe: list.maybe,
-            done: false,
-          }])
-          .select('id') // Request the id of the inserted event
-        );
-      } else {
-        // Update existing event if id is not empty
-        ({ error: draftErr } = await supabase.from('events')
-          .update({
-            title: title, public: publicEvent,
-            start: (date.dateChosen ? startDateTime : null),
-            end: (date.endSet ? endDateTime : null),
-            location_add: 'Ahihi', location_name: 'Ahihi',
-            location_more: 'Ahihi', location_note: 'Ahihi',
-            rsvpfirst: location.rsvpFirst, rsvp_deadline: rsvpDL,
-            bio: bio, cash_prize: specialBox.cash ? special.cash : null,
-            free_food: specialBox.food ? special.food : null,
-            free_merch: specialBox.merch ? special.merch : null,
-            cool_prize: specialBox.coolPrize ? special.coolPrize : null,
-            host_id: user.id, public_list: list.public, maybe: list.maybe,
-            done: false,
-          })
-          .eq('id', id));
-      }
-
-      if (true) {
-        Alert.alert('Err');
-      }
-      if (dataEvent) {
-        setID(dataEvent[0].id);
-        console.log(dataEvent[0].id);
-        return dataEvent[0].id; // <-- return the new id
-      }
-      return id;
+    if (id === '') {
+      // Insert new event if id is empty
+      ({ data: dataEvent, error: draftErr } = await supabase.from('events')
+        .insert([{
+          title: title, public: publicEvent,
+          start: (date.dateChosen ? startDateTime : null),
+          end: (date.endSet ? endDateTime : null),
+          location_add: 'Ahihi', location_name: 'Ahihi',
+          location_more: 'Ahihi', location_note: 'Ahihi',
+          rsvpfirst: location.rsvpFirst, rsvp_deadline: rsvpDL,
+          bio: bio, cash_prize: specialBox.cash ? special.cash : null,
+          free_food: specialBox.food ? special.food : null,
+          free_merch: specialBox.merch ? special.merch : null,
+          cool_prize: specialBox.coolPrize ? special.coolPrize : null,
+          host_id: user.id, public_list: list.public, maybe: list.maybe,
+          done: !(title === '' || !date.dateChosen || !rsvpDL),
+          school_id: user.school_id
+        }])
+        .select('id') // Request the id of the inserted event
+      );
     } else {
-      if (id === '') {
-        // Insert new event if id is empty
-        ({ data: dataEvent, error: draftErr } = await supabase.from('events')
-          .insert([{
-            title: title, public: publicEvent,
-            start: (date.dateChosen ? startDateTime : null),
-            end: (date.endSet ? endDateTime : null),
-            location_add: 'Ahihi', location_name: 'Ahihi',
-            location_more: 'Ahihi', location_note: 'Ahihi',
-            rsvpfirst: location.rsvpFirst, rsvp_deadline: rsvpDL,
-            bio: bio, cash_prize: specialBox.cash ? special.cash : null,
-            free_food: specialBox.food ? special.food : null,
-            free_merch: specialBox.merch ? special.merch : null,
-            cool_prize: specialBox.coolPrize ? special.coolPrize : null,
-            host_id: user.id, public_list: list.public, maybe: list.maybe,
-            done: true,
-          }])
-          .select('id') // Request the id of the inserted event
-        );
-      } else {
-        // Update existing event if id is not empty
-        ({ error: draftErr } = await supabase.from('events')
-          .update({
-            title: title, public: publicEvent,
-            start: (date.dateChosen ? startDateTime : null),
-            end: (date.endSet ? endDateTime : null),
-            location_add: 'Ahihi', location_name: 'Ahihi',
-            location_more: 'Ahihi', location_note: 'Ahihi',
-            rsvpfirst: location.rsvpFirst, rsvp_deadline: rsvpDL,
-            bio: bio, cash_prize: specialBox.cash ? special.cash : null,
-            free_food: specialBox.food ? special.food : null,
-            free_merch: specialBox.merch ? special.merch : null,
-            cool_prize: specialBox.coolPrize ? special.coolPrize : null,
-            host_id: user.id, public_list: list.public, maybe: list.maybe,
-            done: true,
-          })
-          .eq('id', id));
-      }
-
-      if (true) {
-        Alert.alert('Err');
-      }
-      if (dataEvent) {
-        setID(dataEvent[0].id);
-        console.log(dataEvent[0].id);
-        return dataEvent[0].id; // <-- return the new id
-      }
-      return id;
+      // Update existing event if id is not empty
+      ({ error: draftErr } = await supabase.from('events')
+        .update({
+          title: title, public: publicEvent,
+          start: (date.dateChosen ? startDateTime : null),
+          end: (date.endSet ? endDateTime : null),
+          location_add: 'Ahihi', location_name: 'Ahihi',
+          location_more: 'Ahihi', location_note: 'Ahihi',
+          rsvpfirst: location.rsvpFirst, rsvp_deadline: rsvpDL,
+          bio: bio, cash_prize: specialBox.cash ? special.cash : null,
+          free_food: specialBox.food ? special.food : null,
+          free_merch: specialBox.merch ? special.merch : null,
+          cool_prize: specialBox.coolPrize ? special.coolPrize : null,
+          host_id: user.id, public_list: list.public, maybe: list.maybe,
+          done: !(title === '' || !date.dateChosen || !rsvpDL),
+        })
+        .eq('id', id));
     }
+
+    if (true) {
+      Alert.alert('Err');
+    }
+    if (dataEvent) {
+      setID(dataEvent[0].id);
+      console.log(dataEvent[0].id);
+      return dataEvent[0].id; // <-- return the new id
+    }
+    return id;
   }
 
   const updateImage = async (eventId: string) => {
     console.log('updating');
+
     let imgURL = '';
     if (image && typeof image !== 'number') {
       try {
-        // Generate a unique filename for the image
-        const filePath = `event_cover/${eventId}`;
+        // Get file info and determine file extension
+        const fileUri = image;
+        const fileExtension = fileUri.split('.').pop()?.toLowerCase() || 'jpg';
+        const fileName = `event_cover/${eventId}.${fileExtension}`;
 
-        const response = await fetch(image);
-        const blob = await response.blob();
+        // Read file as ArrayBuffer for proper binary upload
+        const fileArrayBuffer = await FileSystem.readAsStringAsync(fileUri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        // Convert base64 to Uint8Array
+        const byteCharacters = atob(fileArrayBuffer);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const uint8Array = new Uint8Array(byteNumbers);
 
         const { error: uploadError } = await supabase.storage
           .from('sizzl-profileimg')
-          .upload(filePath, blob);
+          .upload(fileName, uint8Array, {
+            contentType: `image/${fileExtension === 'jpg' ? 'jpeg' : fileExtension}`,
+            upsert: true
+          });
 
         if (uploadError) {
           console.error('Upload error:', uploadError);
@@ -344,7 +311,7 @@ export default function CreatePage() {
 
         const { data: urlData } = await supabase.storage
           .from('sizzl-profileimg')
-          .getPublicUrl(filePath);
+          .getPublicUrl(fileName);
 
         const publicUrl = urlData?.publicUrl;
         setImageURL(publicUrl);
@@ -503,6 +470,7 @@ export default function CreatePage() {
                 await updateImage(newId);
                 await addCohost(newId);
               }
+              router.replace('/home/homepage')
             }}>
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Done</Text>
           </TouchableOpacity>
@@ -1009,118 +977,6 @@ export default function CreatePage() {
           }}
         />
       </View>
-
-      {/* Cohost Modal */}
-      <CohostModal
-        visible={showCohostModal}
-        onClose={() => setShowCohostModal(false)}
-        friends={friends}
-        cohosts={cohosts}
-        onSave={setCohosts}
-      />
-      {/* Location Modal */}
-      <LocationModal
-        visible={showLocationModal}
-        onClose={() => setShowLocationModal(false)}
-        location={location}
-        setLocation={setLocation}
-        locations={locations}
-      />
-      <DateTimeModal
-        visible={showDateTimeModal}
-        onClose={() => {
-          setShowDateTimeModal(false);
-        }}
-        startDate={date.start}
-        startTime={date.startTime}
-        endSet={date.endSet}
-        endDate={date.end || new Date()}
-        endTime={date.endTime || '12:00am'}
-        onSave={({ start, end, startTime, endTime, endSet }) => {
-          // Helper to combine date and time string into a Date object
-          function combineDateAndTime(dateObj: Date, timeStr: string): Date {
-            const match = timeStr.match(/(\d+):(\d+)(am|pm)/i);
-            if (!match) return new Date(dateObj);
-            let [_, hourStr, minStr, ampm] = match;
-            let hour = Number(hourStr);
-            let minute = Number(minStr);
-            if (ampm.toLowerCase() === 'pm' && hour !== 12) hour += 12;
-            if (ampm.toLowerCase() === 'am' && hour === 12) hour = 0;
-            const newDate = new Date(dateObj);
-            newDate.setHours(hour, minute, 0, 0);
-            return newDate;
-          }
-
-          const now = new Date();
-          const startDateTime = combineDateAndTime(start, String(startTime));
-          const endDateTime = combineDateAndTime(end, String(endTime || '12:00am'));
-
-          // 1. Start must not be before now
-          if (startDateTime.getTime() < now.getTime()) {
-            alert("Start date and time must not be before the current time.");
-            return;
-          }
-
-          // 2. End must be at least 30 minutes after start
-          if (endSet && endDateTime.getTime() - startDateTime.getTime() < 30 * 60 * 1000) {
-            alert("End date and time must be at least 30 minutes after the start.");
-            return;
-          }
-
-          // If valid, update date state and close modal
-          setDate((prev) => ({
-            ...prev,
-            start: start,
-            startTime: String(startTime),
-            end: end,
-            endTime: String(endTime),
-            endSet: endSet,
-            dateChosen: true,
-          }));
-          setShowDateTimeModal(false);
-        }}
-      />
-      <ImageModal
-        visible={showImageModal}
-        onClose={() => { setShowImageModal(false) }}
-        imageOptions={imageOptions}
-        onSelect={(img) => { setImage(img) }}
-      />
-
-      {/* More Settings Modal */}
-      <MoreSettingsModal
-        visible={showMoreSettingsModal}
-        onClose={() => setShowMoreSettingsModal(false)}
-        list={list}
-        setList={setList}
-      />
-
-      <RSVPDeadlineModal
-        visible={showRSVPModal}
-        onClose={() => setShowRSVPModal(false)}
-        initialDate={rsvpDL ?? new Date()}
-        maxDate={date.start}
-        minDate={(() => {
-          const start = new Date(date.start);
-          const min = new Date(start);
-          min.setDate(min.getDate() - 7);
-          const now = new Date();
-          // minDate cannot be before today
-          if (min < now) return now;
-          return min;
-        })()}
-        onSave={(selectedDate, selectedTime) => {
-          // Check if the selected date is within 7 days before the event start date
-          const startDate = new Date(date.start);
-          const diffMs = startDate.getTime() - new Date(selectedDate).getTime();
-          const diffDays = diffMs / (1000 * 60 * 60 * 24);
-          if (diffDays >= 0 && diffDays <= 8) {
-            setRSVPDL(new Date(selectedDate));
-            setRSVPDLTime(selectedTime);
-            setShowRSVPModal(false);
-          }
-        }}
-      />
     </KeyboardAwareScrollView >
   );
 }

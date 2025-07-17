@@ -150,17 +150,17 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
         >
           <Animated.View
             style={[tw`w-full px-0 pt-6 pb-0 rounded-t-2xl`,
-              { backgroundColor: '#080B32', marginBottom: 0, paddingHorizontal: 0, paddingBottom: 0 },
-              {
-                transform: [
-                  {
-                    translateY: slideAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [0, 400],
-                    }),
-                  },
-                ],
-              },
+            { backgroundColor: '#080B32', marginBottom: 0, paddingHorizontal: 0, paddingBottom: 0 },
+            {
+              transform: [
+                {
+                  translateY: slideAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, 400],
+                  }),
+                },
+              ],
+            },
             ]}
           >
             {/* Drag bar */}
@@ -256,47 +256,50 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
             )}
 
             {/* Display name */}
-            <View style={tw`mb-2 mx-3`}> 
-              <Text style={[tw`text-white text-[13px] mb-1`, { fontFamily: 'Nunito-Bold' }]}>Display name</Text>
-              <View style={tw`bg-white/10 rounded-xl px-3 pt-0.5`}>
-                <TextInput
-                  style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-Medium' }]}
-                  placeholder="eg. Jonny's apartment"
-                  placeholderTextColor="#9ca3af"
-                  value={location.name}
-                  onChangeText={text => setLocation(loc => ({ ...loc, name: text }))}
-                />
+            {location.selected &&
+              <View style={tw`mb-2 mx-3`}>
+                <Text style={[tw`text-white text-[13px] mb-1`, { fontFamily: 'Nunito-Bold' }]}>Display name</Text>
+                <View style={tw`bg-white/10 rounded-xl px-3 pt-0.5`}>
+                  <TextInput
+                    style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-Medium' }]}
+                    placeholder="eg. Jonny's apartment"
+                    placeholderTextColor="#9ca3af"
+                    value={location.name}
+                    onChangeText={text => setLocation(loc => ({ ...loc, name: text }))}
+                  />
+                </View>
               </View>
-            </View>
-
+            }
             {/* Apt / Suite / Floor */}
-            <View style={tw`mb-2 mx-3`}>
-              <Text style={[tw`text-white text-[13px] mb-1`, { fontFamily: 'Nunito-Bold' }]}>Apt / Suite / Floor</Text>
-              <View style={tw`bg-white/10 rounded-xl px-3 pt-0.5`}>
-                <TextInput
-                  style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-Medium' }]}
-                  placeholder="eg. Room 12E"
-                  placeholderTextColor="#9ca3af"
-                  value={location.aptSuite}
-                  onChangeText={text => setLocation(loc => ({ ...loc, aptSuite: text }))}
-                />
+            {location.selected &&
+              <View style={tw`mb-2 mx-3`}>
+                <Text style={[tw`text-white text-[13px] mb-1`, { fontFamily: 'Nunito-Bold' }]}>Apt / Suite / Floor</Text>
+                <View style={tw`bg-white/10 rounded-xl px-3 pt-0.5`}>
+                  <TextInput
+                    style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-Medium' }]}
+                    placeholder="eg. Room 12E"
+                    placeholderTextColor="#9ca3af"
+                    value={location.aptSuite}
+                    onChangeText={text => setLocation(loc => ({ ...loc, aptSuite: text }))}
+                  />
+                </View>
               </View>
-            </View>
-
+            }
             {/* Further notes */}
-            <View style={tw`mb-4 mx-3`}>
-              <Text style={[tw`text-white text-[13px] mb-1`, { fontFamily: 'Nunito-Bold' }]}>Further notes</Text>
-              <View style={tw`bg-white/10 rounded-xl px-3 pt-0.5`}>
-                <TextInput
-                  style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-Medium' }]}
-                  placeholder="eg. take the second elevator, not the first one"
-                  placeholderTextColor="#9ca3af"
-                  value={location.notes}
-                  onChangeText={text => setLocation(loc => ({ ...loc, notes: text }))}
-                />
+            {location.selected &&
+              <View style={tw`mb-4 mx-3`}>
+                <Text style={[tw`text-white text-[13px] mb-1`, { fontFamily: 'Nunito-Bold' }]}>Further notes</Text>
+                <View style={tw`bg-white/10 rounded-xl px-3 pt-0.5`}>
+                  <TextInput
+                    style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-Medium' }]}
+                    placeholder="eg. take the second elevator, not the first one"
+                    placeholderTextColor="#9ca3af"
+                    value={location.notes}
+                    onChangeText={text => setLocation(loc => ({ ...loc, notes: text }))}
+                  />
+                </View>
               </View>
-            </View>
-
+            }
             {/* Save and Cancel buttons */}
             <View style={tw`px-3 pb-4`}>
               <TouchableOpacity
