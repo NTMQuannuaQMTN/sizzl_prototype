@@ -238,6 +238,7 @@ export default function CreatePage() {
           cool_prize: specialBox.coolPrize ? special.coolPrize : null,
           host_id: user.id, public_list: list.public, maybe: list.maybe,
           done: !(title === '' || !date.dateChosen || !rsvpDL),
+          school_id: user.school_id
         }])
         .select('id') // Request the id of the inserted event
       );
