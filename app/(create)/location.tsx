@@ -1,7 +1,6 @@
-
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, KeyboardAvoidingView, Modal, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Animated, Easing, FlatList, KeyboardAvoidingView, Modal, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 import LocationIcon from '../../assets/icons/location.svg';
 
@@ -22,10 +21,23 @@ interface LocationModalProps {
   locations?: { address: string; city: string }[];
 }
 
+interface PlaceSuggestion {
+  description: string;
+  place_id: string;
+  structured_formatting: {
+    main_text: string;
+    secondary_text: string;
+  };
+}
+
 function LocationModal({ visible, onClose, location, setLocation, locations }: LocationModalProps) {
   const safeLocations = Array.isArray(locations) ? locations : [];
+  const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  
   // Animation logic (slide up/down)
-  const slideAnim = useRef(new Animated.Value(1)).current; // 1 = hidden, 0 = visible
+  const slideAnim = useRef(new Animated.Value(1)).current;
   const [shouldRender, setShouldRender] = useState(visible);
 
   useEffect(() => {
@@ -48,6 +60,72 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
       });
     }
   }, [visible]);
+
+  // Debounced search function
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (location.search.length > 2) {
+        searchPlaces(location.search);
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [location.search]);
+
+  const searchPlaces = async (input: string) => {
+    if (!input.trim()) return;
+    setIsSearching(true);
+    try {
+      // Using OpenStreetMap Nominatim - must set User-Agent header!
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(input)}&limit=5&addressdetails=1`,
+        {
+          headers: {
+            'User-Agent': 'sizzl-app/1.0 (your@email.com)',
+            'Accept': 'application/json'
+          }
+        }
+      );
+      const data = await response.json();
+      if (data && data.length > 0) {
+        // Transform OSM data to match our interface
+        const transformedData = data.map((item: any) => ({
+          place_id: item.place_id,
+          description: item.display_name,
+          structured_formatting: {
+            main_text: item.name || item.display_name.split(',')[0],
+            secondary_text: item.display_name.split(',').slice(1).join(',').trim()
+          }
+        }));
+        setSuggestions(transformedData);
+        setShowSuggestions(true);
+      }
+    } catch (error) {
+      console.error('Error fetching places:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const selectSuggestion = (suggestion: PlaceSuggestion) => {
+    setLocation(loc => ({ 
+      ...loc, 
+      search: suggestion.description,
+      selected: suggestion.description 
+    }));
+    setShowSuggestions(false);
+    setSuggestions([]);
+  };
+
+  const handleSearchChange = (text: string) => {
+    setLocation(loc => ({ ...loc, search: text }));
+    if (text.length > 0) {
+      setShowSuggestions(true);
+    }
+  };
 
   if (!shouldRender) return null;
 
@@ -87,19 +165,54 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
           >
             {/* Drag bar */}
             <Text style={[tw`text-white text-[15px] mb-4`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Set event location</Text>
+            
             {/* Set location box with search icon */}
             <View style={tw`mb-2.5 mx-3 bg-white/10 rounded-xl px-3 pt-0.5`}>
               <View style={tw`flex-row items-center`}>
                 <Ionicons name="search" size={16} color="#9ca3af" style={tw`mr-2`} />
                 <TextInput
-                  style={[tw`w-full text-white text-[14px]`, { fontFamily: 'Nunito-Medium' }]}
+                  style={[tw`flex-1 text-white text-[14px]`, { fontFamily: 'Nunito-Medium' }]}
                   placeholder="Set your location"
                   placeholderTextColor="#9ca3af"
                   value={location.search}
-                  onChangeText={text => setLocation(loc => ({ ...loc, search: text }))}
+                  onChangeText={handleSearchChange}
+                  autoCorrect={false}
+                  autoCapitalize="none"
                 />
+                {isSearching && (
+                  <Ionicons name="refresh" size={16} color="#9ca3af" style={tw`ml-2`} />
+                )}
               </View>
             </View>
+
+            {/* Search suggestions */}
+            {showSuggestions && suggestions.length > 0 && (
+              <View style={tw`mx-3 mb-3 bg-white/10 rounded-xl max-h-48`}>
+                <FlatList
+                  data={suggestions}
+                  keyExtractor={(item) => item.place_id}
+                  showsVerticalScrollIndicator={false}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={tw`flex-row items-center px-3 py-2 border-b border-white/5`}
+                      onPress={() => selectSuggestion(item)}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="location-outline" size={16} color="#9ca3af" style={tw`mr-3`} />
+                      <View style={tw`flex-1`}>
+                        <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-Medium' }]}>
+                          {item.structured_formatting.main_text}
+                        </Text>
+                        <Text style={[tw`text-gray-400 text-[12px]`, { fontFamily: 'Nunito-Regular' }]}>
+                          {item.structured_formatting.secondary_text}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  )}
+                />
+              </View>
+            )}
+
             {/* RSVP checkbox */}
             <TouchableOpacity
               style={tw`flex-row items-center mx-3`}
@@ -110,7 +223,6 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
                 tw`w-[0.9rem] h-[0.9rem] rounded border border-gray-400 items-center justify-center mr-2`,
                 location.rsvpFirst ? tw`bg-[#7A5CFA]` : tw`bg-white/10`
               ]}>
-                {/* Unchecked: no checkmark */}
                 {location.rsvpFirst && (
                   <View style={tw`w-2 h-2`} />
                 )}
@@ -122,23 +234,27 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
                 Guests must RSVP first to see location
               </Text>
             </TouchableOpacity>
-            {/* Location list */}
-            <View style={tw`mb-4 mx-3`}>
-              {safeLocations.map((loc, idx) => (
-                <TouchableOpacity
-                  key={idx}
-                  style={[tw`flex-row items-start mb-2`, { opacity: location.selected === loc.address ? 1 : 0.7 }]}
-                  onPress={() => setLocation(loca => ({ ...loca, selected: loc.address, search: loc.address }))}
-                  activeOpacity={0.7}
-                >
-                  <LocationIcon width={16} height={16} style={{ marginTop: 2, marginRight: 6 }} />
-                  <View>
-                    <Text style={[tw`text-white text-[16px]`, { fontFamily: 'Nunito-Bold' }]}>{loc.address}</Text>
-                    <Text style={[tw`text-[#B0B8C1] text-[13px]`, { fontFamily: 'Nunito-Medium' }]}>{loc.city}</Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </View>
+
+            {/* Location list - only show if no suggestions are displayed */}
+            {(!showSuggestions || suggestions.length === 0) && (
+              <View style={tw`mb-4 mx-3`}>
+                {safeLocations.map((loc, idx) => (
+                  <TouchableOpacity
+                    key={idx}
+                    style={[tw`flex-row items-start mb-2`, { opacity: location.selected === loc.address ? 1 : 0.7 }]}
+                    onPress={() => setLocation(loca => ({ ...loca, selected: loc.address, search: loc.address }))}
+                    activeOpacity={0.7}
+                  >
+                    <LocationIcon width={16} height={16} style={{ marginTop: 2, marginRight: 6 }} />
+                    <View>
+                      <Text style={[tw`text-white text-[16px]`, { fontFamily: 'Nunito-Bold' }]}>{loc.address}</Text>
+                      <Text style={[tw`text-[#B0B8C1] text-[13px]`, { fontFamily: 'Nunito-Medium' }]}>{loc.city}</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+
             {/* Display name */}
             <View style={tw`mb-2 mx-3`}> 
               <Text style={[tw`text-white text-[13px] mb-1`, { fontFamily: 'Nunito-Bold' }]}>Display name</Text>
@@ -152,6 +268,7 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
                 />
               </View>
             </View>
+
             {/* Apt / Suite / Floor */}
             <View style={tw`mb-2 mx-3`}>
               <Text style={[tw`text-white text-[13px] mb-1`, { fontFamily: 'Nunito-Bold' }]}>Apt / Suite / Floor</Text>
@@ -165,6 +282,7 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
                 />
               </View>
             </View>
+
             {/* Further notes */}
             <View style={tw`mb-4 mx-3`}>
               <Text style={[tw`text-white text-[13px] mb-1`, { fontFamily: 'Nunito-Bold' }]}>Further notes</Text>
@@ -178,6 +296,7 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
                 />
               </View>
             </View>
+
             {/* Save and Cancel buttons */}
             <View style={tw`px-3 pb-4`}>
               <TouchableOpacity
@@ -201,4 +320,5 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
     </Modal>
   );
 }
+
 export default LocationModal;
