@@ -19,6 +19,7 @@ function formatFullDate(date: Date): string {
 }
 
 import { supabase } from '@/utils/supabase';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -848,11 +849,12 @@ export default function CreatePage() {
         {/* More settings modal */}
         <View style={tw`px-4 mb-16`}>
           <TouchableOpacity
-            style={tw`flex-row items-center justify-center gap-2.5 bg-white/10 border border-white/20 rounded-xl px-3.5 py-2 mt-2`}
+            style={tw`flex-row items-center justify-center gap-1.5 bg-white/10 border border-white/20 rounded-xl px-3.5 py-2 mt-2`}
             onPress={() => setShowMoreSettingsModal(true)}
             activeOpacity={0.7}
           >
             <Text style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-ExtraBold' }]}>More settings</Text>
+            <Ionicons name="chevron-down" size={13} color="#fff" style={tw`mt-0.5`} />
           </TouchableOpacity>
         </View>
         {/* </KeyboardAwareScrollView > */}
