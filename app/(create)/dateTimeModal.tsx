@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Easing, Keyboard, Modal, PanResponder, ScrollView, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import tw from 'twrnc';
 
@@ -55,11 +55,62 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
   };
 
 
-  // Animation logic (slide up/down, like cohost modal)
-
-  const slideAnim = useRef(new Animated.Value(1)).current; // 1 = hidden, 0 = visible
+  // Draggable modal logic (like cohost modal)
+  const MODAL_HEIGHT = 760;
+  const slideAnim = useRef(new Animated.Value(MODAL_HEIGHT)).current;
+  const pan = useRef(new Animated.ValueXY()).current;
   const [shouldRender, setShouldRender] = useState(visible);
   const [isAnimating, setIsAnimating] = useState(false);
+
+  // PanResponder for drag-to-dismiss
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponderCapture: () => false,
+      onMoveShouldSetPanResponder: (evt, gestureState) => Math.abs(gestureState.dy) > Math.abs(gestureState.dx),
+      onMoveShouldSetPanResponderCapture: (evt, gestureState) => Math.abs(gestureState.dy) > Math.abs(gestureState.dx) && gestureState.dy > 0,
+      onPanResponderGrant: () => {
+        slideAnim.stopAnimation();
+        pan.setOffset({ x: 0, y: (slideAnim as any).__getValue() });
+        pan.setValue({ x: 0, y: 0 });
+      },
+      onPanResponderMove: (evt, gestureState) => {
+        const clampedDy = Math.max(0, gestureState.dy);
+        pan.setValue({ x: 0, y: clampedDy });
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+        pan.flattenOffset();
+        const currentPosition = (pan.y as any).__getValue ? (pan.y as any).__getValue() : 0;
+        const slideDownThreshold = MODAL_HEIGHT * 0.3;
+        const velocityThreshold = 0.5;
+        if (currentPosition > slideDownThreshold || gestureState.vy > velocityThreshold) {
+          Animated.timing(slideAnim, {
+            toValue: MODAL_HEIGHT,
+            duration: 250,
+            easing: Easing.in(Easing.cubic),
+            useNativeDriver: true,
+          }).start(() => {
+            setTimeout(() => {
+              setShouldRender(false);
+              pan.setValue({ x: 0, y: 0 });
+              onClose();
+            }, 0);
+          });
+        } else {
+          Animated.spring(slideAnim, {
+            toValue: 0,
+            useNativeDriver: true,
+            bounciness: 0,
+            speed: 10,
+          }).start(() => {
+            setTimeout(() => {
+              pan.setValue({ x: 0, y: 0 });
+            }, 0);
+          });
+        }
+      },
+    })
+  ).current;
 
   useEffect(() => {
     if (visible) {
@@ -70,17 +121,22 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
         duration: 300,
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
-      }).start(() => setIsAnimating(false));
+      }).start(() => {
+        setTimeout(() => setIsAnimating(false), 0);
+      });
     } else {
       setIsAnimating(true);
       Animated.timing(slideAnim, {
-        toValue: 1,
+        toValue: MODAL_HEIGHT,
         duration: 250,
         easing: Easing.in(Easing.cubic),
         useNativeDriver: true,
       }).start(() => {
-        setShouldRender(false);
-        setIsAnimating(false);
+        setTimeout(() => {
+          setShouldRender(false);
+          setIsAnimating(false);
+          pan.setValue({ x: 0, y: 0 });
+        }, 0);
       });
     }
   }, [visible]);
@@ -142,7 +198,7 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
   return (
     <Modal
       visible={visible}
-      animationType={Platform.OS === 'ios' ? 'slide' : 'fade'}
+      animationType="none"
       transparent
       onRequestClose={onClose}
       statusBarTranslucent
@@ -157,21 +213,19 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
         <Animated.View
           style={[
             tw`w-full px-0 pt-6 pb-0 rounded-t-2xl`,
-            { backgroundColor: '#080B32', marginBottom: 0, paddingHorizontal: 0, paddingBottom: 0, height: 730 },
+            { backgroundColor: '#080B32', marginBottom: 0, paddingHorizontal: 0, paddingBottom: 0, height: MODAL_HEIGHT },
             {
               transform: [
-                {
-                  translateY: slideAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0, 400],
-                  }),
-                },
+                { translateY: Animated.add(slideAnim, pan.y) },
               ],
             },
           ]}
+          {...panResponder.panHandlers}
         >
-          <View style={{ flex: 1, flexDirection: 'column' }}>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+            <View style={{ flex: 1, flexDirection: 'column' }}>
             <View style={{ flex: 1 }}>
+              <View style={tw`w-12 h-1.5 bg-gray-500 rounded-full self-center mb-3`} />
               <View style={[tw`mb-4 flex-row items-center`, { minHeight: 24 }]}> 
                 <TouchableOpacity
                   style={[tw`px-4 py-1`, { minWidth: 50, alignItems: 'flex-start', justifyContent: 'center' }]}
@@ -527,7 +581,7 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
               return null;
             })()}
             {/* Save/Cancel always at bottom */}
-            <View style={tw`py-3 px-4`}>
+            <View style={tw`pb-8 px-3`}>
               <TouchableOpacity
                 style={[
                   tw`bg-[#7A5CFA] rounded-full flex-row justify-center py-2.5 items-center gap-1.5`,
@@ -603,7 +657,8 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
                 <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Cancel</Text>
               </TouchableOpacity>
             </View>
-          </View>
+            </View>
+          </TouchableWithoutFeedback>
         </Animated.View>
       </View>
     </Modal>
