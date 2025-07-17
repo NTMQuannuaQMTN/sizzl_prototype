@@ -9,7 +9,7 @@ import NotiIcon from '../assets/icons/noti_icon.svg';
 export default function TopBar() {
   const router = useRouter();
   return (
-    <View style={tw`flex-row items-start justify-between mb-2`}>
+    <View style={tw`flex-row items-start justify-between mt-3 mb-2`}>
       <View>
         <Text style={[tw`text-white text-2xl mt-1`, { fontFamily: 'Nunito-ExtraBold' }]}>sizzl</Text>
         <Text style={[tw`text-white text-xs mt-1`, { fontFamily: 'Nunito-Medium' }]}>Eyy what's good what's good!</Text>
