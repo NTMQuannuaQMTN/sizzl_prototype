@@ -385,6 +385,40 @@ export default function CreatePage() {
     }
   }
 
+  const addCohost = async (eventId: string) => {
+    // Remove all previous co-host
+    console.log('Prev coh');
+    const { error: remErr } = await supabase
+      .from('hosts')
+      .delete()
+      .eq('event_id', eventId);
+
+    if (remErr) { Alert.alert('Can\'t remove'); return; }
+
+    if (Array.isArray(cohosts) && cohosts.length > 0) {
+      for (const cohost of cohosts) {
+        // cohost could be an id or an object; adjust as needed
+        if (typeof cohost === 'string') {
+          const { error: addHostErr } = await supabase.from('hosts')
+            .insert([
+              { event_id: eventId, name: cohost }
+            ])
+          if (addHostErr) {
+            console.log('Can\'t add'); return;
+          }
+        } else {
+          const { error: addHostErr } = await supabase.from('hosts')
+            .insert([
+              { event_id: eventId, user_id: cohost.id }
+            ])
+          if (addHostErr) {
+            console.log('Can\'t add'); return;
+          }
+        }
+      }
+    }
+  }
+
   useEffect(() => {
     // Example async fetch function, replace with your actual API/database call
     async function fetchFriends() {
@@ -467,6 +501,7 @@ export default function CreatePage() {
               const newId = await addEvent();
               if (newId) {
                 await updateImage(newId);
+                await addCohost(newId);
               }
             }}>
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Done</Text>
