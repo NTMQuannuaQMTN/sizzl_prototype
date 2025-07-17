@@ -681,11 +681,11 @@ export default function CreatePage() {
             onPress={() => setShowLocationModal(true)}
             activeOpacity={0.7}
           >
-            {location.selected
+            {location.name || location.selected
               ? <LocationWhite width={14} height={14} />
               : <Location width={14} height={14} />}
-            <Text style={[tw`${location.selected ? 'text-white' : 'text-gray-400'} text-[13px]`, { fontFamily: 'Nunito-ExtraBold' }]}>
-              {location.selected ? location.selected : 'Set location'}
+            <Text style={[tw`${(location.name || location.selected) ? 'text-white' : 'text-gray-400'} text-[13px]`, { fontFamily: 'Nunito-ExtraBold' }]}> 
+              {location.name ? location.name : (location.selected ? location.selected : 'Set location')}
             </Text>
           </TouchableOpacity>
         </View>

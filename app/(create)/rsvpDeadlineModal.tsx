@@ -304,7 +304,8 @@ const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose,
             const isUnsetStart =
               !maxDate ||
               isNaN(maxDate.getTime()) ||
-              maxDate.getTime() === 0;
+              maxDate.getTime() === 0 ||
+              (maxDate.toDateString && maxDate.toDateString() === new Date().toDateString());
             const match = selectedTime.match(/(\d+):(\d+)(am|pm)/i);
             let hour = 0, minute = 0;
             if (match) {

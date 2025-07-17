@@ -103,7 +103,7 @@ export default function CohostModal({ visible, onClose, friends, cohosts, onSave
           <Text style={[tw`text-white text-[15px] mb-4`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Manage hosts</Text>
 
           {/* Cohost input */}
-            <View style={tw`mb-3 mx-3 bg-white/10 rounded-xl px-3 py-2`}>
+            <View style={tw`mb-3 mx-3 bg-white/10 rounded-xl px-3 pt-1.5 pb-1`}>
             <View style={tw`flex-row justify-start items-center gap-2`}>
               <Host style={tw`-mt-0.5`} width={12} height={12} />
               <TextInput style={[tw`text-white text-[13px] w-full`, { fontFamily: 'Nunito-Medium' }]} 
