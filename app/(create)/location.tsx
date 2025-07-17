@@ -1,7 +1,7 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, KeyboardAvoidingView, Modal, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Animated, Easing, Modal, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 import LocationIcon from '../../assets/icons/location.svg';
 
@@ -66,8 +66,7 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
           activeOpacity={1}
           onPress={onClose}
         />
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        <View
           style={{ width: '100%' }}
         >
           <Animated.View
@@ -88,7 +87,7 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
             {/* Drag bar */}
             <Text style={[tw`text-white text-[15px] mb-4`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Set event location</Text>
             {/* Set location box with search icon */}
-            <View style={tw`mb-2.5 mx-3 bg-white/10 rounded-xl px-3 pt-0.5`}>
+            <View style={tw`mb-2.5 mx-3 bg-white/10 rounded-xl px-3`}>
               <View style={tw`flex-row items-center`}>
                 <Ionicons name="search" size={16} color="#9ca3af" style={tw`mr-2`} />
                 <TextInput
@@ -202,7 +201,7 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
               </TouchableOpacity>
             </View>
           </Animated.View>
-        </KeyboardAvoidingView>
+        </View>
       </View>
     </Modal>
   );

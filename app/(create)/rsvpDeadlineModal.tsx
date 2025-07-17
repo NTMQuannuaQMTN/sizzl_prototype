@@ -7,13 +7,15 @@ interface RSVPDeadlineModalProps {
   visible: boolean;
   onClose: () => void;
   initialDate: Date;
+  initialTime: string;
   minDate: Date;
   maxDate: Date;
   onSave: (date: Date, time: string) => void;
 }
 
-const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose, initialDate, minDate, maxDate, onSave }) => {
+const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose, initialDate, initialTime, minDate, maxDate, onSave }) => {
   const [selectedDate, setSelectedDate] = useState(initialDate);
+
   // Time picker logic (15-min intervals)
   const getTimeOptions = () => {
     const options: string[] = [];
@@ -44,7 +46,7 @@ const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose,
       break;
     }
   }
-  const [selectedTime, setSelectedTime] = useState(defaultTime);
+  const [selectedTime, setSelectedTime] = useState(initialTime === '' ? defaultTime: initialTime);
   const scrollRef = useRef<ScrollView>(null);
   const getSelectedTimeIdx = () => timeOptions.findIndex(t => t === selectedTime);
   const setSelectedTimeByIdx = (idx: number) => {
@@ -118,7 +120,7 @@ const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose,
               <TouchableOpacity
                 onPress={() => {
                   setSelectedDate(initialDate);
-                  setSelectedTime(defaultTime);
+                  setSelectedTime(initialTime === '' ? defaultTime: initialTime);
                 }}
                 style={tw`px-4 py-1`}
                 activeOpacity={0.7}
@@ -419,7 +421,7 @@ const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose,
                 style={[tw`bg-white/5 rounded-full py-3 items-center`]}
                 onPress={() => {
                   setSelectedDate(initialDate);
-                  setSelectedTime(defaultTime);
+                  setSelectedTime(initialTime === '' ? defaultTime: initialTime);
                   onClose();
                 }}
                 activeOpacity={0.7}

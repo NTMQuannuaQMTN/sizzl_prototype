@@ -1,7 +1,22 @@
+import { supabase } from '@/utils/supabase';
+import { useEffect } from 'react';
 import { Text, View } from 'react-native';
 import tw from 'twrnc';
 
-export default function EventCard() {
+export default function EventCard(props: any) {
+  useEffect(() => {
+    const getHost = async () => {
+      const {data: cohost, error: cohErr} = await supabase.from('hosts')
+      .select('name').eq('event_id', props.event.id);
+      if (cohErr) {
+        console.log('Err get coh');
+      } else {
+        console.log(cohost);
+      }
+    }
+    getHost();
+  }, []);
+  
   return (
     <View style={tw`mb-5`}>
       <View style={tw`rounded-2xl overflow-hidden bg-black/30`}>
@@ -24,9 +39,9 @@ export default function EventCard() {
           </View>
           {/* Card Content */}
           <View style={tw`absolute bottom-0 left-0 right-0 p-4`}>
-            <Text style={tw`text-white text-lg font-bold mb-1`}>Event title</Text>
+            <Text style={tw`text-white text-lg font-bold mb-1`}>{props.event.title}</Text>
             <View style={tw`flex-row items-center mb-1`}>
-              <Text style={tw`text-white/80 text-xs mr-2`}>Hosted by</Text>
+              <Text style={tw`text-white/80 text-xs mr-2`}>Hosted by {props.event.host_id}</Text>
               <Text style={tw`text-white/80 text-xs`}>•</Text>
               <Text style={tw`text-white/80 text-xs ml-2`}>Sun. Aug 25 • 3:00PM to 8:00PM</Text>
             </View>

@@ -862,7 +862,6 @@ export default function CreatePage() {
         </View>
         {/* </KeyboardAwareScrollView > */}
 
-        {/* Cohost Modal */}
         <CohostModal
           visible={showCohostModal}
           onClose={() => setShowCohostModal(false)}
@@ -870,7 +869,6 @@ export default function CreatePage() {
           cohosts={cohosts}
           onSave={setCohosts}
         />
-        {/* Location Modal */}
         <LocationModal
           visible={showLocationModal}
           onClose={() => setShowLocationModal(false)}
@@ -938,19 +936,17 @@ export default function CreatePage() {
           imageOptions={imageOptions}
           onSelect={(img) => { setImage(img) }}
         />
-
-        {/* More Settings Modal */}
         <MoreSettingsModal
           visible={showMoreSettingsModal}
           onClose={() => setShowMoreSettingsModal(false)}
           list={list}
           setList={setList}
         />
-
         <RSVPDeadlineModal
           visible={showRSVPModal}
           onClose={() => setShowRSVPModal(false)}
           initialDate={rsvpDL ?? new Date()}
+          initialTime={rsvpDLTime ?? ''}
           maxDate={date.start}
           minDate={(() => {
             const start = new Date(date.start);
@@ -961,14 +957,15 @@ export default function CreatePage() {
             if (min < now) return now;
             return min;
           })()}
-          onSave={(rsvp) => {
+          onSave={(rsvpDate, rsvpTime) => {
             // Check if the selected date is within 7 days before the event start date
             const startDate = new Date(date.start);
-            const selectedDate = new Date(rsvp);
+            const selectedDate = new Date(rsvpDate);
             const diffMs = startDate.getTime() - selectedDate.getTime();
             const diffDays = diffMs / (1000 * 60 * 60 * 24);
             if (diffDays >= 0 && diffDays <= 8) {
-              setRSVPDL(rsvp);
+              setRSVPDL(rsvpDate);
+              setRSVPDLTime(rsvpTime);
               setShowRSVPModal(false);
             } else {
               alert("RSVP deadline must be within 7 days before the event start date.");
