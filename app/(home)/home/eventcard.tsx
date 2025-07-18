@@ -71,7 +71,7 @@ export default function EventCard(props: any) {
                 source={
                   props.event.image.startsWith('default_')
                     ? defaultImages[parseInt(props.event.image.replace('default_', ''), 10) - 1]
-                    : props.event.image
+                    : {uri: props.event.image}
                 }
                 resizeMode='cover'
                 style={{ width: '100%', height: '100%' }}
