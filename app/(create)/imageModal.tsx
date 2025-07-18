@@ -149,7 +149,9 @@ export default function ImageModal({ visible, onClose, imageOptions, onSelect }:
                                 style={tw`w-12 h-1.5 bg-gray-500 rounded-full self-center mb-3`}
                                 {...panResponder.panHandlers}
                             />
-                            <Text style={[tw`text-white text-[15px] mb-4`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Choose a theme for your event 🔥</Text>
+                            <View {...panResponder.panHandlers}>
+                                <Text style={[tw`text-white text-[15px] mb-4`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Choose a theme for your event 🔥</Text>
+                            </View>
                             <View style={{ flex: 1, minHeight: 0, width: '100%' }}>
                                 <ScrollView
                                     contentContainerStyle={{
