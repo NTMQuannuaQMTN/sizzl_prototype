@@ -5,33 +5,18 @@ import { ScrollView, Text, View } from 'react-native';
 import tw from 'twrnc';
 import EventCard from '../eventcard';
 
-export default function Allevents() {
+export default function AllEvents() {
     const [events, setEvents] = useState<any[]>([]);
     const { user } = useUserStore();
 
     useEffect(() => {
         const fetchEvents = async () => {
-            const { data: cohostEvents, error: cohostError } = await supabase
-                .from('hosts')
-                .select('event_id')
-                .eq('user_id', user.id);
-
-            if (cohostError) {
-                console.log('Problem getting cohost events');
-            }
-
-            // Extract event_ids from cohostEvents
-            const cohostEventIds = (cohostEvents || []).map(e => e.event_id);
-
-            // 2. Fetch events where (school_id = user.school_id) OR (id in cohostEventIds)
             let query = supabase
                 .from('events')
                 .select('*')
                 .eq('done', true)
-                .or([
-                    `school_id.eq.${user.school_id}`,
-                    cohostEventIds.length > 0 ? `id.in.(${cohostEventIds.join(',')})` : ''
-                ].filter(Boolean).join(','));
+                .eq('school_id', user.school_id)
+                .neq('host_id', user.id);
 
             const { data, error } = await query;
 
@@ -42,7 +27,7 @@ export default function Allevents() {
             }
         }
         fetchEvents();
-    }, []);
+    }, [user]);
 
     return (
         <ScrollView style={tw`flex-1`}>

@@ -4,8 +4,9 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 import { useUserStore } from '../../store/userStore';
 // Import new tab pages
-import Allevents from './explore/allevents';
+import AllEvents from './explore/allevents';
 import Feed from './explore/feed';
+import FriendEvents from './explore/friendevents';
 
 export default function Explore() {
     const { session, user } = useUserStore();
@@ -17,7 +18,7 @@ export default function Explore() {
         const { data, error } = await supabase
             .from('users')
             .select('id, username, firstname, lastname, profile_image')
-            .neq('id', currentUserId);
+            .neq('id', user.id);
         if (!error && data) {
             setUsers(data);
         } else {
@@ -107,11 +108,9 @@ export default function Explore() {
             </View>
 
             {activeTab === 'events' ? (
-                <Allevents />
+                <AllEvents />
             ) : activeTab === 'friendsEvents' ? (
-                <View style={tw`flex-1 items-center justify-center`}>
-                    <Text style={tw`text-gray-400 text-lg`}>Friends' Events tab content goes here.</Text>
-                </View>
+                <FriendEvents />
             ) : (
                 <Feed />
             )}

@@ -76,9 +76,9 @@ export default function EventCard(props: any) {
                 resizeMode='cover'
                 style={{ width: '100%', height: '100%' }}
               />
-              <View style={tw`w-full h-full absolute top-0 left-0 bg-black bg-opacity-50 p-4`}>
+              <View style={tw`w-full h-full absolute top-0 left-0 bg-black bg-opacity-50 px-4 pb-4 pt-2`}>
                 {/* Badges */}
-                <View style={tw`flex-row z-10`}>
+                {spec.length !== 0 && <View style={tw`flex-row z-10 pt-2`}>
                   {spec.slice(0, 2).map((s, ind) => {
                     // s[0] is a string, but specCol only allows certain keys
                     // So we need to assert s[0] is a valid key of specCol
@@ -94,9 +94,9 @@ export default function EventCard(props: any) {
                       <Text style={tw`text-xs font-bold text-black`}>+{spec.length - 2}</Text>
                     </View>
                   )}
-                </View>
+                </View>}
                 {/* Card Content */}
-                <View style={tw`pt-2`}>
+                <View style={tw`pt-0`}>
                   <Text style={tw`text-white text-lg font-bold mb-1`}>{props.event.title}</Text>
                   <View style={tw`flex-row items-center mb-1`}>
                     <Text style={tw`text-white/80 text-xs mr-2`}>Hosted by {hostWC.host} {hostWC.count > 1 && `+${hostWC.count - 1}`}</Text>
