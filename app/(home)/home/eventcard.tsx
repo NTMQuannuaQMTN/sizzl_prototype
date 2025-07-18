@@ -13,6 +13,13 @@ export default function EventCard(props: any) {
     count: 0,
   });
   const [cohosts, setCohosts] = useState<any[]>([]);
+  const [spec, setSpec] = useState<string[][]>([]);
+  const specCol = {
+    'Cash prize': 'bg-yellow-200',
+    'Free food': 'bg-sky-200',
+    'Free merch': 'bg-pink-200/90',
+    'Cool prizes': 'bg-green-200/90'
+  }
   const { user } = useUserStore();
 
   useEffect(() => {
@@ -40,6 +47,19 @@ export default function EventCard(props: any) {
     getHost();
   }, []);
 
+  useEffect(() => {
+    const getSpecial = () => {
+      let specs = [
+        ['Cash prize', props.event.cash_prize],
+        ['Free food', props.event.free_food],
+        ['Free merch', props.event.free_merch],
+        ['Cool prizes', props.event.cool_prize],
+      ].filter(e => e[1] != null);
+      setSpec(specs);
+    }
+    getSpecial();
+  }, []);
+
   return (
     <View style={tw`mb-5`}>
       <View style={tw`rounded-2xl overflow-hidden bg-black/30`}>
@@ -59,12 +79,21 @@ export default function EventCard(props: any) {
               <View style={tw`w-full h-full absolute top-0 left-0 bg-black bg-opacity-50 p-4`}>
                 {/* Badges */}
                 <View style={tw`flex-row z-10`}>
-                  <View style={tw`bg-yellow-400 px-2 py-1 rounded-full mr-2`}>
-                    <Text style={tw`text-xs font-bold text-black`}>Cash prize</Text>
-                  </View>
-                  <View style={tw`bg-cyan-200 px-2 py-1 rounded-full`}>
-                    <Text style={tw`text-xs font-bold text-blue-900`}>Free food</Text>
-                  </View>
+                  {spec.slice(0, 2).map((s, ind) => {
+                    // s[0] is a string, but specCol only allows certain keys
+                    // So we need to assert s[0] is a valid key of specCol
+                    const key = s[0] as keyof typeof specCol;
+                    return (
+                      <View key={ind} style={tw`${specCol[key]} px-2 py-1 rounded-full mr-2`}>
+                        <Text style={tw`text-xs font-bold text-black`}>{s[0]}</Text>
+                      </View>
+                    );
+                  })}
+                  {spec.length > 2 && (
+                    <View style={tw`px-2 py-1 rounded-full bg-[#CAE6DF]/90`}>
+                      <Text style={tw`text-xs font-bold text-black`}>+{spec.length - 2}</Text>
+                    </View>
+                  )}
                 </View>
                 {/* Card Content */}
                 <View style={tw`pt-2`}>
