@@ -38,7 +38,7 @@ export default function ImageModal({ visible, onClose, imageOptions, onSelect }:
 
 
     // --- Draggable Modal Logic (from cohost.tsx) ---
-    const MODAL_HEIGHT = 600;
+    const MODAL_HEIGHT = 750;
     const slideAnim = React.useRef(new Animated.Value(MODAL_HEIGHT)).current;
     const pan = React.useRef(new Animated.ValueXY()).current;
     const [isModalMounted, setIsModalMounted] = React.useState(false);
