@@ -447,7 +447,7 @@ export default function CreatePage() {
           console.log('Background image failed to load:', e.nativeEvent);
         }}
       />
-      <View style={tw`w-full h-full bg-black bg-opacity-60`}>
+      <View style={tw`w-full h-full pt-3 bg-black bg-opacity-60`}>
         {/* Top bar */}
         <View style={tw`relative flex-row items-center px-4 mt-10 mb-1.5 h-10`}>
           {/* Back button - absolute left */}
