@@ -449,7 +449,7 @@ export default function CreatePage() {
       />
       <View style={tw`w-full h-full pt-3 bg-black bg-opacity-60`}>
         {/* Top bar */}
-        <View style={tw`relative flex-row items-center px-4 mt-10 mb-1.5 h-10`}>
+        <View style={tw`relative flex-row items-center px-4 mt-10 mb-2 h-10`}>
           {/* Back button - absolute left */}
           <TouchableOpacity
             onPress={() => router.replace('/(home)/home/homepage')}
@@ -477,8 +477,16 @@ export default function CreatePage() {
         </View>
 
         {/* Title input */}
-        <View style={tw`px-4 mb-2 items-center`}>
-          <TextInput style={[tw`text-white text-[22px]`, { fontFamily: 'Nunito-ExtraBold' }]}
+        <View style={[tw`px-4 mb-4 items-center`]}>
+          <TextInput
+            style={[
+              tw`text-white text-[24px]`,
+              {
+                fontFamily: 'Nunito-ExtraBold',
+                lineHeight: 28, // slightly larger than font size to prevent clipping
+                paddingTop: 4,  // add a bit of top padding
+              }
+            ]}
             value={title}
             onChangeText={setTitle}
             placeholder='your event title'
