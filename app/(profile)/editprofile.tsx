@@ -310,7 +310,7 @@ export default function EditProfile() {
               keyboardShouldPersistTaps="handled"
               contentContainerStyle={{ paddingBottom: Object.values(focus).some(Boolean) ? 20 : 0 }}
             >
-              <View style={{ marginTop: 50, marginHorizontal: 'auto', width: '90%' }}>
+              <View style={{ marginTop: 50, paddingTop: 3, marginHorizontal: 'auto', width: '90%' }}>
                 <Text style={[tw`w-full text-center text-white text-[15px] mb-4`, { fontFamily: 'Nunito-ExtraBold' }]}>Edit profile</Text>
                 {/* Change background button */}
                 <TouchableOpacity

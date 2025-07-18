@@ -186,7 +186,7 @@ const QRProfile: React.FC = () => {
       end={{ x: 0, y: 1 }}
       style={{ flex: 1 }}
     >
-      <View style={[tw`flex-1 items-center mt-10 justify-start`]}> 
+      <View style={[tw`flex-1 items-center pt-13 justify-start`]}> 
         {/* Customizable QR Error Modal (always rendered at root) */}
         {showQrErrorModal && (
           <Animated.View

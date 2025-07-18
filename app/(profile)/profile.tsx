@@ -552,7 +552,7 @@ export default function ProfilePage() {
         style={tw`mt-6`}
       >
         {/* Top bar: username, settings icon, and QR icon */}
-        <View style={tw`w-full left-0 right-0 flex-row justify-between items-center px-6`}>
+        <View style={tw`w-full left-0 right-0 flex-row justify-between items-center px-6 pt-3`}>
           <Text style={[tw`text-white text-[15px] ${self ? '' : 'mt-2'}`, { fontFamily: 'Nunito-ExtraBold' }]}>@{userView?.username}</Text>
           {self && (
             <View style={tw`flex-row items-center`}>
