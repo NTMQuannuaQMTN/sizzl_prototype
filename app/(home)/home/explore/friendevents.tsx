@@ -48,6 +48,7 @@ export default function FriendEvents() {
                 .from('events')
                 .select('*')
                 .neq('host_id', user.id)
+                .eq('done', true)
                 .not('id', 'in', `(${userCohost.join(',')})`)
                 .or(
                     [
