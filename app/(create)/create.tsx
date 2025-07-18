@@ -652,7 +652,7 @@ export default function CreatePage() {
             {location.name || location.selected
               ? <LocationWhite width={14} height={14} />
               : <Location width={14} height={14} />}
-            <Text style={[tw`${(location.name || location.selected) ? 'text-white' : 'text-gray-400'} text-[13px]`, { fontFamily: 'Nunito-ExtraBold' }]}> 
+            <Text style={[tw`${(location.name || location.selected) ? 'text-white' : 'text-gray-400'} text-[13px]`, { fontFamily: 'Nunito-ExtraBold' }]}>
               {location.name ? location.name : (location.selected ? location.selected : 'Set location')}
             </Text>
           </TouchableOpacity>
@@ -750,7 +750,7 @@ export default function CreatePage() {
 
               {/* Custom text input for "What's special?" */}
               {specialBox.cash && (
-                <View style={[tw`pl-6.5`, { position: 'relative' }]}> 
+                <View style={[tw`pl-6.5`, { position: 'relative' }]}>
                   <TextInput
                     style={[
                       tw`items-center text-white bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-[13px] pr-8`,
@@ -790,7 +790,7 @@ export default function CreatePage() {
               </TouchableOpacity>
               {/* Custom text input for "What's special?" */}
               {specialBox.food && (
-                <View style={[tw`pl-6.5`, { position: 'relative' }]}> 
+                <View style={[tw`pl-6.5`, { position: 'relative' }]}>
                   <TextInput
                     style={[
                       tw`items-center text-white bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-[13px] pr-8`,
@@ -829,7 +829,7 @@ export default function CreatePage() {
               </TouchableOpacity>
               {/* Custom text input for "What's special?" */}
               {specialBox.merch && (
-                <View style={[tw`pl-6.5`, { position: 'relative' }]}> 
+                <View style={[tw`pl-6.5`, { position: 'relative' }]}>
                   <TextInput
                     style={[
                       tw`items-center text-white bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-[13px] pr-8`,
@@ -868,7 +868,7 @@ export default function CreatePage() {
               </TouchableOpacity>
               {/* Custom text input for "What's special?" */}
               {specialBox.coolPrize && (
-                <View style={[tw`pl-6.5`, { position: 'relative' }]}> 
+                <View style={[tw`pl-6.5`, { position: 'relative' }]}>
                   <TextInput
                     style={[
                       tw`items-center text-white bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-[13px] pr-8`,
@@ -1008,14 +1008,10 @@ export default function CreatePage() {
             const selectedDate = new Date(rsvpDate);
             const diffMs = startDate.getTime() - selectedDate.getTime();
             const diffDays = diffMs / (1000 * 60 * 60 * 24);
-            if (diffDays >= 0 && diffDays <= 8) {
-              setRSVPDL(rsvpDate);
-              setRSVPDLTime(rsvpTime);
-              setShowRSVPModal(false);
-            } else {
-              alert("RSVP deadline must be within 7 days before the event start date.");
-              return;
-            }
+            setRSVPDL(rsvpDate);
+            setRSVPDLTime(rsvpTime);
+            setShowRSVPModal(false);
+
           }}
         />
       </View>
