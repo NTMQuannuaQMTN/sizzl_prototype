@@ -141,13 +141,15 @@ export default function ImageModal({ visible, onClose, imageOptions, onSelect }:
                         { backgroundColor: '#080B32', height: MODAL_HEIGHT },
                         { transform: [{ translateY: combinedTranslateY }] },
                     ]}
-                    {...panResponder.panHandlers}
                 >
                     <TouchableWithoutFeedback>
                         <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
-                            {/* Drag handle */}
-                            <View style={tw`w-12 h-1.5 bg-gray-500 rounded-full self-center mb-3`} />
-                            <Text style={[tw`text-white text-[15px] mb-4`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Choose a theme for your event!</Text>
+                            {/* Drag handle (draggable only here) */}
+                            <View
+                                style={tw`w-12 h-1.5 bg-gray-500 rounded-full self-center mb-3`}
+                                {...panResponder.panHandlers}
+                            />
+                            <Text style={[tw`text-white text-[15px] mb-4`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Choose a theme for your event 🔥</Text>
                             <View style={{ flex: 1, minHeight: 0, width: '100%' }}>
                                 <ScrollView
                                     contentContainerStyle={{
@@ -166,7 +168,7 @@ export default function ImageModal({ visible, onClose, imageOptions, onSelect }:
                                             key={idx}
                                             onPress={() => { onSelect(img); onClose(); }}
                                             style={{
-                                                margin: 8,
+                                                margin: 6,
                                                 borderRadius: 10,
                                                 overflow: 'hidden',
                                                 borderWidth: 0,
@@ -185,7 +187,7 @@ export default function ImageModal({ visible, onClose, imageOptions, onSelect }:
                                     ))}
                                 </ScrollView>
                             </View>
-                            <View style={tw`py-8 px-4`}>
+                            <View style={tw`pb-8 pt-4 px-4`}>
                                 <TouchableOpacity
                                     style={tw`bg-[#7A5CFA] rounded-full flex-row justify-center py-2.5 items-center gap-1.5`}
                                     onPress={pickImage}
