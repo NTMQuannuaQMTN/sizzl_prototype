@@ -11,8 +11,30 @@ export default function Allevents() {
 
     useEffect(() => {
         const fetchEvents = async () => {
-            const { data, error } = await supabase.from('events')
-                .select('*').eq('school_id', user.school_id).eq('done', true);
+            const { data: cohostEvents, error: cohostError } = await supabase
+                .from('hosts')
+                .select('event_id')
+                .eq('user_id', user.id);
+
+            if (cohostError) {
+                console.log('Problem getting cohost events');
+            }
+
+            // Extract event_ids from cohostEvents
+            const cohostEventIds = (cohostEvents || []).map(e => e.event_id);
+
+            // 2. Fetch events where (school_id = user.school_id) OR (id in cohostEventIds)
+            let query = supabase
+                .from('events')
+                .select('*')
+                .eq('done', true)
+                .or([
+                    `school_id.eq.${user.school_id}`,
+                    cohostEventIds.length > 0 ? `id.in.(${cohostEventIds.join(',')})` : ''
+                ].filter(Boolean).join(','));
+
+            const { data, error } = await query;
+
             if (error) {
                 console.log('Yes problem in getting events');
             } else {
