@@ -12,7 +12,7 @@ export default function Allevents() {
     useEffect(() => {
         const fetchEvents = async () => {
             const { data, error } = await supabase.from('events')
-                .select('*').eq('school_id', user.school_id);
+                .select('*').eq('school_id', user.school_id).eq('done', true);
             if (error) {
                 console.log('Yes problem in getting events');
             } else {

@@ -1,4 +1,3 @@
-
 import { Image } from 'expo-image';
 import React, { useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';

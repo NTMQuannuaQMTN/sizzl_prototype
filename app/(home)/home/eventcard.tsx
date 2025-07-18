@@ -1,4 +1,5 @@
 import defaultImages from '@/app/(create)/defaultimage';
+import { useUserStore } from '@/app/store/userStore';
 import { supabase } from '@/utils/supabase';
 import { useEffect, useState } from 'react';
 import { Image, Text, View } from 'react-native';
@@ -9,15 +10,17 @@ export default function EventCard(props: any) {
     host: '',
     count: 0,
   });
+  const [cohosts, setCohosts] = useState<any[]>([]);
+  const { user } = useUserStore();
 
   useEffect(() => {
     const getHost = async () => {
       const { data: cohost, error: cohErr } = await supabase.from('hosts')
-        .select('name').eq('event_id', props.event.id);
+        .select('user_id, name').eq('event_id', props.event.id);
       if (cohErr) {
         console.log('Err get coh');
       } else {
-        console.log(cohost.filter(e => e.name).map(e => e.name));
+        setCohosts(cohost.filter(e => e.user_id).map(e => e.user_id));
         if (cohost.filter(e => e.name).map(e => e.name).length !== 0) {
           setHostWC({ host: cohost.filter(e => e.name).map(e => e.name)[0], count: cohost.length + 1 })
         } else {
@@ -76,6 +79,11 @@ export default function EventCard(props: any) {
               <Text style={tw`text-white/80 text-xs mr-2`}>10k+ going</Text>
             </View>
           </View>
+          {user.id === props.event.host_id &&
+            <View style={tw`absolute bottom-3 right-4 px-2 py-1 bg-white z-99 rounded-full`}>
+              <Text>Host</Text>
+            </View>
+          }
         </View>
       </View>
     </View>
