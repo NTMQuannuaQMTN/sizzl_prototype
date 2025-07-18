@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Easing, FlatList, Keyboard, Modal, PanResponder, ScrollView, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { Animated, Easing, FlatList, Keyboard, Modal, PanResponder, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import tw from 'twrnc';
 import LocationIcon from '../../assets/icons/location.svg';
 
@@ -28,11 +28,15 @@ interface NominatimLocationSuggestion {
   // You might add more fields like lat, lon, place_id etc. if needed
 }
 
+
 function LocationModal({ visible, onClose, location, setLocation, locations }: LocationModalProps) {
   const safeLocations = Array.isArray(locations) ? locations : [];
 
+  // --- Local state for modal fields ---
+  const [localLocation, setLocalLocation] = useState<LocationType>(location);
+
   // --- Draggable Modal Logic (from cohost.tsx) ---
-  const MODAL_HEIGHT = 760; // Adjust as needed for content height
+  const MODAL_HEIGHT = 760;
   const slideAnim = useRef(new Animated.Value(MODAL_HEIGHT)).current;
   const pan = useRef(new Animated.ValueXY()).current;
   const [isModalMounted, setIsModalMounted] = useState(false);
@@ -41,15 +45,17 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
   const [nominatimSuggestions, setNominatimSuggestions] = useState<NominatimLocationSuggestion[]>([]);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Disable pan responder when FlatList is being scrolled
+  const [disablePan, setDisablePan] = useState(false);
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponder: () => !disablePan,
       onStartShouldSetPanResponderCapture: () => false,
       onMoveShouldSetPanResponder: (evt, gestureState) => {
-        return Math.abs(gestureState.dy) > Math.abs(gestureState.dx);
+        return !disablePan && Math.abs(gestureState.dy) > Math.abs(gestureState.dx);
       },
       onMoveShouldSetPanResponderCapture: (evt, gestureState) => {
-        return Math.abs(gestureState.dy) > Math.abs(gestureState.dx) && gestureState.dy > 0;
+        return !disablePan && Math.abs(gestureState.dy) > Math.abs(gestureState.dx) && gestureState.dy > 0;
       },
       onPanResponderGrant: (evt, gestureState) => {
         slideAnim.stopAnimation();
@@ -72,7 +78,7 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
             easing: Easing.in(Easing.cubic),
             useNativeDriver: true,
           }).start(() => {
-            onClose();
+            handleCancel();
             pan.setValue({ x: 0, y: 0 });
           });
         } else {
@@ -89,8 +95,10 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
     })
   ).current;
 
+  // When modal opens, initialize local state from prop
   useEffect(() => {
     if (visible) {
+      setLocalLocation(location);
       setIsModalMounted(true);
       Animated.timing(slideAnim, {
         toValue: 0,
@@ -107,72 +115,75 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
       }).start(() => {
         setIsModalMounted(false);
         pan.setValue({ x: 0, y: 0 });
-        setNominatimSuggestions([]); // Clear suggestions when modal closes
+        setNominatimSuggestions([]);
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
   // --- Debounced API call for location search using Nominatim ---
   const fetchNominatimSuggestions = useCallback(async (query: string) => {
-    if (query.length < 3) { // Only search if query is at least 3 characters long
+    if (query.length < 3) {
       setNominatimSuggestions([]);
       return;
     }
-
-    // Nominatim API endpoint
-    const endpoint = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5`; // limit to 5 results
-
+    const endpoint = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5`;
     try {
       const response = await fetch(endpoint, {
         headers: {
-          // IMPORTANT: Nominatim requires a User-Agent header.
-          // Replace 'YourAppName/1.0 (your-email@example.com)' with something specific to your app.
           'User-Agent': 'YourEventApp/1.0 (contact@yourappdomain.com)',
         },
       });
-      const data: any[] = await response.json(); // Nominatim returns an array
-
+      const data: any[] = await response.json();
       const suggestions: NominatimLocationSuggestion[] = data.map((item: any) => ({
         address: item.display_name,
-        city: item.address?.city || item.address?.town || item.address?.village || item.address?.county || '', // Try to get the most specific city/town
+        city: item.address?.city || item.address?.town || item.address?.village || item.address?.county || '',
       }));
       setNominatimSuggestions(suggestions);
     } catch (error) {
       console.error("Error fetching Nominatim suggestions:", error);
       setNominatimSuggestions([]);
     }
-  }, []); // Empty dependency array means this function is created once
+  }, []);
 
   useEffect(() => {
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
-
-    if (location.search) {
+    if (localLocation.search) {
       searchTimeoutRef.current = setTimeout(() => {
-        fetchNominatimSuggestions(location.search);
-      }, 500); // Debounce for 500ms
+        fetchNominatimSuggestions(localLocation.search);
+      }, 500);
     } else {
-      setNominatimSuggestions([]); // Clear suggestions if search input is empty
+      setNominatimSuggestions([]);
     }
-
     return () => {
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current);
       }
     };
-  }, [location.search, fetchNominatimSuggestions]);
+  }, [localLocation.search, fetchNominatimSuggestions]);
 
   if (!isModalMounted) return null;
 
   const combinedTranslateY = Animated.add(slideAnim, pan.y);
+
+  // Save: update parent state and close
+  const handleSave = () => {
+    setLocation(localLocation);
+    onClose();
+  };
+  // Cancel: just close, don't update parent
+  const handleCancel = () => {
+    onClose();
+  };
 
   return (
     <Modal
       visible={visible || isModalMounted}
       animationType="none"
       transparent
-      onRequestClose={onClose}
+      onRequestClose={handleCancel}
       statusBarTranslucent
     >
       <View style={tw`flex-1 justify-end items-center`}>
@@ -180,7 +191,7 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
         <TouchableOpacity
           style={tw`absolute inset-0 bg-black/50`}
           activeOpacity={1}
-          onPress={onClose}
+          onPress={handleCancel}
         />
         <Animated.View
           style={[
@@ -196,13 +207,30 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
           {...panResponder.panHandlers}
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-            {/* Using ScrollView here to ensure content is scrollable if it exceeds modal height */}
             <View style={{ flexGrow: 1 }}>
               <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between' }}>
                 <View>
                   {/* Gray drag handle */}
                   <View style={tw`w-12 h-1.5 bg-gray-500 rounded-full self-center mb-3`} />
-                  <Text style={[tw`text-white text-[15px] mb-4`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Set event location</Text>
+                  <View style={[tw`flex-row items-center mb-4`, { justifyContent: 'space-between', position: 'relative' }]}> 
+                    <View style={{ width: 70, alignItems: 'flex-start' }}>
+                      <TouchableOpacity
+                        onPress={() => {
+                          const cleared = { search: '', selected: '', rsvpFirst: false, name: '', aptSuite: '', notes: '' };
+                          setLocalLocation(cleared);
+                          setLocation(cleared);
+                        }}
+                        style={tw`px-3 py-1`}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[tw`text-[#7A5CFA] text-[13px]`, { fontFamily: 'Nunito-Bold' }]}>Clear</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, pointerEvents: 'none' }}>
+                      <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Set event location</Text>
+                    </View>
+                    <View style={{ width: 70 }} />
+                  </View>
                   {/* Set location box with search icon */}
                   <View style={tw`mb-2.5 mx-3 bg-white/10 rounded-xl px-3 py-4`}>
                     <View style={tw`flex-row items-center`}>
@@ -211,36 +239,56 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
                         style={[tw`flex-1 text-white text-[14px]`, { fontFamily: 'Nunito-Medium' }]}
                         placeholder="Set your location"
                         placeholderTextColor="#9ca3af"
-                        value={location.search}
+                        value={localLocation.search}
                         onChangeText={text => {
-                          setLocation(loc => ({ ...loc, search: text }));
-                          // Clear selected if user starts typing again or if current search doesn't match selected
-                          if (location.selected && text !== location.selected) {
-                            setLocation(loc => ({ ...loc, selected: '' }));
-                          }
+                          setLocalLocation(loc => {
+                            const newLoc = { ...loc, search: text };
+                            if (loc.selected && text !== loc.selected) {
+                              newLoc.selected = '';
+                            }
+                            return newLoc;
+                          });
                         }}
                       />
+                      {localLocation.search.length > 0 && (
+                        <TouchableOpacity
+                          onPress={() => {
+                            setLocalLocation(loc => ({ ...loc, search: '', selected: '' }));
+                          }}
+                          style={tw`pl-1.5`}
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        >
+                          <Ionicons name="close-circle" size={18} color="#9ca3af" />
+                        </TouchableOpacity>
+                      )}
                     </View>
                   </View>
 
+
                   {/* --- Display Nominatim Suggestions as FlatList --- */}
-                  {nominatimSuggestions.length > 0 && (
+                  {nominatimSuggestions.length > 0 && localLocation.search !== localLocation.selected && (
                     <View style={tw`mx-3 mb-3 bg-white/10 rounded-xl max-h-48`}>
                       <FlatList
                         data={nominatimSuggestions}
                         keyExtractor={(item, idx) => item.address + idx}
                         showsVerticalScrollIndicator={false}
+                        onScrollBeginDrag={() => setDisablePan(true)}
+                        onScrollEndDrag={() => setDisablePan(false)}
+                        onMomentumScrollEnd={() => setDisablePan(false)}
                         renderItem={({ item }) => (
                           <TouchableOpacity
                             style={tw`flex-row items-start px-3 py-2 border-b border-white/5`}
                             onPress={() => {
-                              setLocation(loca => ({
+                              setLocalLocation(loca => ({
                                 ...loca,
                                 selected: item.address,
                                 search: item.address,
                                 name: item.address,
                               }));
                               setNominatimSuggestions([]);
+                              if (searchTimeoutRef.current) {
+                                clearTimeout(searchTimeoutRef.current);
+                              }
                               Keyboard.dismiss();
                             }}
                             activeOpacity={0.7}
@@ -258,14 +306,41 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
                     </View>
                   )}
 
+                  {/* --- Use [typing] as location option --- */}
+                  {localLocation.search.length > 0 &&
+                    localLocation.search !== localLocation.selected &&
+                    // Only show if not an exact match for any suggestion
+                    !nominatimSuggestions.some(s => s.address === localLocation.search) && (
+                      <TouchableOpacity
+                        style={tw`mx-3 mb-3 bg-white/10 rounded-xl px-3 py-3 flex-row items-center`}
+                        onPress={() => {
+                          setLocalLocation(loca => ({
+                            ...loca,
+                            selected: localLocation.search,
+                            search: localLocation.search,
+                            name: localLocation.search,
+                          }));
+                          setNominatimSuggestions([]);
+                          if (searchTimeoutRef.current) {
+                            clearTimeout(searchTimeoutRef.current);
+                          }
+                          Keyboard.dismiss();
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        <Ionicons name="add-circle-outline" size={18} color="#7A5CFA" style={tw`mr-2`} />
+                        <Text style={[tw`text-[#7A5CFA] text-[14px]`, { fontFamily: 'Nunito-Bold' }]}>Use "{localLocation.search}" as your location</Text>
+                      </TouchableOpacity>
+                  )}
+
                   {/* Existing Location list (if you want to keep predefined locations, these would typically be hidden if search results are showing) */}
-                  {safeLocations.length > 0 && nominatimSuggestions.length === 0 && ( // Only show predefined if no search results
+                  {safeLocations.length > 0 && nominatimSuggestions.length === 0 && (
                     <View style={tw`mb-4 mx-3`}>
                       {safeLocations.map((loc, idx) => (
                         <TouchableOpacity
                           key={`predefined-${idx}`}
-                          style={[tw`flex-row items-start mb-2`, { opacity: location.selected === loc.address ? 1 : 0.7 }]}
-                          onPress={() => setLocation(loca => ({ ...loca, selected: loc.address, search: loc.address }))}
+                          style={[tw`flex-row items-start mb-2`, { opacity: localLocation.selected === loc.address ? 1 : 0.7 }]}
+                          onPress={() => setLocalLocation(loca => ({ ...loca, selected: loc.address, search: loc.address }))}
                           activeOpacity={0.7}
                         >
                           <LocationIcon width={16} height={16} style={{ marginTop: 2, marginRight: 6 }} />
@@ -281,66 +356,93 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
                   {/* RSVP checkbox */}
                   <TouchableOpacity
                     style={tw`flex-row items-center mx-3.5`}
-                    onPress={() => setLocation(loc => ({ ...loc, rsvpFirst: !location.rsvpFirst }))}
+                    onPress={() => setLocalLocation(loc => ({ ...loc, rsvpFirst: !localLocation.rsvpFirst }))}
                     activeOpacity={0.7}
                   >
                     <View style={[
                       tw`w-[0.9rem] h-[0.9rem] rounded border border-gray-400 items-center justify-center mr-2`,
-                      location.rsvpFirst ? tw`bg-[#7A5CFA]` : tw`bg-white/10`
+                      localLocation.rsvpFirst ? tw`bg-[#7A5CFA]` : tw`bg-white/10`
                     ]}>
-                      {location.rsvpFirst && (
+                      {localLocation.rsvpFirst && (
                         <View style={tw`w-2 h-2`} />
                       )}
                     </View>
                     <Text style={[
-                      tw`${location.rsvpFirst ? 'text-white' : 'text-gray-400'} text-[13px]`,
+                      tw`${localLocation.rsvpFirst ? 'text-white' : 'text-gray-400'} text-[13px]`,
                       { fontFamily: 'Nunito-Medium' }
                     ]}>
                       Guests must RSVP first to see location
                     </Text>
                   </TouchableOpacity>
                   {/* Display name */}
-                  {location.selected &&
+                  {localLocation.selected &&
                     <View style={tw`mb-2 mx-3 mt-4`}>
                       <Text style={[tw`text-white text-[13px] mb-1`, { fontFamily: 'Nunito-Bold' }]}>Display name</Text>
-                      <View style={tw`bg-white/10 rounded-xl px-3 pt-0.5`}>
+                      <View style={tw`bg-white/10 rounded-xl px-3 py-4 flex-row items-center`}>
                         <TextInput
-                          style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-Medium' }]}
+                          style={[tw`flex-1 text-white text-[13px]`, { fontFamily: 'Nunito-Medium' }]}
                           placeholder="eg. Jonny's apartment"
                           placeholderTextColor="#9ca3af"
-                          value={location.name}
-                          onChangeText={text => setLocation(loc => ({ ...loc, name: text }))}
+                          value={localLocation.name}
+                          onChangeText={text => setLocalLocation(loc => ({ ...loc, name: text }))}
                         />
+                        {localLocation.name.length > 0 && (
+                          <TouchableOpacity
+                            onPress={() => setLocalLocation(loc => ({ ...loc, name: '' }))}
+                            style={tw`pl-1.5`}
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                          >
+                            <Ionicons name="close-circle" size={18} color="#9ca3af" />
+                          </TouchableOpacity>
+                        )}
                       </View>
                     </View>
                   }
                   {/* Apt / Suite / Floor */}
-                  {location.selected &&
+                  {localLocation.selected &&
                     <View style={tw`mb-2 mx-3`}>
                       <Text style={[tw`text-white text-[13px] mb-1`, { fontFamily: 'Nunito-Bold' }]}>Apt / Suite / Floor</Text>
-                      <View style={tw`bg-white/10 rounded-xl px-3 pt-0.5`}>
+                      <View style={tw`bg-white/10 rounded-xl px-3 py-4 flex-row items-center`}>
                         <TextInput
-                          style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-Medium' }]}
+                          style={[tw`flex-1 text-white text-[13px]`, { fontFamily: 'Nunito-Medium' }]}
                           placeholder="eg. Room 12E"
                           placeholderTextColor="#9ca3af"
-                          value={location.aptSuite}
-                          onChangeText={text => setLocation(loc => ({ ...loc, aptSuite: text }))}
+                          value={localLocation.aptSuite}
+                          onChangeText={text => setLocalLocation(loc => ({ ...loc, aptSuite: text }))}
                         />
+                        {localLocation.aptSuite.length > 0 && (
+                          <TouchableOpacity
+                            onPress={() => setLocalLocation(loc => ({ ...loc, aptSuite: '' }))}
+                            style={tw`pl-1.5`}
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                          >
+                            <Ionicons name="close-circle" size={18} color="#9ca3af" />
+                          </TouchableOpacity>
+                        )}
                       </View>
                     </View>
                   }
                   {/* Further notes */}
-                  {location.selected &&
+                  {localLocation.selected &&
                     <View style={tw`mb-4 mx-3`}>
                       <Text style={[tw`text-white text-[13px] mb-1`, { fontFamily: 'Nunito-Bold' }]}>Further notes</Text>
-                      <View style={tw`bg-white/10 rounded-xl px-3 pt-0.5`}>
+                      <View style={tw`bg-white/10 rounded-xl px-3 py-4 flex-row items-center`}>
                         <TextInput
-                          style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-Medium' }]}
+                          style={[tw`flex-1 text-white text-[13px]`, { fontFamily: 'Nunito-Medium' }]}
                           placeholder="eg. take the second elevator, not the first one"
                           placeholderTextColor="#9ca3af"
-                          value={location.notes}
-                          onChangeText={text => setLocation(loc => ({ ...loc, notes: text }))}
+                          value={localLocation.notes}
+                          onChangeText={text => setLocalLocation(loc => ({ ...loc, notes: text }))}
                         />
+                        {localLocation.notes.length > 0 && (
+                          <TouchableOpacity
+                            onPress={() => setLocalLocation(loc => ({ ...loc, notes: '' }))}
+                            style={tw`pl-1.5`}
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                          >
+                            <Ionicons name="close-circle" size={18} color="#9ca3af" />
+                          </TouchableOpacity>
+                        )}
                       </View>
                     </View>
                   }
@@ -349,14 +451,14 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
                 <View style={tw`px-3 pb-8`}>
                   <TouchableOpacity
                     style={[tw`bg-[#7A5CFA] rounded-full py-3 items-center mb-2`, { opacity: 1 }]}
-                    onPress={onClose}
+                    onPress={handleSave}
                     activeOpacity={0.8}
                   >
                     <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Save</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[tw`bg-white/5 rounded-full py-3 items-center`, { opacity: 1 }]}
-                    onPress={onClose}
+                    onPress={handleCancel}
                     activeOpacity={0.8}
                   >
                     <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Cancel</Text>
