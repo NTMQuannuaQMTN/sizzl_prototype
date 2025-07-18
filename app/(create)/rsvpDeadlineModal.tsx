@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Modal, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Easing, Modal, PanResponder, ScrollView, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import tw from 'twrnc';
 
@@ -13,9 +13,10 @@ interface RSVPDeadlineModalProps {
   onSave: (date: Date, time: string) => void;
 }
 
+const MODAL_HEIGHT = 750;
+
 const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose, initialDate, initialTime, minDate, maxDate, onSave }) => {
   const [selectedDate, setSelectedDate] = useState(initialDate);
-
   // Time picker logic (15-min intervals)
   const getTimeOptions = () => {
     const options: string[] = [];
@@ -57,13 +58,61 @@ const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose,
   const pad = (n: number) => n.toString().padStart(2, '0');
   const localTodayStr = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
 
-  // Animation logic (slide up/down)
-  const slideAnim = useRef(new Animated.Value(1)).current; // 1 = hidden, 0 = visible
-  const [shouldRender, setShouldRender] = useState(visible);
+  // --- Draggable Modal Logic (from cohost.tsx) ---
+  const slideAnim = useRef(new Animated.Value(MODAL_HEIGHT)).current;
+  const pan = useRef(new Animated.ValueXY()).current;
+  const [isModalMounted, setIsModalMounted] = useState(false);
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponderCapture: () => false,
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        return Math.abs(gestureState.dy) > Math.abs(gestureState.dx);
+      },
+      onMoveShouldSetPanResponderCapture: (evt, gestureState) => {
+        return Math.abs(gestureState.dy) > Math.abs(gestureState.dx) && gestureState.dy > 0;
+      },
+      onPanResponderGrant: (evt, gestureState) => {
+        slideAnim.stopAnimation();
+        pan.setOffset({ x: 0, y: (slideAnim as any).__getValue() });
+        pan.setValue({ x: 0, y: 0 });
+      },
+      onPanResponderMove: (evt, gestureState) => {
+        const clampedDy = Math.max(0, gestureState.dy);
+        pan.setValue({ x: 0, y: clampedDy });
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+        pan.flattenOffset();
+        const currentPosition = (pan.y as any).__getValue ? (pan.y as any).__getValue() : 0;
+        const slideDownThreshold = MODAL_HEIGHT * 0.3;
+        const velocityThreshold = 0.5;
+        if (currentPosition > slideDownThreshold || gestureState.vy > velocityThreshold) {
+          Animated.timing(slideAnim, {
+            toValue: MODAL_HEIGHT,
+            duration: 250,
+            easing: Easing.in(Easing.cubic),
+            useNativeDriver: true,
+          }).start(() => {
+            onClose();
+            pan.setValue({ x: 0, y: 0 });
+          });
+        } else {
+          Animated.spring(slideAnim, {
+            toValue: 0,
+            useNativeDriver: true,
+            bounciness: 0,
+            speed: 10,
+          }).start(() => {
+            pan.setValue({ x: 0, y: 0 });
+          });
+        }
+      },
+    })
+  ).current;
 
   useEffect(() => {
     if (visible) {
-      setShouldRender(true);
+      setIsModalMounted(true);
       Animated.timing(slideAnim, {
         toValue: 0,
         duration: 300,
@@ -72,50 +121,50 @@ const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose,
       }).start();
     } else {
       Animated.timing(slideAnim, {
-        toValue: 1,
+        toValue: MODAL_HEIGHT,
         duration: 250,
         easing: Easing.in(Easing.cubic),
         useNativeDriver: true,
       }).start(() => {
-        setShouldRender(false);
+        setIsModalMounted(false);
+        pan.setValue({ x: 0, y: 0 });
       });
     }
   }, [visible]);
 
-  if (!shouldRender) return null;
+  if (!isModalMounted) return null;
+
+  const combinedTranslateY = Animated.add(slideAnim, pan.y);
 
   return (
     <Modal
-      visible={visible}
-      animationType={Platform.OS === 'ios' ? 'slide' : 'fade'}
+      visible={visible || isModalMounted}
+      animationType="none"
       transparent
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end', alignItems: 'center' }}>
-        {/* Tap outside to close */}
+      <View style={tw`flex-1 justify-end items-center`}>
+        {/* Backdrop for closing the modal by tapping outside */}
         <TouchableOpacity
-          style={{ position: 'absolute', width: '100%', height: '100%' }}
+          style={tw`absolute inset-0 bg-black/50`}
           activeOpacity={1}
           onPress={onClose}
         />
         <Animated.View
           style={[
             tw`w-full px-0 pt-6 pb-0 rounded-t-2xl`,
-            { backgroundColor: '#080B32', marginBottom: 0, paddingHorizontal: 0, paddingBottom: 0, height: 670 },
-            {
-              transform: [
-                {
-                  translateY: slideAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [0, 400],
-                  }),
-                },
-              ],
-            },
+            { backgroundColor: '#080B32', height: MODAL_HEIGHT },
+            { transform: [{ translateY: combinedTranslateY }] },
           ]}
+          {...panResponder.panHandlers}
         >
-          <View style={{ flex: 1, flexDirection: 'column' }}>
+          <TouchableWithoutFeedback accessible={false}>
+            <View style={{ flex: 1, flexDirection: 'column', height: '100%' }}>
+              {/* Handle bar */}
+              <View style={tw`w-12 h-1.5 bg-gray-500 rounded-full self-center mb-3`} />
+              {/* ...existing code... */}
+              <View style={{ flex: 1, flexDirection: 'column' }}>
             <View style={[tw`flex-row items-center mb-4`, { position: 'relative', minHeight: 0 }]}> 
               <TouchableOpacity
                 onPress={() => {
@@ -344,7 +393,7 @@ const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose,
             return null;
           })()}
           {/* Save/Cancel buttons always at the bottom */}
-          <View style={[tw`flex-row px-3 pb-4`, { marginTop: 'auto' }]}> 
+          <View style={[tw`flex-row px-3 pb-8`, { marginTop: 'auto' }]}> 
             <View style={{ flex: 1, flexDirection: 'column'}}>
               <TouchableOpacity
                 style={[
@@ -429,11 +478,13 @@ const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose,
                 <Text style={[tw`text-white text-center text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Cancel</Text>
               </TouchableOpacity>
             </View>
-          </View>
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
         </Animated.View>
       </View>
     </Modal>
   );
 };
 
-export default RSVPDeadlineModal; 
+export default RSVPDeadlineModal;

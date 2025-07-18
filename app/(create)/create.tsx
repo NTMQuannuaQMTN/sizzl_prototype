@@ -415,7 +415,7 @@ export default function CreatePage() {
       contentContainerStyle={{ flexGrow: 1 }}
       keyboardShouldPersistTaps="handled"
       enableOnAndroid={true}
-      extraScrollHeight={50}
+      extraScrollHeight={0}
       showsVerticalScrollIndicator={false}
       resetScrollToCoords={{ x: 0, y: 0 }}
       scrollEnabled={!showImageModal}
@@ -705,16 +705,25 @@ export default function CreatePage() {
               returnKeyType="done"
               maxLength={200}
             />
-            <View style={tw`flex-row justify-end mt-0.5 -mr-1`}>
+            <View style={tw`flex-row justify-end items-center mt-0.5 -mr-1`}>
               <Text
                 style={[
-                  tw`text-[11px]`,
+                  tw`text-[11px] mr-0.5`,
                   { fontFamily: 'Nunito-Medium' },
                   bio.length >= 200 ? tw`text-rose-600` : tw`text-gray-400`
                 ]}
               >
                 {bio.length}/200
               </Text>
+              {bio.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => setBio('')}
+                  style={tw`pl-1.5`}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="close-circle" size={16} color="#9ca3af" />
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         </View>
@@ -741,10 +750,10 @@ export default function CreatePage() {
 
               {/* Custom text input for "What's special?" */}
               {specialBox.cash && (
-                <View style={tw`pl-6.5`}>
+                <View style={[tw`pl-6.5`, { position: 'relative' }]}> 
                   <TextInput
                     style={[
-                      tw`items-center text-white bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-[13px]`,
+                      tw`items-center text-white bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-[13px] pr-8`,
                       { fontFamily: 'Nunito-Medium' }
                     ]}
                     placeholder="Add details (optional)"
@@ -752,6 +761,15 @@ export default function CreatePage() {
                     value={special.cash}
                     onChangeText={text => setSpecial(sp => ({ ...sp, cash: text }))}
                   />
+                  {special.cash.length > 0 && (
+                    <TouchableOpacity
+                      onPress={() => setSpecial(sp => ({ ...sp, cash: '' }))}
+                      style={{ position: 'absolute', right: 8, top: 0, bottom: 0, justifyContent: 'center' }}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <Ionicons name="close-circle" size={18} color="#9ca3af" />
+                    </TouchableOpacity>
+                  )}
                 </View>
               )}
             </View>
@@ -772,10 +790,10 @@ export default function CreatePage() {
               </TouchableOpacity>
               {/* Custom text input for "What's special?" */}
               {specialBox.food && (
-                <View style={tw`pl-6.5`}>
+                <View style={[tw`pl-6.5`, { position: 'relative' }]}> 
                   <TextInput
                     style={[
-                      tw`items-center text-white bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-[13px]`,
+                      tw`items-center text-white bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-[13px] pr-8`,
                       { fontFamily: 'Nunito-Medium' }
                     ]}
                     placeholder="Add details (optional)"
@@ -783,6 +801,15 @@ export default function CreatePage() {
                     value={special.food}
                     onChangeText={text => setSpecial(sp => ({ ...sp, food: text }))}
                   />
+                  {special.food.length > 0 && (
+                    <TouchableOpacity
+                      onPress={() => setSpecial(sp => ({ ...sp, food: '' }))}
+                      style={{ position: 'absolute', right: 8, top: 0, bottom: 0, justifyContent: 'center' }}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <Ionicons name="close-circle" size={18} color="#9ca3af" />
+                    </TouchableOpacity>
+                  )}
                 </View>
               )}
             </View>
@@ -802,10 +829,10 @@ export default function CreatePage() {
               </TouchableOpacity>
               {/* Custom text input for "What's special?" */}
               {specialBox.merch && (
-                <View style={tw`pl-6.5`}>
+                <View style={[tw`pl-6.5`, { position: 'relative' }]}> 
                   <TextInput
                     style={[
-                      tw`items-center text-white bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-[13px]`,
+                      tw`items-center text-white bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-[13px] pr-8`,
                       { fontFamily: 'Nunito-Medium' }
                     ]}
                     placeholder="Add details (optional)"
@@ -813,6 +840,15 @@ export default function CreatePage() {
                     value={special.merch}
                     onChangeText={text => setSpecial(sp => ({ ...sp, merch: text }))}
                   />
+                  {special.merch.length > 0 && (
+                    <TouchableOpacity
+                      onPress={() => setSpecial(sp => ({ ...sp, merch: '' }))}
+                      style={{ position: 'absolute', right: 8, top: 0, bottom: 0, justifyContent: 'center' }}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <Ionicons name="close-circle" size={18} color="#9ca3af" />
+                    </TouchableOpacity>
+                  )}
                 </View>
               )}
             </View>
@@ -832,10 +868,10 @@ export default function CreatePage() {
               </TouchableOpacity>
               {/* Custom text input for "What's special?" */}
               {specialBox.coolPrize && (
-                <View style={tw`pl-6.5`}>
+                <View style={[tw`pl-6.5`, { position: 'relative' }]}> 
                   <TextInput
                     style={[
-                      tw`items-center text-white bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-[13px]`,
+                      tw`items-center text-white bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-[13px] pr-8`,
                       { fontFamily: 'Nunito-Medium' }
                     ]}
                     placeholder="Add details (optional)"
@@ -843,6 +879,15 @@ export default function CreatePage() {
                     value={special.coolPrize}
                     onChangeText={text => setSpecial(sp => ({ ...sp, coolPrize: text }))}
                   />
+                  {special.coolPrize.length > 0 && (
+                    <TouchableOpacity
+                      onPress={() => setSpecial(sp => ({ ...sp, coolPrize: '' }))}
+                      style={{ position: 'absolute', right: 8, top: 0, bottom: 0, justifyContent: 'center' }}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <Ionicons name="close-circle" size={18} color="#9ca3af" />
+                    </TouchableOpacity>
+                  )}
                 </View>
               )}
             </View>
