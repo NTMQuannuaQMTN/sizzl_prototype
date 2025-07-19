@@ -48,11 +48,8 @@ const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose,
     }
   }
   const [selectedTime, setSelectedTime] = useState(initialTime === '' ? defaultTime: initialTime);
-  const scrollRef = useRef<ScrollView>(null);
-  const getSelectedTimeIdx = () => timeOptions.findIndex(t => t === selectedTime);
-  const setSelectedTimeByIdx = (idx: number) => {
-    if (idx >= 0 && idx < timeOptions.length) setSelectedTime(timeOptions[idx]);
-  };
+  // Dropdown modal state for time picker
+  const [showTimeDropdown, setShowTimeDropdown] = useState(false);
   // Set minDate to today in local time zone, formatted as 'YYYY-MM-DD'
   const today = new Date();
   const pad = (n: number) => n.toString().padStart(2, '0');
@@ -264,75 +261,59 @@ const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose,
                 }}
               />
             </View>
-            {/* Time Picker */}
-            <View style={tw`mx-3 items-center bg-white/10 rounded-xl mb-2`}>
-              <View style={{ height: 130, justifyContent: 'center' }}>
-                {/* Center indicator overlay */}
-                <View
-                  pointerEvents="none"
-                    style={{
-                      position: 'absolute',
-                      top: 43.33, // 1 item height
-                      left: 0,
-                      right: 0,
-                      height: 43.33,
-                      borderRadius: 10,
-                      backgroundColor: 'rgba(122,92,250,0.15)',
-                      borderWidth: 1,
-                      borderColor: '#7A5CFA',
-                      zIndex: 10,
-                    }}
-                />
-                <ScrollView
-                  ref={scrollRef}
-                  showsVerticalScrollIndicator={false}
-                  snapToInterval={43.33}
-                  decelerationRate="fast"
-                  contentContainerStyle={{ paddingVertical: 43.33 }}
-                  style={{ maxHeight: 130 }}
-                  onMomentumScrollEnd={e => {
-                    const ITEM_HEIGHT = 43.33;
-                    const offsetY = e.nativeEvent.contentOffset.y;
-                    const idx = Math.round(offsetY / ITEM_HEIGHT);
-                    setSelectedTimeByIdx(idx);
-                  }}
-                  onScrollEndDrag={e => {
-                    const ITEM_HEIGHT = 43.33;
-                    const offsetY = e.nativeEvent.contentOffset.y;
-                    const idx = Math.round(offsetY / ITEM_HEIGHT);
-                    setSelectedTimeByIdx(idx);
-                  }}
-                  scrollEventThrottle={16}
-                  onLayout={() => {
-                    setTimeout(() => {
-                      const ITEM_HEIGHT = 43.33;
-                      const idx = getSelectedTimeIdx();
-                      if (scrollRef.current && idx >= 0) {
-                        scrollRef.current.scrollTo({ y: idx * ITEM_HEIGHT, animated: false });
-                      }
-                    }, 0);
-                  }}
+            {/* Time Picker - Dropdown Modal */}
+            <View style={tw`mx-3 items-center bg-white/10 rounded-xl mb-2 p-3`}>
+              <Text style={[tw`text-white mb-2`, { fontFamily: 'Nunito-Bold', fontSize: 14 }]}>Select Time</Text>
+              <TouchableOpacity
+                style={[
+                  tw`w-full rounded-lg py-3 px-4 mb-1`,
+                  { backgroundColor: 'rgba(255,255,255,0.07)', alignItems: 'center', borderWidth: 1, borderColor: '#7A5CFA' }
+                ]}
+                onPress={() => setShowTimeDropdown(true)}
+                activeOpacity={0.8}
+              >
+                <Text style={{ color: '#fff', fontFamily: 'Nunito-ExtraBold', fontSize: 16 }}>
+                  {selectedTime}
+                </Text>
+              </TouchableOpacity>
+              {/* Time Dropdown Modal */}
+              <Modal
+                visible={!!showTimeDropdown}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setShowTimeDropdown(false)}
+              >
+                <TouchableOpacity
+                  style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' }}
+                  activeOpacity={1}
+                  onPress={() => setShowTimeDropdown(false)}
                 >
-                  {timeOptions.map((t, idx) => {
-                    const isSelected = selectedTime === t;
-                    return (
-                      <View
-                        key={t}
-                        style={[tw`px-4`, { height: 43.33, justifyContent: 'center', alignItems: 'center' }]}
-                      >
-                        <Text
-                          style={[
-                            isSelected ? tw`text-white` : tw`text-white/20`,
-                            { fontFamily: isSelected ? 'Nunito-ExtraBold' : 'Nunito-Medium', fontSize: 14 },
-                          ]}
-                        >
-                          {t}
-                        </Text>
-                      </View>
-                    );
-                  })}
-                </ScrollView>
-              </View>
+                  <View style={{ width: 260, maxHeight: 350, backgroundColor: '#212346', borderRadius: 14, paddingVertical: 8, paddingHorizontal: 0 }}>
+                    <ScrollView showsVerticalScrollIndicator={true}>
+                      {timeOptions.map((t) => {
+                        const isSelected = selectedTime === t;
+                        return (
+                          <TouchableOpacity
+                            key={t}
+                            onPress={() => {
+                              setSelectedTime(t);
+                              setShowTimeDropdown(false);
+                            }}
+                            style={{
+                              paddingVertical: 12,
+                              paddingHorizontal: 24,
+                              backgroundColor: isSelected ? '#7A5CFA' : 'transparent',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <Text style={{ color: '#fff', fontFamily: isSelected ? 'Nunito-ExtraBold' : 'Nunito-Medium', fontSize: 15 }}>{t}</Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </ScrollView>
+                  </View>
+                </TouchableOpacity>
+              </Modal>
             </View>
           </View>
           {/* Custom warning for RSVP deadline not before event start time */}

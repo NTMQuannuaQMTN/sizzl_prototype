@@ -53,6 +53,8 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
       handleTimeChange(tab, timeOptions[idx]);
     }
   };
+  // State for dropdown modal
+  const [showTimeDropdown, setShowTimeDropdown] = useState(false);
 
 
   // Draggable modal logic (like cohost modal)
@@ -476,83 +478,62 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
                     />
                   </View>
                 </View>
-              {/* Time Picker */}
-              <View style={tw`mx-3 items-center bg-white/10 rounded-xl mb-2`}>
-                {/* For 3 visible items, each item is ~43.33px tall (130/3) */}
-                <View style={{ height: 130, justifyContent: 'center' }}>
-                  {/* Center indicator overlay */}
-                  <View
-                    pointerEvents="none"
-                    style={{
-                      position: 'absolute',
-                      top: 43.33, // 1 item height
-                      left: 0,
-                      right: 0,
-                      height: 43.33,
-                      borderRadius: 10,
-                      backgroundColor: 'rgba(122,92,250,0.15)',
-                      borderWidth: 1,
-                      borderColor: '#7A5CFA',
-                      zIndex: 10,
-                    }}
-                  />
-                  <ScrollView
-                    ref={scrollRef}
-                    showsVerticalScrollIndicator={false}
-                    snapToInterval={43.33}
-                    decelerationRate="fast"
-                    contentContainerStyle={{ paddingVertical: 43.33 }}
-                    style={{ maxHeight: 130 }}
-                    onMomentumScrollEnd={e => {
-                      const ITEM_HEIGHT = 43.33;
-                      const offsetY = e.nativeEvent.contentOffset.y;
-                      const idx = Math.round(offsetY / ITEM_HEIGHT);
-                      setSelectedTimeByIdx(activeTab, idx);
-                    }}
-                    onScrollEndDrag={e => {
-                      // fallback for some Androids
-                      const ITEM_HEIGHT = 43.33;
-                      const offsetY = e.nativeEvent.contentOffset.y;
-                      const idx = Math.round(offsetY / ITEM_HEIGHT);
-                      setSelectedTimeByIdx(activeTab, idx);
-                    }}
-                    scrollEventThrottle={16}
-                    // initialScrollIndex is not valid for ScrollView; use scrollTo in onLayout
-                    onLayout={() => {
-                      // Scroll to selected time on open
-                      setTimeout(() => {
-                        const ITEM_HEIGHT = 43.33;
-                        const idx = getSelectedTimeIdx(activeTab);
-                        if (scrollRef.current && idx >= 0) {
-                          scrollRef.current.scrollTo({ y: idx * ITEM_HEIGHT, animated: false });
-                        }
-                      }, 0);
-                    }}
+              {/* Time Picker - Dropdown Modal */}
+              <View style={tw`mx-3 items-center bg-white/10 rounded-xl mb-2 p-3`}>
+                <Text style={[tw`text-white mb-2`, { fontFamily: 'Nunito-Bold', fontSize: 14 }]}>Select Time</Text>
+                <TouchableOpacity
+                  style={[
+                    tw`w-full rounded-lg py-3 px-4 mb-1`,
+                    { backgroundColor: 'rgba(255,255,255,0.07)', alignItems: 'center', borderWidth: 1, borderColor: '#7A5CFA' }
+                  ]}
+                  onPress={() => setShowTimeDropdown(true)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={{ color: '#fff', fontFamily: 'Nunito-ExtraBold', fontSize: 16 }}>
+                    {activeTab === 'start' ? locStartTime : locEndTime}
+                  </Text>
+                </TouchableOpacity>
+                {/* Time Dropdown Modal */}
+                <Modal
+                  visible={!!showTimeDropdown}
+                  transparent
+                  animationType="fade"
+                  onRequestClose={() => setShowTimeDropdown(false)}
+                >
+                  <TouchableOpacity
+                    style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' }}
+                    activeOpacity={1}
+                    onPress={() => setShowTimeDropdown(false)}
                   >
-                    {timeOptions.map((t, idx) => {
-                      const isSelected = (activeTab === 'start' ? locStartTime : locEndTime) === t;
-                      return (
-                        <View
-                          key={t}
-                          style={[tw`px-4`, { height: 43.33, justifyContent: 'center', alignItems: 'center' }]}
-                        >
-                          <Text
-                            style={[
-                              isSelected
-                                ? tw`text-white`
-                                : tw`text-white/20`,
-                              { fontFamily: isSelected ? 'Nunito-ExtraBold' : 'Nunito-Medium', fontSize: 14 },
-                            ]}
-                          >
-                            {t}
-                          </Text>
-                        </View>
-                      );
-                    })}
-                  </ScrollView>
-                </View>
-                {/* Custom warning moved below */}
+                    <View style={{ width: 260, maxHeight: 350, backgroundColor: '#212346', borderRadius: 14, paddingVertical: 8, paddingHorizontal: 0 }}>
+                      <ScrollView showsVerticalScrollIndicator={true}>
+                        {timeOptions.map((t) => {
+                          const isSelected = (activeTab === 'start' ? locStartTime : locEndTime) === t;
+                          return (
+                            <TouchableOpacity
+                              key={t}
+                              onPress={() => {
+                                handleTimeChange(activeTab, t);
+                                setShowTimeDropdown(false);
+                              }}
+                              style={{
+                                paddingVertical: 12,
+                                paddingHorizontal: 24,
+                                backgroundColor: isSelected ? '#7A5CFA' : 'transparent',
+                                alignItems: 'center',
+                              }}
+                            >
+                              <Text style={{ color: '#fff', fontFamily: isSelected ? 'Nunito-ExtraBold' : 'Nunito-Medium', fontSize: 15 }}>{t}</Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </ScrollView>
+                    </View>
+                  </TouchableOpacity>
+                </Modal>
               </View>
+// Add state for dropdown modal
+const [showTimeDropdown, setShowTimeDropdown] = useState(false);
             </View>
             {/* Custom warning for end time/date < 30 mins after start, now above Save button */}
             {activeTab === 'end' && endAvailable && (() => {
