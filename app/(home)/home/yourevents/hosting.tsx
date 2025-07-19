@@ -12,6 +12,17 @@ export default function Hosting() {
 
     useEffect(() => {
         const fetchEvents = async () => {
+            const { data: hostEvents, error: hosErr } = await supabase.from('hosts')
+                .select('event_id').eq('user_id', user.id);
+
+            if (hosErr) {
+                console.log('Error get host events');
+                return;
+            }
+
+            const userCohost = (hostEvents ? hostEvents.map(e => e.event_id) : []);
+            console.log('User cohost', userCohost);
+
             // Only include events where the RSVP deadline is after now
             const now = new Date().toISOString();
 
@@ -19,7 +30,8 @@ export default function Hosting() {
                 .from('events')
                 .select('*')
                 .eq('done', true)
-                .eq('host_id', user.id);
+                .or([`host_id.eq.${user.id}`,
+                `id.in.(${userCohost.join(',')})`].filter(Boolean).join(','));
             query_upcoming = query_upcoming.gte('start', now);
 
             const { data: upcomingData, error: upcomingErr } = await query_upcoming;
@@ -34,8 +46,8 @@ export default function Hosting() {
                 .from('events')
                 .select('*')
                 .eq('done', true)
-                .eq('host_id', user.id);
-
+                .or([`host_id.eq.${user.id}`,
+                `id.in.(${userCohost.join(',')})`].filter(Boolean).join(','));
             query_past = query_past.lte('start', now);
 
             const { data: pastData, error: pastErr } = await query_past;
@@ -43,7 +55,6 @@ export default function Hosting() {
             if (pastErr) {
                 console.log('Yes problem in getting events');
             } else {
-                console.log('Past', pastData);
                 setPastEvents(pastData);
             }
         }
