@@ -244,7 +244,7 @@ export default function EventCard(props: any) {
                       numberOfLines={1}
                       ellipsizeMode="tail"
                     >
-                      {props.event.location_name}
+                      {props.event.host_id !== user.id && cohosts.indexOf(user.id) < 0 && props.event.rsvpfirst && decision === 'Not RSVP' ? 'You must RSVP first' : props.event.location_name}
                     </Text>
                   </View>
                   <View style={tw`flex-row items-center mb-1`}>
