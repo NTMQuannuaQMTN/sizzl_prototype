@@ -262,15 +262,20 @@ export default function CreatePage() {
         .eq('id', id));
     }
 
-    if (true) {
-      Alert.alert('Err');
+    // Check if event meets all conditions
+    const isValid = title !== '' && date.dateChosen && rsvpDL;
+    if (isValid && !draftErr) {
+      Alert.alert('create success');
+      if (dataEvent) {
+        setID(dataEvent[0].id);
+        console.log(dataEvent[0].id);
+        return dataEvent[0].id; // <-- return the new id
+      }
+      return id;
+    } else {
+      Alert.alert('error bitch');
+      return null;
     }
-    if (dataEvent) {
-      setID(dataEvent[0].id);
-      console.log(dataEvent[0].id);
-      return dataEvent[0].id; // <-- return the new id
-    }
-    return id;
   }
 
   const updateImage = async (eventId: string) => {
@@ -469,8 +474,9 @@ export default function CreatePage() {
               if (newId) {
                 await updateImage(newId);
                 await addCohost(newId);
+                router.replace('/home/homepage');
               }
-              router.replace('/home/homepage')
+              // If newId is null, stay on the page (do nothing)
             }}>
             <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Done</Text>
           </TouchableOpacity>
