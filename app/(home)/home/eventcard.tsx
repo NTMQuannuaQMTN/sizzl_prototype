@@ -2,10 +2,11 @@ import defaultImages from '@/app/(create)/defaultimage';
 import { useUserStore } from '@/app/store/userStore';
 import { supabase } from '@/utils/supabase';
 import { useEffect, useState } from 'react';
-import { Image, Text, View } from 'react-native';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 
 import Host from '@/assets/icons/hostwhite-icon.svg';
+import DecisionModal from './eventDecision';
 
 export default function EventCard(props: any) {
   const [hostWC, setHostWC] = useState({
@@ -14,6 +15,9 @@ export default function EventCard(props: any) {
   });
   const [cohosts, setCohosts] = useState<any[]>([]);
   const [spec, setSpec] = useState<string[][]>([]);
+  const [decision, setDecision] = useState<string>('');
+  const [selection, setSelection] = useState(false);
+
   const specCol = {
     'Cash prize': 'bg-yellow-200',
     'Free food': 'bg-sky-200',
@@ -48,6 +52,47 @@ export default function EventCard(props: any) {
   }, []);
 
   useEffect(() => {
+    const getDecision = async () => {
+      const { data, error } = await supabase.from('guests')
+        .select('decision').eq('event_id', props.event.id)
+        .eq('user_id', user.id).single()
+
+      if (error) {
+        setDecision('Not RSVP');
+        return;
+      }
+
+      setDecision(data.decision);
+    }
+    getDecision();
+  }, []);
+
+  const handleDecision = async (dec: string) => {
+    setDecision(dec);
+    if (decision !== 'Not RSVP') {
+      const {error} = await supabase.from('guests')
+      .update({'decision': dec}).eq('event_id', props.event.id)
+      .eq('user_id', user.id);
+
+      if (error) {
+        console.log('Update error');
+        return;
+      }
+    } else {
+      const {error} = await supabase.from('guests')
+      .insert([{'decision': dec, 'event_id': props.event.id,
+        'user_id': user.id}]);
+
+      if (error) {
+        console.log('Add error');
+        return;
+      } else {
+        console.log('okay');
+      }
+    }
+  }
+
+  useEffect(() => {
     const getSpecial = () => {
       let specs = [
         ['Cash prize', props.event.cash_prize],
@@ -71,7 +116,7 @@ export default function EventCard(props: any) {
                 source={
                   props.event.image.startsWith('default_')
                     ? defaultImages[parseInt(props.event.image.replace('default_', ''), 10) - 1]
-                    : {uri: props.event.image}
+                    : { uri: props.event.image }
                 }
                 resizeMode='cover'
                 style={{ width: '100%', height: '100%' }}
@@ -147,12 +192,45 @@ export default function EventCard(props: any) {
                       <Text style={[tw`text-white text-[16px]`, { fontFamily: 'Nunito-Bold' }]}>Cohost</Text>
                     </View>
                   }
+                  {decision === 'Not RSVP' &&
+                    <TouchableOpacity style={tw`px-4 py-2 bg-[#7A5CFA] z-99 rounded-full flex-row gap-2 items-center`}
+                      onPress={() => setSelection(true)}>
+                      <Text style={[tw`text-white text-[16px]`, { fontFamily: 'Nunito-Bold' }]}>RSVP</Text>
+                    </TouchableOpacity>
+                  }
+                  {decision === 'Going' &&
+                    <TouchableOpacity style={tw`px-4 py-2 bg-green-500 z-99 rounded-full flex-row gap-2 items-center`}
+                      onPress={() => setSelection(true)}>
+                      <Text style={[tw`text-white text-[16px]`, { fontFamily: 'Nunito-Bold' }]}>I’m going 🥳</Text>
+                    </TouchableOpacity>
+                  }
+                  {decision === 'Maybe' &&
+                    <TouchableOpacity style={tw`px-4 py-2 bg-[#CA8A04] z-99 rounded-full flex-row gap-2 items-center`}
+                      onPress={() => setSelection(true)}>
+                      <Text style={[tw`text-white text-[16px]`, { fontFamily: 'Nunito-Bold' }]}>Eh...maybe 🤔</Text>
+                    </TouchableOpacity>
+                  }
+                  {decision === 'Nope' &&
+                    <TouchableOpacity style={tw`px-4 py-2 bg-[#E11D48] z-99 rounded-full flex-row gap-2 items-center`}
+                      onPress={() => setSelection(true)}>
+                      <Text style={[tw`text-white text-[16px]`, { fontFamily: 'Nunito-Bold' }]}>I can't 😭</Text>
+                    </TouchableOpacity>
+                  }
                 </View>
               </View>
             </View>
           </View>
         </View>
       </View>
+      <DecisionModal
+        visible={selection}
+        onClose={() => setSelection(false)}
+        eventTitle={props.event.title}
+        maybe={props.event.maybe}
+        onSelect={(dec) => {
+          handleDecision(dec);
+          setSelection(false);
+        }} />
     </View>
   );
 }
