@@ -62,17 +62,13 @@ export default function Hosting() {
     }, [user]);
 
     return (
-        <ScrollView style={tw`flex-1`}>
-            {/* Upcoming hit event */}
-            <View style={tw`flex-row items-center mb-2`}>
-                <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>🔥 Upcoming hit events</Text>
-            </View>
+        <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}>
             {/* Event Card 1 */}
             {upcomingEvents.map((e, index) => {
                 console.log(e);
                 return <EventCard key={index} event={e} />
             })}
-            {/* Upcoming hit event */}
+            {/* Past events */}
             <View style={tw`flex-row items-center mb-2`}>
                 <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Past events</Text>
             </View>
