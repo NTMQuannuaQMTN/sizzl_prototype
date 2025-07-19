@@ -220,260 +220,262 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
               ],
             },
           ]}
-          {...panResponder.panHandlers}
         >
           <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
             <View style={{ flex: 1, flexDirection: 'column' }}>
-            <View style={{ flex: 1 }}>
-              <View style={tw`w-12 h-1.5 bg-gray-500 rounded-full self-center mb-3`} />
-              <View style={[tw`mb-4 flex-row items-center`, { minHeight: 24 }]}> 
-                <TouchableOpacity
-                  style={[tw`px-4 py-1`, { minWidth: 50, alignItems: 'flex-start', justifyContent: 'center' }]}
-                  onPress={() => {
-                    setLocalStart(startDate);
-                    setLocalEnd(endDate);
-                    setEndAvailable(false);
-                    setLocStartTime(startTime);
-                    setLocEndTime(endTime);
-                    setStartDateChosen(false);
-                    setEndDateChosen(false);
-                    setActiveTab('start');
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[tw`text-[#7A5CFA] text-[13px]`, { fontFamily: 'Nunito-Bold' }]}>Clear</Text>
-                </TouchableOpacity>
-                <View style={{ flex: 1, alignItems: 'center' }}>
-                  <Text style={[tw`text-white -ml-3 text-[15px]`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Set date and time</Text>
-                </View>
-                {/* Spacer for symmetry */}
-                <View style={{ minWidth: 50 }} />
-              </View>
-              {/* Tabs */}
-              <View style={tw`flex-row px-3 mb-2`}>
-                <TouchableOpacity
-                  style={tw`${activeTab === 'start' ? 'bg-[#7A5CFA]' : 'bg-white/10'} justify-center items-center flex-1 rounded-l-xl py-2.5`}
-                  onPress={() => setActiveTab('start')}
-                >
-                  {!startDateChosen ? (
-                    <Text style={[tw`text-white text-center text-[13px]`, { fontFamily: 'Nunito-Medium' }]}>Select date</Text>
-                  ) : (
-                    <Text style={[tw`text-white text-center text-[13px] `, { fontFamily: 'Nunito-Medium' }]}>
-                      {localStart.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
-                    </Text>
-                  )}
-                  <Text style={[tw`text-white text-center text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>{locStartTime}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={tw`${activeTab === 'end' ? 'bg-[#7A5CFA]' : 'bg-white/10'} justify-center items-center flex-1 rounded-r-xl py-2.5`}
-                  onPress={() => {
-                    setActiveTab('end');
-                    setEndAvailable(true);
-                    // Only auto-set end time if end date is same as start date and end time is invalid
-                    const sameDay =
-                      localStart.getFullYear() === localEnd.getFullYear() &&
-                      localStart.getMonth() === localEnd.getMonth() &&
-                      localStart.getDate() === localEnd.getDate();
-                    const parseTime = (dateObj: Date, timeStr: string): Date | null => {
-                      const match = String(timeStr).match(/(\d+):(\d+)(am|pm)/i);
-                      if (!match) return null;
-                      let [_, hourStr, minStr, ampm] = match;
-                      let hour = Number(hourStr);
-                      let minute = Number(minStr);
-                      if (ampm === 'pm' && hour !== 12) hour += 12;
-                      if (ampm === 'am' && hour === 12) hour = 0;
-                      const d = new Date(dateObj);
-                      d.setHours(hour, minute, 0, 0);
-                      return d;
-                    };
-                    const startDT = parseTime(localStart, String(locStartTime));
-                    const endDT = parseTime(localEnd, String(locEndTime));
-                    if (
-                      sameDay &&
-                      startDT &&
-                      endDT &&
-                      endDT.getTime() - startDT.getTime() < 30 * 60000
-                    ) {
-                      // Only update end time if it's not at least 30min after start
-                      let minEnd = new Date(startDT.getTime() + 30 * 60000);
-                      let newHour = minEnd.getHours();
-                      let newMinute = minEnd.getMinutes();
-                      let newAmpm = newHour < 12 ? 'am' : 'pm';
-                      let displayHour = newHour % 12 === 0 ? 12 : newHour % 12;
-                      let displayMinute = String(newMinute).padStart(2, '0');
-                      let minEndTime = `${displayHour}:${displayMinute}${newAmpm}`;
-                      let idx = timeOptions.findIndex(t => t === minEndTime);
-                      // If minEnd is on the next day, update end date as well
-                      if (
-                        minEnd.getFullYear() !== localEnd.getFullYear() ||
-                        minEnd.getMonth() !== localEnd.getMonth() ||
-                        minEnd.getDate() !== localEnd.getDate()
-                      ) {
-                        setLocalEnd(new Date(minEnd));
-                        setEndDateChosen(true);
-                      }
-                      if (idx === -1) {
-                        idx = timeOptions.findIndex(t => {
-                          const tMatch = t.match(/(\d+):(\d+)(am|pm)/i);
-                          if (!tMatch) return false;
-                          let [__, h, m, ap] = tMatch;
-                          let th = Number(h);
-                          let tm = Number(m);
-                          if (ap === 'pm' && th !== 12) th += 12;
-                          if (ap === 'am' && th === 12) th = 0;
-                          return th > newHour || (th === newHour && tm >= newMinute);
-                        });
-                      }
-                      if (idx !== -1) {
-                        setLocEndTime(timeOptions[idx]);
-                        setEndDateChosen(true);
-                        setTimeout(() => {
-                          const ITEM_HEIGHT = 43.33;
-                          if (scrollRef.current) {
-                            scrollRef.current.scrollTo({ y: idx * ITEM_HEIGHT, animated: false });
+              <View style={{ flex: 1 }}>
+                {/* Draggable area: drag handle, header, tabs, and date picker */}
+                <View {...panResponder.panHandlers}>
+                  <View style={tw`w-12 h-1.5 bg-gray-500 rounded-full self-center mb-3`} />
+                  <View style={[tw`mb-4 flex-row items-center`, { minHeight: 24 }]}> 
+                    <TouchableOpacity
+                      style={[tw`px-4 py-1`, { minWidth: 50, alignItems: 'flex-start', justifyContent: 'center' }]}
+                      onPress={() => {
+                        setLocalStart(startDate);
+                        setLocalEnd(endDate);
+                        setEndAvailable(false);
+                        setLocStartTime(startTime);
+                        setLocEndTime(endTime);
+                        setStartDateChosen(false);
+                        setEndDateChosen(false);
+                        setActiveTab('start');
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[tw`text-[#7A5CFA] text-[13px]`, { fontFamily: 'Nunito-Bold' }]}>Clear</Text>
+                    </TouchableOpacity>
+                    <View style={{ flex: 1, alignItems: 'center' }}>
+                      <Text style={[tw`text-white -ml-3 text-[15px]`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Set date and time</Text>
+                    </View>
+                    {/* Spacer for symmetry */}
+                    <View style={{ minWidth: 50 }} />
+                  </View>
+                  {/* Tabs */}
+                  <View style={tw`flex-row px-3 mb-2`}>
+                    <TouchableOpacity
+                      style={tw`${activeTab === 'start' ? 'bg-[#7A5CFA]' : 'bg-white/10'} justify-center items-center flex-1 rounded-l-xl py-2.5`}
+                      onPress={() => setActiveTab('start')}
+                    >
+                      {!startDateChosen ? (
+                        <Text style={[tw`text-white text-center text-[13px]`, { fontFamily: 'Nunito-Medium' }]}>Select date</Text>
+                      ) : (
+                        <Text style={[tw`text-white text-center text-[13px] `, { fontFamily: 'Nunito-Medium' }]}> 
+                          {localStart.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                        </Text>
+                      )}
+                      <Text style={[tw`text-white text-center text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>{locStartTime}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={tw`${activeTab === 'end' ? 'bg-[#7A5CFA]' : 'bg-white/10'} justify-center items-center flex-1 rounded-r-xl py-2.5`}
+                      onPress={() => {
+                        setActiveTab('end');
+                        setEndAvailable(true);
+                        // Only auto-set end time if end date is same as start date and end time is invalid
+                        const sameDay =
+                          localStart.getFullYear() === localEnd.getFullYear() &&
+                          localStart.getMonth() === localEnd.getMonth() &&
+                          localStart.getDate() === localEnd.getDate();
+                        const parseTime = (dateObj: Date, timeStr: string): Date | null => {
+                          const match = String(timeStr).match(/(\d+):(\d+)(am|pm)/i);
+                          if (!match) return null;
+                          let [_, hourStr, minStr, ampm] = match;
+                          let hour = Number(hourStr);
+                          let minute = Number(minStr);
+                          if (ampm === 'pm' && hour !== 12) hour += 12;
+                          if (ampm === 'am' && hour === 12) hour = 0;
+                          const d = new Date(dateObj);
+                          d.setHours(hour, minute, 0, 0);
+                          return d;
+                        };
+                        const startDT = parseTime(localStart, String(locStartTime));
+                        const endDT = parseTime(localEnd, String(locEndTime));
+                        if (
+                          sameDay &&
+                          startDT &&
+                          endDT &&
+                          endDT.getTime() - startDT.getTime() < 30 * 60000
+                        ) {
+                          // Only update end time if it's not at least 30min after start
+                          let minEnd = new Date(startDT.getTime() + 30 * 60000);
+                          let newHour = minEnd.getHours();
+                          let newMinute = minEnd.getMinutes();
+                          let newAmpm = newHour < 12 ? 'am' : 'pm';
+                          let displayHour = newHour % 12 === 0 ? 12 : newHour % 12;
+                          let displayMinute = String(newMinute).padStart(2, '0');
+                          let minEndTime = `${displayHour}:${displayMinute}${newAmpm}`;
+                          let idx = timeOptions.findIndex(t => t === minEndTime);
+                          // If minEnd is on the next day, update end date as well
+                          if (
+                            minEnd.getFullYear() !== localEnd.getFullYear() ||
+                            minEnd.getMonth() !== localEnd.getMonth() ||
+                            minEnd.getDate() !== localEnd.getDate()
+                          ) {
+                            setLocalEnd(new Date(minEnd));
+                            setEndDateChosen(true);
                           }
-                        }, 0);
-                      }
-                    }
-                    // Otherwise, do not auto-update end time
-                  }}
-                >
-                  {!endAvailable ? (
-                    <>
-                      <Text style={[tw`text-white text-center text-[13px] `, { fontFamily: 'Nunito-Medium' }]}>Optional</Text>
-                      <Text style={[tw`text-white text-center text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>End</Text>
-                    </>
-                  ) : (
-                    <Text style={[tw`text-white text-center text-[13px] `, { fontFamily: 'Nunito-Medium' }]}>
-                      {localEnd.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
-                    </Text>
-                  )}
-                  {endAvailable && <Text style={[tw`text-white text-center`, { fontFamily: 'Nunito-ExtraBold' }]}>{locEndTime}</Text>}
-                </TouchableOpacity>
-              </View>
-              {/* Date Picker */}
-              <View style={[tw`mx-3 mb-2 rounded-xl overflow-hidden`]}>
-                <Calendar
-                  current={currentDate.toISOString().split('T')[0]}
-                  onDayPress={day => {
-                    const [year, month, date] = day.dateString.split('-').map(Number);
-                    const newDate = new Date(currentDate);
-                    newDate.setFullYear(year, month - 1, date);
+                          if (idx === -1) {
+                            idx = timeOptions.findIndex(t => {
+                              const tMatch = t.match(/(\d+):(\d+)(am|pm)/i);
+                              if (!tMatch) return false;
+                              let [__, h, m, ap] = tMatch;
+                              let th = Number(h);
+                              let tm = Number(m);
+                              if (ap === 'pm' && th !== 12) th += 12;
+                              if (ap === 'am' && th === 12) th = 0;
+                              return th > newHour || (th === newHour && tm >= newMinute);
+                            });
+                          }
+                          if (idx !== -1) {
+                            setLocEndTime(timeOptions[idx]);
+                            setEndDateChosen(true);
+                            setTimeout(() => {
+                              const ITEM_HEIGHT = 43.33;
+                              if (scrollRef.current) {
+                                scrollRef.current.scrollTo({ y: idx * ITEM_HEIGHT, animated: false });
+                              }
+                            }, 0);
+                          }
+                        }
+                        // Otherwise, do not auto-update end time
+                      }}
+                    >
+                      {!endAvailable ? (
+                        <>
+                          <Text style={[tw`text-white text-center text-[13px] `, { fontFamily: 'Nunito-Medium' }]}>Optional</Text>
+                          <Text style={[tw`text-white text-center text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>End</Text>
+                        </>
+                      ) : (
+                        <Text style={[tw`text-white text-center text-[13px] `, { fontFamily: 'Nunito-Medium' }]}> 
+                          {localEnd.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                        </Text>
+                      )}
+                      {endAvailable && <Text style={[tw`text-white text-center`, { fontFamily: 'Nunito-ExtraBold' }]}>{locEndTime}</Text>}
+                    </TouchableOpacity>
+                  </View>
+                  {/* Date Picker */}
+                  <View style={[tw`mx-3 mb-2 rounded-xl overflow-hidden`]}>
+                    <Calendar
+                      current={currentDate.toISOString().split('T')[0]}
+                      onDayPress={day => {
+                        const [year, month, date] = day.dateString.split('-').map(Number);
+                        const newDate = new Date(currentDate);
+                        newDate.setFullYear(year, month - 1, date);
 
-                    // Apply validation based on active tab
-                    if (activeTab === 'start') {
-                      // For start date: min = today, max = end date
-                      const minDate = new Date(getMinStartDate());
-                      const maxDate = new Date(getMaxStartDate());
+                        // Apply validation based on active tab
+                        if (activeTab === 'start') {
+                          // For start date: min = today, max = end date
+                          const minDate = new Date(getMinStartDate());
+                          const maxDate = new Date(getMaxStartDate());
 
-                      if (newDate < minDate) {
-                        newDate.setTime(minDate.getTime());
-                      } else if (newDate > maxDate) {
-                        newDate.setTime(maxDate.getTime());
-                      }
+                          if (newDate < minDate) {
+                            newDate.setTime(minDate.getTime());
+                          } else if (newDate > maxDate) {
+                            newDate.setTime(maxDate.getTime());
+                          }
 
-                      setLocalStart(newDate);
-                      setStartDateChosen(true);
+                          setLocalStart(newDate);
+                          setStartDateChosen(true);
 
-                      // Update end date if needed
-                      if (localEnd < newDate) {
-                        setLocalEnd(newDate);
-                        setEndDateChosen(false); // force user to re-pick end date
-                      }
-                    } else {
-                      // For end date: min = start date, max = 1 year from today
-                      const minDate = new Date(getMinEndDate());
-                      const maxDate = new Date(getMaxEndDate());
+                          // Update end date if needed
+                          if (localEnd < newDate) {
+                            setLocalEnd(newDate);
+                            setEndDateChosen(false); // force user to re-pick end date
+                          }
+                        } else {
+                          // For end date: min = start date, max = 1 year from today
+                          const minDate = new Date(getMinEndDate());
+                          const maxDate = new Date(getMaxEndDate());
 
-                      if (newDate < minDate) {
-                        newDate.setTime(minDate.getTime());
-                      } else if (newDate > maxDate) {
-                        newDate.setTime(maxDate.getTime());
-                      }
+                          if (newDate < minDate) {
+                            newDate.setTime(minDate.getTime());
+                          } else if (newDate > maxDate) {
+                            newDate.setTime(maxDate.getTime());
+                          }
 
-                      setLocalEnd(newDate);
-                      setEndDateChosen(true);
+                          setLocalEnd(newDate);
+                          setEndDateChosen(true);
 
-                      // Update start date if needed
-                      if (localStart > newDate) {
-                        setLocalStart(newDate);
-                        setStartDateChosen(false); // force user to re-pick start date
-                      }
-                    }
-                  }}
-                  theme={{
-                    calendarBackground: '#212346',
-                    textSectionTitleColor: '#ffffff',
-                    selectedDayBackgroundColor: '#7A5CFA',
-                    selectedDayTextColor: '#ffffff',
-                    todayTextColor: '#7A5CFA',
-                    dayTextColor: '#ffffff',
-                    textDisabledColor: '#3A4A5A',
-                    monthTextColor: '#ffffff',
-                    arrowColor: '#7A5CFA',
-                    textDayFontFamily: 'Nunito-Medium',
-                    textMonthFontFamily: 'Nunito-ExtraBold',
-                    textDayHeaderFontFamily: 'Nunito-Medium',
-                    textDayFontSize: 13,
-                    textMonthFontSize: 14,
-                    textDayHeaderFontSize: 13,
-                  }}
-                  markedDates={{
-                    [currentDate.toISOString().split('T')[0]]: { selected: true, selectedColor: '#7A5CFA' }
-                  }}
-                  minDate={activeTab === 'start' ? getMinStartDate() : getMinEndDate()}
-                  maxDate={activeTab === 'start' ? getMaxStartDate() : getMaxEndDate()}
-                  dayComponent={({ date, state, marking, onPress }) => {
-                    const isSelected = marking && marking.selected;
-                    const isDisabled = state === 'disabled';
-                    // Reduce height to make week rows closer together, but keep selected day a perfect circle
-                    const cellSize = 28;
-                    // Determine if this is today
-                    const todayStr = new Date().toISOString().split('T')[0];
-                    const isToday = date && date.dateString === todayStr;
-                    return (
-                      <TouchableOpacity
-                        disabled={isDisabled || !date}
-                        onPress={() => {
-                          if (onPress && date) onPress(date);
-                        }}
-                        activeOpacity={0.7}
-                        style={[
-                          {
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            alignSelf: 'center',
-                            width: cellSize,
-                            height: cellSize,
-                          },
-                          isSelected && {
-                            backgroundColor: '#7A5CFA',
-                            borderRadius: cellSize / 2,
-                          },
-                        ]}
-                      >
-                        {date ? (
-                          <Text
+                          // Update start date if needed
+                          if (localStart > newDate) {
+                            setLocalStart(newDate);
+                            setStartDateChosen(false); // force user to re-pick start date
+                          }
+                        }
+                      }}
+                      theme={{
+                        calendarBackground: '#212346',
+                        textSectionTitleColor: '#ffffff',
+                        selectedDayBackgroundColor: '#7A5CFA',
+                        selectedDayTextColor: '#ffffff',
+                        todayTextColor: '#7A5CFA',
+                        dayTextColor: '#ffffff',
+                        textDisabledColor: '#3A4A5A',
+                        monthTextColor: '#ffffff',
+                        arrowColor: '#7A5CFA',
+                        textDayFontFamily: 'Nunito-Medium',
+                        textMonthFontFamily: 'Nunito-ExtraBold',
+                        textDayHeaderFontFamily: 'Nunito-Medium',
+                        textDayFontSize: 13,
+                        textMonthFontSize: 14,
+                        textDayHeaderFontSize: 13,
+                      }}
+                      markedDates={{
+                        [currentDate.toISOString().split('T')[0]]: { selected: true, selectedColor: '#7A5CFA' }
+                      }}
+                      minDate={activeTab === 'start' ? getMinStartDate() : getMinEndDate()}
+                      maxDate={activeTab === 'start' ? getMaxStartDate() : getMaxEndDate()}
+                      dayComponent={({ date, state, marking, onPress }) => {
+                        const isSelected = marking && marking.selected;
+                        const isDisabled = state === 'disabled';
+                        // Reduce height to make week rows closer together, but keep selected day a perfect circle
+                        const cellSize = 28;
+                        // Determine if this is today
+                        const todayStr = new Date().toISOString().split('T')[0];
+                        const isToday = date && date.dateString === todayStr;
+                        return (
+                          <TouchableOpacity
+                            disabled={isDisabled || !date}
+                            onPress={() => {
+                              if (onPress && date) onPress(date);
+                            }}
+                            activeOpacity={0.7}
                             style={[
-                              { fontFamily: isSelected ? 'Nunito-ExtraBold' : 'Nunito-Medium', fontSize: 13 },
-                              isSelected
-                                ? { color: '#fff' }
-                                : isDisabled
-                                  ? { color: '#3A4A5A' }
-                                  : isToday
-                                    ? { color: '#7A5CFA' }
-                                    : { color: '#fff' },
-                              { textAlign: 'center' },
+                              {
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                alignSelf: 'center',
+                                width: cellSize,
+                                height: cellSize,
+                              },
+                              isSelected && {
+                                backgroundColor: '#7A5CFA',
+                                borderRadius: cellSize / 2,
+                              },
                             ]}
                           >
-                            {date.day}
-                          </Text>
-                        ) : null}
-                      </TouchableOpacity>
-                    );
-                  }}
-                />
-              </View>
+                            {date ? (
+                              <Text
+                                style={[
+                                  { fontFamily: isSelected ? 'Nunito-ExtraBold' : 'Nunito-Medium', fontSize: 13 },
+                                  isSelected
+                                    ? { color: '#fff' }
+                                    : isDisabled
+                                      ? { color: '#3A4A5A' }
+                                      : isToday
+                                        ? { color: '#7A5CFA' }
+                                        : { color: '#fff' },
+                                  { textAlign: 'center' },
+                                ]}
+                              >
+                                {date.day}
+                              </Text>
+                            ) : null}
+                          </TouchableOpacity>
+                        );
+                      }}
+                    />
+                  </View>
+                </View>
               {/* Time Picker */}
               <View style={tw`mx-3 items-center bg-white/10 rounded-xl mb-2`}>
                 {/* For 3 visible items, each item is ~43.33px tall (130/3) */}
