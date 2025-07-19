@@ -47,7 +47,7 @@ const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose,
       break;
     }
   }
-  const [selectedTime, setSelectedTime] = useState(initialTime === '' ? defaultTime: initialTime);
+  const [selectedTime, setSelectedTime] = useState(initialTime === '' ? defaultTime : initialTime);
   // Dropdown modal state for time picker
   const [showTimeDropdown, setShowTimeDropdown] = useState(false);
   // Set minDate to today in local time zone, formatted as 'YYYY-MM-DD'
@@ -151,10 +151,13 @@ const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose,
         <Animated.View
           style={[
             tw`w-full px-0 pt-6 pb-0 rounded-t-2xl`,
-            { backgroundColor: '#080B32', height: MODAL_HEIGHT },
-            { transform: [{ translateY: combinedTranslateY }] },
+            { backgroundColor: '#080B32', marginBottom: 0, paddingHorizontal: 0, paddingBottom: 0, height: MODAL_HEIGHT },
+            {
+              transform: [
+                { translateY: Animated.add(slideAnim, pan.y) },
+              ],
+            },
           ]}
-          {...panResponder.panHandlers}
         >
           <TouchableWithoutFeedback accessible={false}>
             <View style={{ flex: 1, flexDirection: 'column', height: '100%' }}>
@@ -162,253 +165,183 @@ const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose,
               <View style={tw`w-12 h-1.5 bg-gray-500 rounded-full self-center mb-3`} />
               {/* ...existing code... */}
               <View style={{ flex: 1, flexDirection: 'column' }}>
-            <View style={[tw`flex-row items-center mb-4`, { position: 'relative', minHeight: 0 }]}> 
-              <TouchableOpacity
-                onPress={() => {
-                  setSelectedDate(initialDate);
-                  setSelectedTime(initialTime === '' ? defaultTime: initialTime);
-                }}
-                style={tw`px-4 py-1`}
-                activeOpacity={0.7}
-              >
-                <Text style={[tw`text-[#7A5CFA] text-[13px]`, { fontFamily: 'Nunito-Bold' }]}>Clear</Text>
-              </TouchableOpacity>
-              <View style={{ position: 'absolute', left: 0, right: 0, alignItems: 'center', pointerEvents: 'none' }}>
-                <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Set RSVP deadline</Text>
-              </View>
-            </View>
-            <View style={[tw`mx-3 mb-2 rounded-xl overflow-hidden`]}>
-              <Calendar
-                current={selectedDate.toISOString().split('T')[0]}
-                onDayPress={day => {
-                  // The issue is that new Date(year, month - 1, date) creates a Date in local time,
-                  // but Calendar's day.dateString is in 'YYYY-MM-DD' (UTC midnight).
-                  // To avoid timezone offset issues, construct the date as UTC:
-                  const [year, month, dayNum] = day.dateString.split('-').map(Number);
-                  const selected = new Date(Date.UTC(year, month - 1, dayNum));
-                  setSelectedDate(selected);
-                }}
-                minDate={localTodayStr}
-                maxDate={maxDate.toISOString().split('T')[0]}
-                markedDates={{
-                  [selectedDate.toISOString().split('T')[0]]: {
-                    selected: true,
-                    selectedColor: '#7A5CFA',
-                  },
-                }}
-                theme={{
-                  calendarBackground: '#212346',
-                  textSectionTitleColor: '#ffffff',
-                  selectedDayBackgroundColor: '#7A5CFA',
-                  selectedDayTextColor: '#ffffff',
-                  todayTextColor: '#7A5CFA',
-                  dayTextColor: '#ffffff',
-                  textDisabledColor: '#3A4A5A',
-                  monthTextColor: '#ffffff',
-                  arrowColor: '#7A5CFA',
-                  textDayFontFamily: 'Nunito-Medium',
-                  textMonthFontFamily: 'Nunito-ExtraBold',
-                  textDayHeaderFontFamily: 'Nunito-Medium',
-                  textDayFontSize: 13,
-                  textMonthFontSize: 14,
-                  textDayHeaderFontSize: 13,
-                }}
-                dayComponent={({ date, state, marking, onPress }) => {
-                  const isSelected = marking && marking.selected;
-                  const isDisabled = state === 'disabled';
-                  const cellSize = 28;
-                  const todayStr = new Date().toISOString().split('T')[0];
-                  const isToday = date && date.dateString === todayStr;
-                  return (
-                    <TouchableOpacity
-                      disabled={isDisabled || !date}
-                      onPress={() => {
-                        if (onPress && date) onPress(date);
+                <View style={[tw`flex-row items-center mb-4`, { position: 'relative', minHeight: 0 }]}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setSelectedDate(initialDate);
+                      setSelectedTime(initialTime === '' ? defaultTime : initialTime);
+                    }}
+                    style={tw`px-4 py-1`}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[tw`text-[#7A5CFA] text-[13px]`, { fontFamily: 'Nunito-Bold' }]}>Clear</Text>
+                  </TouchableOpacity>
+                  <View style={{ position: 'absolute', left: 0, right: 0, alignItems: 'center', pointerEvents: 'none' }}>
+                    <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Set RSVP deadline</Text>
+                  </View>
+                </View>
+                <View style={[tw`mx-3 gap-y-2 rounded-xl overflow-hidden`]}>
+                  <View {...panResponder.panHandlers}>
+                    <Calendar
+                      current={selectedDate.toISOString().split('T')[0]}
+                      onDayPress={day => {
+                        // The issue is that new Date(year, month - 1, date) creates a Date in local time,
+                        // but Calendar's day.dateString is in 'YYYY-MM-DD' (UTC midnight).
+                        // To avoid timezone offset issues, construct the date as UTC:
+                        const [year, month, dayNum] = day.dateString.split('-').map(Number);
+                        const selected = new Date(Date.UTC(year, month - 1, dayNum));
+                        setSelectedDate(selected);
                       }}
-                      activeOpacity={0.7}
-                      style={[{
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        alignSelf: 'center',
-                        width: cellSize,
-                        height: cellSize,
-                      },
-                      isSelected && {
-                        backgroundColor: '#7A5CFA',
-                        borderRadius: cellSize / 2,
-                      },
-                      ]}
-                    >
-                      {date ? (
-                        <Text
-                          style={[
-                            { fontFamily: isSelected ? 'Nunito-ExtraBold' : 'Nunito-Medium', fontSize: 13 },
-                            isSelected
-                              ? { color: '#fff' }
-                              : isDisabled
-                                ? { color: '#3A4A5A' }
-                                : isToday
-                                  ? { color: '#7A5CFA' }
-                                  : { color: '#fff' },
-                            { textAlign: 'center' },
-                          ]}
-                        >
-                          {date.day}
-                        </Text>
-                      ) : null}
-                    </TouchableOpacity>
-                  );
-                }}
-              />
-            </View>
-            {/* Time Picker - Dropdown Modal */}
-            <View style={tw`mx-3 items-center bg-white/10 rounded-xl mb-2 p-3`}>
-              <Text style={[tw`text-white mb-2`, { fontFamily: 'Nunito-Bold', fontSize: 14 }]}>Select Time</Text>
-              <TouchableOpacity
-                style={[
-                  tw`w-full rounded-lg py-3 px-4 mb-1`,
-                  { backgroundColor: 'rgba(255,255,255,0.07)', alignItems: 'center', borderWidth: 1, borderColor: '#7A5CFA' }
-                ]}
-                onPress={() => setShowTimeDropdown(true)}
-                activeOpacity={0.8}
-              >
-                <Text style={{ color: '#fff', fontFamily: 'Nunito-ExtraBold', fontSize: 16 }}>
-                  {selectedTime}
-                </Text>
-              </TouchableOpacity>
-              {/* Time Dropdown Modal */}
-              <Modal
-                visible={!!showTimeDropdown}
-                transparent
-                animationType="fade"
-                onRequestClose={() => setShowTimeDropdown(false)}
-              >
-                <TouchableOpacity
-                  style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' }}
-                  activeOpacity={1}
-                  onPress={() => setShowTimeDropdown(false)}
-                >
-                  <View style={{ width: 260, maxHeight: 350, backgroundColor: '#212346', borderRadius: 14, paddingVertical: 8, paddingHorizontal: 0 }}>
-                    <ScrollView showsVerticalScrollIndicator={true}>
-                      {timeOptions.map((t) => {
-                        const isSelected = selectedTime === t;
+                      minDate={localTodayStr}
+                      maxDate={maxDate.toISOString().split('T')[0]}
+                      markedDates={{
+                        [selectedDate.toISOString().split('T')[0]]: {
+                          selected: true,
+                          selectedColor: '#7A5CFA',
+                        },
+                      }}
+                      theme={{
+                        calendarBackground: '#212346',
+                        textSectionTitleColor: '#ffffff',
+                        selectedDayBackgroundColor: '#7A5CFA',
+                        selectedDayTextColor: '#ffffff',
+                        todayTextColor: '#7A5CFA',
+                        dayTextColor: '#ffffff',
+                        textDisabledColor: '#3A4A5A',
+                        monthTextColor: '#ffffff',
+                        arrowColor: '#7A5CFA',
+                        textDayFontFamily: 'Nunito-Medium',
+                        textMonthFontFamily: 'Nunito-ExtraBold',
+                        textDayHeaderFontFamily: 'Nunito-Medium',
+                        textDayFontSize: 13,
+                        textMonthFontSize: 14,
+                        textDayHeaderFontSize: 13,
+                      }}
+                      dayComponent={({ date, state, marking, onPress }) => {
+                        const isSelected = marking && marking.selected;
+                        const isDisabled = state === 'disabled';
+                        const cellSize = 28;
+                        const todayStr = new Date().toISOString().split('T')[0];
+                        const isToday = date && date.dateString === todayStr;
                         return (
                           <TouchableOpacity
-                            key={t}
+                            disabled={isDisabled || !date}
                             onPress={() => {
-                              setSelectedTime(t);
-                              setShowTimeDropdown(false);
+                              if (onPress && date) onPress(date);
                             }}
-                            style={{
-                              paddingVertical: 12,
-                              paddingHorizontal: 24,
-                              backgroundColor: isSelected ? '#7A5CFA' : 'transparent',
+                            activeOpacity={0.7}
+                            style={[{
+                              justifyContent: 'center',
                               alignItems: 'center',
-                            }}
+                              alignSelf: 'center',
+                              width: cellSize,
+                              height: cellSize,
+                            },
+                            isSelected && {
+                              backgroundColor: '#7A5CFA',
+                              borderRadius: cellSize / 2,
+                            },
+                            ]}
                           >
-                            <Text style={{ color: '#fff', fontFamily: isSelected ? 'Nunito-ExtraBold' : 'Nunito-Medium', fontSize: 15 }}>{t}</Text>
+                            {date ? (
+                              <Text
+                                style={[
+                                  { fontFamily: isSelected ? 'Nunito-ExtraBold' : 'Nunito-Medium', fontSize: 13 },
+                                  isSelected
+                                    ? { color: '#fff' }
+                                    : isDisabled
+                                      ? { color: '#3A4A5A' }
+                                      : isToday
+                                        ? { color: '#7A5CFA' }
+                                        : { color: '#fff' },
+                                  { textAlign: 'center' },
+                                ]}
+                              >
+                                {date.day}
+                              </Text>
+                            ) : null}
                           </TouchableOpacity>
                         );
-                      })}
-                    </ScrollView>
+                      }}
+                    />
                   </View>
-                </TouchableOpacity>
-              </Modal>
-            </View>
-          </View>
-          {/* Custom warning for RSVP deadline not before event start time */}
-          {(() => {
-            // Calculate RSVP deadline Date object
-            const match = selectedTime.match(/(\d+):(\d+)(am|pm)/i);
-            let hour = 0, minute = 0;
-            if (match) {
-              hour = Number(match[1]);
-              minute = Number(match[2]);
-              const ampm = match[3];
-              if (ampm === 'pm' && hour !== 12) hour += 12;
-              if (ampm === 'am' && hour === 12) hour = 0;
-            }
-            const combined = new Date(selectedDate);
-            combined.setHours(hour, minute, 0, 0);
-            return { combined };
-          })().combined && (() => {
-            // Consider start date unset if maxDate is missing, invalid, epoch, or today
-            const isUnsetStart =
-              !maxDate ||
-              isNaN(maxDate.getTime()) ||
-              maxDate.getTime() === 0 ||
-              (maxDate.toDateString && maxDate.toDateString() === new Date().toDateString());
-            const match = selectedTime.match(/(\d+):(\d+)(am|pm)/i);
-            let hour = 0, minute = 0;
-            if (match) {
-              hour = Number(match[1]);
-              minute = Number(match[2]);
-              const ampm = match[3];
-              if (ampm === 'pm' && hour !== 12) hour += 12;
-              if (ampm === 'am' && hour === 12) hour = 0;
-            }
-            const combined = new Date(selectedDate);
-            combined.setHours(hour, minute, 0, 0);
-            if (isUnsetStart) {
-              return (
-                <View style={tw`mb-2 w-full px-3`}>
-                  <View style={tw`bg-yellow-600 rounded-lg p-2.5 items-center`}>
-                    <Text style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-Bold', textAlign: 'center' }]}>
-                      📢 It's recommended you choose the start date first!
-                    </Text>
-                  </View>
-                </View>
-              );
-            }
-            if (combined.getTime() > maxDate.getTime()) {
-              return (
-                <View style={tw`mb-2 w-full px-3`}>
-                  <View style={tw`bg-rose-600 rounded-lg p-2.5 items-center`}>
-                    <Text style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-Bold', textAlign: 'center' }]}>
-                    ⚠️ The deadline must be before the event's start time
-                    </Text>
+                  {/* Time Picker - Dropdown Modal */}
+                  <View style={tw`items-center bg-white/10 rounded-xl mb-2 p-3`}>
+                    <Text style={[tw`text-white mb-2`, { fontFamily: 'Nunito-Bold', fontSize: 14 }]}>Select Time</Text>
+                    <TouchableOpacity
+                      style={[
+                        tw`w-full rounded-lg py-3 px-4 mb-1`,
+                        { backgroundColor: 'rgba(255,255,255,0.07)', alignItems: 'center', borderWidth: 1, borderColor: '#7A5CFA' }
+                      ]}
+                      onPress={() => setShowTimeDropdown(true)}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={{ color: '#fff', fontFamily: 'Nunito-ExtraBold', fontSize: 16 }}>
+                        {selectedTime}
+                      </Text>
+                    </TouchableOpacity>
+                    {/* Time Dropdown Modal */}
+                    <Modal
+                      visible={!!showTimeDropdown}
+                      transparent
+                      animationType="fade"
+                      onRequestClose={() => setShowTimeDropdown(false)}
+                    >
+                      <TouchableOpacity
+                        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center' }}
+                        activeOpacity={1}
+                        onPress={() => setShowTimeDropdown(false)}
+                      >
+                        <View style={{ width: 260, maxHeight: 350, backgroundColor: '#212346', borderRadius: 14, paddingVertical: 8, paddingHorizontal: 0 }}>
+                          <ScrollView showsVerticalScrollIndicator={true}>
+                            {timeOptions.map((t) => {
+                              const isSelected = selectedTime === t;
+                              return (
+                                <TouchableOpacity
+                                  key={t}
+                                  onPress={() => {
+                                    setSelectedTime(t);
+                                    setShowTimeDropdown(false);
+                                  }}
+                                  style={{
+                                    paddingVertical: 12,
+                                    paddingHorizontal: 24,
+                                    backgroundColor: isSelected ? '#7A5CFA' : 'transparent',
+                                    alignItems: 'center',
+                                  }}
+                                >
+                                  <Text style={{ color: '#fff', fontFamily: isSelected ? 'Nunito-ExtraBold' : 'Nunito-Medium', fontSize: 15 }}>{t}</Text>
+                                </TouchableOpacity>
+                              );
+                            })}
+                          </ScrollView>
+                        </View>
+                      </TouchableOpacity>
+                    </Modal>
                   </View>
                 </View>
-              );
-            }
-            return null;
-          })()}
-          {/* Save/Cancel buttons always at the bottom */}
-          <View style={[tw`flex-row px-3 pb-8`, { marginTop: 'auto' }]}> 
-            <View style={{ flex: 1, flexDirection: 'column'}}>
-              <TouchableOpacity
-                style={[
-                  tw`bg-[#7A5CFA] rounded-full py-3 items-center mb-2`,
-                  (() => {
-                    // Disable and fade if RSVP deadline is after event start time
-                    const isUnsetStart =
-                      !maxDate ||
-                      isNaN(maxDate.getTime()) ||
-                      maxDate.getTime() === 0 ||
-                      (maxDate.toDateString && maxDate.toDateString() === new Date().toDateString());
-                    const match = selectedTime.match(/(\d+):(\d+)(am|pm)/i);
-                    let hour = 0, minute = 0;
-                    if (match) {
-                      hour = Number(match[1]);
-                      minute = Number(match[2]);
-                      const ampm = match[3];
-                      if (ampm === 'pm' && hour !== 12) hour += 12;
-                      if (ampm === 'am' && hour === 12) hour = 0;
-                    }
-                    const combined = new Date(selectedDate);
-                    combined.setHours(hour, minute, 0, 0);
-                    if (isUnsetStart || combined.getTime() > maxDate.getTime()) {
-                      return { opacity: 0.3 };
-                    }
-                    return {};
-                  })(),
-                ]}
-                onPress={() => {
-                  // Disable and fade if RSVP deadline is after event start time
+                {/* Custom warning for RSVP deadline not before event start time */}
+                {(() => {
+                  // Calculate RSVP deadline Date object
+                  const match = selectedTime.match(/(\d+):(\d+)(am|pm)/i);
+                  let hour = 0, minute = 0;
+                  if (match) {
+                    hour = Number(match[1]);
+                    minute = Number(match[2]);
+                    const ampm = match[3];
+                    if (ampm === 'pm' && hour !== 12) hour += 12;
+                    if (ampm === 'am' && hour === 12) hour = 0;
+                  }
+                  const combined = new Date(selectedDate);
+                  combined.setHours(hour, minute, 0, 0);
+                  return { combined };
+                })().combined && (() => {
+                  // Consider start date unset if maxDate is missing, invalid, epoch, or today
                   const isUnsetStart =
                     !maxDate ||
                     isNaN(maxDate.getTime()) ||
-                    maxDate.getTime() === 0;
+                    maxDate.getTime() === 0 ||
+                    (maxDate.toDateString && maxDate.toDateString() === new Date().toDateString());
                   const match = selectedTime.match(/(\d+):(\d+)(am|pm)/i);
                   let hour = 0, minute = 0;
                   if (match) {
@@ -420,45 +353,117 @@ const RSVPDeadlineModal: React.FC<RSVPDeadlineModalProps> = ({ visible, onClose,
                   }
                   const combined = new Date(selectedDate);
                   combined.setHours(hour, minute, 0, 0);
-                  if (isUnsetStart || combined.getTime() > maxDate.getTime()) {
-                    return;
+                  if (isUnsetStart) {
+                    return (
+                      <View style={tw`mb-2 w-full px-3`}>
+                        <View style={tw`bg-yellow-600 rounded-lg p-2.5 items-center`}>
+                          <Text style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-Bold', textAlign: 'center' }]}>
+                            📢 It's recommended you choose the start date first!
+                          </Text>
+                        </View>
+                      </View>
+                    );
                   }
-                  onSave(combined, selectedTime);
-                }}
-                activeOpacity={0.7}
-                disabled={(() => {
-                  const isUnsetStart =
-                  !maxDate ||
-                  isNaN(maxDate.getTime()) ||
-                  maxDate.getTime() === 0;
-                  const match = selectedTime.match(/(\d+):(\d+)(am|pm)/i);
-                  let hour = 0, minute = 0;
-                  if (match) {
-                    hour = Number(match[1]);
-                    minute = Number(match[2]);
-                    const ampm = match[3];
-                    if (ampm === 'pm' && hour !== 12) hour += 12;
-                    if (ampm === 'am' && hour === 12) hour = 0;
+                  if (combined.getTime() > maxDate.getTime()) {
+                    return (
+                      <View style={tw`mb-2 w-full px-3`}>
+                        <View style={tw`bg-rose-600 rounded-lg p-2.5 items-center`}>
+                          <Text style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-Bold', textAlign: 'center' }]}>
+                            ⚠️ The deadline must be before the event's start time
+                          </Text>
+                        </View>
+                      </View>
+                    );
                   }
-                  const combined = new Date(selectedDate);
-                  combined.setHours(hour, minute, 0, 0);
-                  return isUnsetStart || combined.getTime() > maxDate.getTime();
+                  return null;
                 })()}
-              >
-                <Text style={[tw`text-white text-center text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Save</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[tw`bg-white/5 rounded-full py-3 items-center`]}
-                onPress={() => {
-                  setSelectedDate(initialDate);
-                  setSelectedTime(initialTime === '' ? defaultTime: initialTime);
-                  onClose();
-                }}
-                activeOpacity={0.7}
-              >
-                <Text style={[tw`text-white text-center text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
+                {/* Save/Cancel buttons always at the bottom */}
+                <View style={[tw`flex-row px-3 pb-8`, { marginTop: 'auto' }]}>
+                  <View style={{ flex: 1, flexDirection: 'column' }}>
+                    <TouchableOpacity
+                      style={[
+                        tw`bg-[#7A5CFA] rounded-full py-3 items-center mb-2`,
+                        (() => {
+                          // Disable and fade if RSVP deadline is after event start time
+                          const isUnsetStart =
+                            !maxDate ||
+                            isNaN(maxDate.getTime()) ||
+                            maxDate.getTime() === 0 ||
+                            (maxDate.toDateString && maxDate.toDateString() === new Date().toDateString());
+                          const match = selectedTime.match(/(\d+):(\d+)(am|pm)/i);
+                          let hour = 0, minute = 0;
+                          if (match) {
+                            hour = Number(match[1]);
+                            minute = Number(match[2]);
+                            const ampm = match[3];
+                            if (ampm === 'pm' && hour !== 12) hour += 12;
+                            if (ampm === 'am' && hour === 12) hour = 0;
+                          }
+                          const combined = new Date(selectedDate);
+                          combined.setHours(hour, minute, 0, 0);
+                          if (isUnsetStart || combined.getTime() > maxDate.getTime()) {
+                            return { opacity: 0.3 };
+                          }
+                          return {};
+                        })(),
+                      ]}
+                      onPress={() => {
+                        // Disable and fade if RSVP deadline is after event start time
+                        const isUnsetStart =
+                          !maxDate ||
+                          isNaN(maxDate.getTime()) ||
+                          maxDate.getTime() === 0;
+                        const match = selectedTime.match(/(\d+):(\d+)(am|pm)/i);
+                        let hour = 0, minute = 0;
+                        if (match) {
+                          hour = Number(match[1]);
+                          minute = Number(match[2]);
+                          const ampm = match[3];
+                          if (ampm === 'pm' && hour !== 12) hour += 12;
+                          if (ampm === 'am' && hour === 12) hour = 0;
+                        }
+                        const combined = new Date(selectedDate);
+                        combined.setHours(hour, minute, 0, 0);
+                        if (isUnsetStart || combined.getTime() > maxDate.getTime()) {
+                          return;
+                        }
+                        onSave(combined, selectedTime);
+                      }}
+                      activeOpacity={0.7}
+                      disabled={(() => {
+                        const isUnsetStart =
+                          !maxDate ||
+                          isNaN(maxDate.getTime()) ||
+                          maxDate.getTime() === 0;
+                        const match = selectedTime.match(/(\d+):(\d+)(am|pm)/i);
+                        let hour = 0, minute = 0;
+                        if (match) {
+                          hour = Number(match[1]);
+                          minute = Number(match[2]);
+                          const ampm = match[3];
+                          if (ampm === 'pm' && hour !== 12) hour += 12;
+                          if (ampm === 'am' && hour === 12) hour = 0;
+                        }
+                        const combined = new Date(selectedDate);
+                        combined.setHours(hour, minute, 0, 0);
+                        return isUnsetStart || combined.getTime() > maxDate.getTime();
+                      })()}
+                    >
+                      <Text style={[tw`text-white text-center text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Save</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[tw`bg-white/5 rounded-full py-3 items-center`]}
+                      onPress={() => {
+                        setSelectedDate(initialDate);
+                        setSelectedTime(initialTime === '' ? defaultTime : initialTime);
+                        onClose();
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[tw`text-white text-center text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Cancel</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
               </View>
             </View>
           </TouchableWithoutFeedback>
