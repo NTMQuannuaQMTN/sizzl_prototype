@@ -170,7 +170,7 @@ export default function EventCard(props: any) {
                       style={{ width: 24, height: 24, borderRadius: 12, marginLeft: 6, marginRight: 6 }}
                     />
                     {hostWC.count > 1 && (
-                      <Text style={[tw`text-white text-[12px]`, { fontFamily: 'Nunito-Medium' }]}>+{hostWC.count - 1}</Text>
+                      <Text style={[tw`text-white text-[10px]`, { fontFamily: 'Nunito-Medium' }]}>+{hostWC.count - 1}</Text>
                     )}
                   </View>
                   <View style={tw`flex-row items-center mb-2`}>
