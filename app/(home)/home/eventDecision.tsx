@@ -12,7 +12,7 @@ interface DecisionProps {
 
 
 export default function DecisionModal({ visible, onClose, eventTitle, maybe, onSelect }: DecisionProps) {
-    const MODAL_HEIGHT = 260;
+    const MODAL_HEIGHT = 280;
     const slideAnim = React.useRef(new Animated.Value(MODAL_HEIGHT)).current;
     const pan = React.useRef(new Animated.ValueXY()).current;
     const [isModalMounted, setIsModalMounted] = React.useState(false);
@@ -64,7 +64,7 @@ export default function DecisionModal({ visible, onClose, eventTitle, maybe, onS
                 }
             },
         })
-    ).current;
+    );
 
     React.useEffect(() => {
         if (visible) {
@@ -113,11 +113,28 @@ export default function DecisionModal({ visible, onClose, eventTitle, maybe, onS
                         { backgroundColor: '#080B32', height: MODAL_HEIGHT },
                         { transform: [{ translateY: combinedTranslateY }] },
                     ]}
+                    {...panResponder.current.panHandlers}
                 >
                     <TouchableWithoutFeedback>
                         <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
-                            <View style={tw`pb-8 pt-4 px-4 gap-y-3`}>
-                            <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Your decision to {eventTitle}?</Text>
+                            {/* Draggable handle bar */}
+                            <View style={tw`w-12 h-1.5 bg-gray-500 rounded-full self-center mb-3`} />
+                            <View style={tw`pb-14 pt-1 px-4 gap-y-3`}>
+                                {/* Header row: Clear button (left) + Centered title */}
+                                <View style={[tw`mb-3`, { position: 'relative', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 28 }]}> 
+                                    {/* Absolute Clear button on the left */}
+                                    <TouchableOpacity
+                                        style={{ position: 'absolute', left: 0, top: 0, bottom: 0, justifyContent: 'center', paddingVertical: 2, paddingHorizontal: 4, zIndex: 2 }}
+                                        onPress={() => { onSelect('Clear'); }}
+                                        activeOpacity={0.7}
+                                    >
+                                        <Text style={[tw`text-[#7A5CFA] text-[13px]`, { fontFamily: 'Nunito-Bold' }]}>Reset</Text>
+                                    </TouchableOpacity>
+                                    {/* Centered title */}
+                                    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                                        <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Your decision to {eventTitle}?</Text>
+                                    </View>
+                                </View>
                                 <TouchableOpacity
                                     style={tw`bg-green-500 rounded-md flex-row justify-center py-2.5 items-center gap-1.5`}
                                     onPress={() => {onSelect('Going')}}

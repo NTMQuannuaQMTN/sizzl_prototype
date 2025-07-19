@@ -81,6 +81,19 @@ export default function EventCard(props: any) {
   }, []);
 
   const handleDecision = async (dec: string) => {
+    if (dec === 'Clear') {
+      setDecision('Not RSVP');
+      // Optionally, you can also remove the RSVP from the database:
+      try {
+        await supabase.from('guests')
+          .delete()
+          .eq('event_id', props.event.id)
+          .eq('user_id', user.id);
+      } catch (e) {
+        // ignore
+      }
+      return;
+    }
     setDecision(dec);
     if (decision !== 'Not RSVP') {
       const {error} = await supabase.from('guests')
