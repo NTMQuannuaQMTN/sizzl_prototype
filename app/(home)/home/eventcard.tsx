@@ -13,6 +13,7 @@ export default function EventCard(props: any) {
     host: '',
     count: 0,
   });
+  const [hostPfp, setHostPfp] = useState<string | null>(null);
   const [cohosts, setCohosts] = useState<any[]>([]);
   const [spec, setSpec] = useState<string[][]>([]);
   const [decision, setDecision] = useState<string>('');
@@ -36,13 +37,22 @@ export default function EventCard(props: any) {
         setCohosts(cohost.filter(e => e.user_id).map(e => e.user_id));
         if (cohost.filter(e => e.name).map(e => e.name).length !== 0) {
           setHostWC({ host: cohost.filter(e => e.name).map(e => e.name)[0], count: cohost.length + 1 })
+          // fetch pfp for cohost
+          const { data: hostUser, error: hostUserErr } = await supabase.from('users')
+            .select('profile_image').eq('id', cohost[0].user_id).single();
+          if (!hostUserErr && hostUser && hostUser.profile_image) {
+            setHostPfp(hostUser.profile_image);
+          } else {
+            setHostPfp(null);
+          }
         } else {
           const { data: host, error: hostErr } = await supabase.from('users')
-            .select('firstname').eq('id', props.event.host_id).single();
+            .select('firstname, profile_image').eq('id', props.event.host_id).single();
           if (hostErr) {
             console.log('Err get hos');
           } else {
             setHostWC({ host: host.firstname, count: cohost.length + 1 });
+            setHostPfp(host.profile_image || null);
           }
         }
       }
@@ -106,10 +116,10 @@ export default function EventCard(props: any) {
   }, []);
 
   return (
-    <View style={tw`mb-5`}>
-      <View style={tw`rounded-2xl overflow-hidden bg-black/30`}>
-        <View style={{ height: 200, width: '100%' }}>
-          <View style={[tw`absolute left-0 right-0 top-0 bottom-0`, { zIndex: 1, backgroundColor: 'rgba(0,0,0,0.25)' }]} />
+    <View style={tw`mb-5`}> 
+      <View style={[tw`rounded-2xl overflow-hidden w-full items-center justify-center`, { aspectRatio: 410 / 279 }]}> 
+        <View style={{ width: '100%', height: '100%' }}>
+          <View style={[tw`absolute left-0 right-0 top-0 bottom-0`, { zIndex: 1 }]} />
           <View style={tw`w-full h-full`}>
             <View style={tw`absolute left-0 right-0 top-0 bottom-0`}>
               <Image
@@ -121,7 +131,7 @@ export default function EventCard(props: any) {
                 resizeMode='cover'
                 style={{ width: '100%', height: '100%' }}
               />
-              <View style={tw`w-full h-full absolute top-0 left-0 bg-black bg-opacity-50 px-4 pb-4 pt-2`}>
+              <View style={tw`w-full h-full absolute top-0 left-0 bg-black bg-opacity-70 px-4 pb-4 pt-2`}>
                 {/* Badges */}
                 {spec.length !== 0 && <View style={tw`flex-row z-10 pt-2`}>
                   {spec.slice(0, 2).map((s, ind) => {
@@ -141,10 +151,22 @@ export default function EventCard(props: any) {
                   )}
                 </View>}
                 {/* Card Content */}
-                <View style={tw`pt-0`}>
-                  <Text style={tw`text-white text-lg font-bold mb-1`}>{props.event.title}</Text>
+                <View style={tw`pt-1`}>
+                  <Text style={[tw`text-white text-lg mb-1`, { fontFamily: 'Nunito-ExtraBold' }]}>{props.event.title}</Text>
                   <View style={tw`flex-row items-center mb-1`}>
-                    <Text style={tw`text-white/80 text-xs mr-2`}>Hosted by {hostWC.host} {hostWC.count > 1 && `+${hostWC.count - 1}`}</Text>
+                    <Host width={14} height={14} style={tw`mr-2`} />
+                    {/* Host profile image */}
+                    <Image
+                      source={
+                        hostPfp
+                          ? { uri: hostPfp }
+                          : require('@/assets/images/pfp-default2.png')
+                      }
+                      style={{ width: 24, height: 24, borderRadius: 12, marginRight: 8, backgroundColor: '#fff' }}
+                    />
+                    <Text style={[tw`text-white text-[15px] mr-2`, { fontFamily: 'Nunito-Medium' }]}>Hosted by {hostWC.host} {hostWC.count > 1 && `+${hostWC.count - 1}`}</Text>
+                  </View>
+                  <View style={tw`flex-row items-center mb-1`}>
                     <Text style={tw`text-white/80 text-xs`}>•</Text>
                     <Text style={tw`text-white/80 text-xs ml-2`}>{props.event.start} - {props.event.end}</Text>
                   </View>
