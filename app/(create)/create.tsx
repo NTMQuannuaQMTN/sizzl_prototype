@@ -169,8 +169,11 @@ export default function CreatePage() {
 
   const addEvent = async () => {
     console.log('adding');
-    // Check if event title, date, and RSVP deadline are available
-    // You can show an alert, toast, or return early
+    // Check if event title, date, RSVP deadline, and location are available
+    if (!title || !date.dateChosen || !rsvpDL || !(location.name || location.selected)) {
+      Alert.alert('Please fill in all required fields, including location.');
+      return null;
+    }
     // Combine start date and start time into a single Date object for 'start'
     const startDateTime = new Date(
       date.start.getFullYear(),
@@ -229,15 +232,17 @@ export default function CreatePage() {
           title: title, public: publicEvent,
           start: (date.dateChosen ? startDateTime : null),
           end: (date.endSet ? endDateTime : null),
-          location_add: 'Ahihi', location_name: 'Ahihi',
-          location_more: 'Ahihi', location_note: 'Ahihi',
+          location_add: location.selected || '',
+          location_name: location.name || location.selected || '',
+          location_more: location.aptSuite || '',
+          location_note: location.notes || '',
           rsvpfirst: location.rsvpFirst, rsvp_deadline: rsvpDL,
           bio: bio, cash_prize: specialBox.cash ? special.cash : null,
           free_food: specialBox.food ? special.food : null,
           free_merch: specialBox.merch ? special.merch : null,
           cool_prize: specialBox.coolPrize ? special.coolPrize : null,
           host_id: user.id, public_list: list.public, maybe: list.maybe,
-          done: !(title === '' || !date.dateChosen || !rsvpDL),
+          done: !(title === '' || !date.dateChosen || !rsvpDL || !(location.name || location.selected)),
           school_id: user.school_id
         }])
         .select('id') // Request the id of the inserted event
@@ -249,15 +254,17 @@ export default function CreatePage() {
           title: title, public: publicEvent,
           start: (date.dateChosen ? startDateTime : null),
           end: (date.endSet ? endDateTime : null),
-          location_add: 'Ahihi', location_name: 'Ahihi',
-          location_more: 'Ahihi', location_note: 'Ahihi',
+          location_add: location.selected || '',
+          location_name: location.name || location.selected || '',
+          location_more: location.aptSuite || '',
+          location_note: location.notes || '',
           rsvpfirst: location.rsvpFirst, rsvp_deadline: rsvpDL,
           bio: bio, cash_prize: specialBox.cash ? special.cash : null,
           free_food: specialBox.food ? special.food : null,
           free_merch: specialBox.merch ? special.merch : null,
           cool_prize: specialBox.coolPrize ? special.coolPrize : null,
           host_id: user.id, public_list: list.public, maybe: list.maybe,
-          done: !(title === '' || !date.dateChosen || !rsvpDL),
+          done: !(title === '' || !date.dateChosen || !rsvpDL || !(location.name || location.selected)),
         })
         .eq('id', id));
     }

@@ -221,9 +221,15 @@ export default function EventCard(props: any) {
                       })()}
                     </Text>
                   </View>
-                  <View style={tw`flex-row items-center mb-1.5`}>
+                  <View style={tw`flex-row items-center mb-1.5 pr-4`}>
                     <LocationWhite width={14} height={14} style={tw`-ml-0.25 mr-1.7`} />
-                    <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-Bold' }]}>{props.event.location_name}</Text>
+                    <Text
+                      style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-Bold' }]}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
+                      {props.event.location_name}
+                    </Text>
                   </View>
                   <View style={tw`flex-row items-center mb-1`}>
                     <Text style={tw`text-white/80 text-xs mr-2`}>10k+ going</Text>

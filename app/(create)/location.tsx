@@ -236,7 +236,7 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
                     <View style={tw`flex-row items-center`}>
                       <Ionicons name="search" size={16} color="#9ca3af" style={tw`mr-2`} />
                       <TextInput
-                        style={[tw`flex-1 text-white text-[14px]`, { fontFamily: 'Nunito-Medium' }]}
+                        style={[tw`flex-1 text-white`, { fontFamily: 'Nunito-Medium', fontSize: 14 }]}
                         placeholder="Set your location"
                         placeholderTextColor="#9ca3af"
                         value={localLocation.search}
