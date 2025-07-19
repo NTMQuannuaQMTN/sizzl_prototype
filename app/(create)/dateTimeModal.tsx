@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Keyboard, Modal, PanResponder, ScrollView, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import tw from 'twrnc';
 
 interface DateTimeModalProps {
@@ -480,18 +481,19 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
                 </View>
               {/* Time Picker - Dropdown Modal */}
               <View style={tw`mx-3 items-center bg-white/10 rounded-xl mb-2 p-3`}>
-                <Text style={[tw`text-white mb-2`, { fontFamily: 'Nunito-Bold', fontSize: 14 }]}>Select Time</Text>
+                <Text style={[tw`text-white mb-2`, { fontFamily: 'Nunito-Bold', fontSize: 14 }]}>Select time</Text>
                 <TouchableOpacity
                   style={[
-                    tw`w-full rounded-lg py-3 px-4 mb-1`,
-                    { backgroundColor: 'rgba(255,255,255,0.07)', alignItems: 'center', borderWidth: 1, borderColor: '#7A5CFA' }
+                    tw`w-full rounded-lg py-3 px-4 mb-1 flex-row items-center justify-center`,
+                    { backgroundColor: 'rgba(255,255,255,0.07)', borderWidth: 1, borderColor: '#7A5CFA' }
                   ]}
                   onPress={() => setShowTimeDropdown(true)}
                   activeOpacity={0.8}
                 >
-                  <Text style={{ color: '#fff', fontFamily: 'Nunito-ExtraBold', fontSize: 16 }}>
+                  <Text style={{ color: '#fff', fontFamily: 'Nunito-ExtraBold', fontSize: 16, marginRight: 8 }}>
                     {activeTab === 'start' ? locStartTime : locEndTime}
                   </Text>
+                  <Ionicons name="chevron-down" size={16} color="#fff" />
                 </TouchableOpacity>
                 {/* Time Dropdown Modal */}
                 <Modal
@@ -555,7 +557,7 @@ const [showTimeDropdown, setShowTimeDropdown] = useState(false);
               if (startDT && endDT && (endDT.getTime() - startDT.getTime() < 30 * 60000)) {
                 return (
                   <View style={tw`w-full px-3`}>
-                    <View style={tw`bg-rose-600 rounded-lg p-2.5 items-center`}>
+                    <View style={tw`mb-3 bg-rose-600 rounded-lg p-2.5 items-center`}>
                       <Text style={[tw`text-white text-[13px]`, { fontFamily: 'Nunito-Bold', textAlign: 'center' }]}>⚠️ The end must be at least 30 minutes after the start.</Text>
                     </View>
                   </View>
