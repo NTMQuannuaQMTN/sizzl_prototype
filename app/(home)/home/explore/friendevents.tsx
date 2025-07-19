@@ -1,7 +1,7 @@
 import { useUserStore } from '@/app/store/userStore';
 import { supabase } from '@/utils/supabase';
 import React, { useEffect, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView } from 'react-native';
 import tw from 'twrnc';
 import EventCard from '../eventcard';
 
@@ -56,6 +56,9 @@ export default function FriendEvents() {
                         `id.in.(${friendCohost.join(',')})`
                     ].filter(Boolean).join(',')
                 )
+            // Only include events where the RSVP deadline is after now
+            const now = new Date().toISOString();
+            query = query.gte('rsvp_deadline', now);
 
             const { data, error } = await query;
 

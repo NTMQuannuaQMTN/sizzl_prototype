@@ -17,6 +17,9 @@ export default function AllEvents() {
                 .eq('done', true)
                 .eq('school_id', user.school_id)
                 .neq('host_id', user.id);
+            // Only include events where the RSVP deadline is after now
+            const now = new Date().toISOString();
+            query = query.lte('rsvp_deadline', now);
 
             const { data, error } = await query;
 
