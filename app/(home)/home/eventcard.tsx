@@ -161,16 +161,17 @@ export default function EventCard(props: any) {
                     <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>Hosted by </Text>
                     <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>{hostWC.host}</Text>
                     {/* Host profile image */}
-                    {hostWC.count > 1 ? (
+                    {hostWC.host ? <Image
+                      source={
+                        hostPfp
+                          ? { uri: hostPfp }
+                          : require('@/assets/images/pfp-default2.png')
+                      }
+                      style={{ width: 24, height: 24, borderRadius: 12, marginLeft: 6, marginRight: 6 }}
+                    /> : null}
+                    {hostWC.count > 1 && (
                       <Text style={[tw`text-white text-[10px]`, { fontFamily: 'Nunito-Medium' }]}>+{hostWC.count - 1}</Text>
-                    ) : <Image
-                    source={
-                      hostPfp
-                        ? { uri: hostPfp }
-                        : require('@/assets/images/pfp-default2.png')
-                    }
-                    style={{ width: 24, height: 24, borderRadius: 12, marginLeft: 6, marginRight: 6 }}
-                  />}
+                    )}
                   </View>
                   <View style={tw`flex-row items-center mb-2`}>
                     {/* Clock icon instead of dot */}
