@@ -256,40 +256,34 @@ export default function EventCard(props: any) {
                       return null;
                     }
                   })()}
-                  {user.id === props.event.host_id &&
+                  {user.id === props.event.host_id ?
                     <View style={tw`px-3 py-1.5 bg-[#0A66C2] z-99 rounded-full flex-row gap-2 items-center`}>
                       <Host></Host>
                       <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-Bold' }]}>Host</Text>
                     </View>
-                  }
-                  {cohosts.indexOf(user.id) >= 0 &&
+                  : cohosts.indexOf(user.id) >= 0 ?
                     <View style={tw`px-3 py-1.5 bg-[#0A66C2] z-99 rounded-full flex-row gap-2 items-center`}>
                       <Host></Host>
                       <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-Bold' }]}>Cohost</Text>
                     </View>
-                  }
-                  {decision === 'Not RSVP' &&
-                    <TouchableOpacity style={tw`px-3 py-1.5 bg-[#7A5CFA] z-99 rounded-full flex-row items-center`}
+                  : decision === 'Not RSVP' ?
+                    <TouchableOpacity style={tw`px-4 py-2 bg-[#7A5CFA] z-99 rounded-full flex-row gap-2 items-center`}
                       onPress={() => setSelection(true)}>
                       <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>RSVP</Text>
                     </TouchableOpacity>
-                  }
-                  {decision === 'Going' &&
-                    <TouchableOpacity style={tw`px-3 py-1.5 bg-green-500 z-99 rounded-full flex-row items-center`}
+                  : decision === 'Going' ?
+                    <TouchableOpacity style={tw`px-4 py-2 bg-green-500 z-99 rounded-full flex-row gap-2 items-center`}
                       onPress={() => setSelection(true)}>
                         <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>I’m going </Text>
                         <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>🥳</Text>
                     </TouchableOpacity>
-                  }
-                  {decision === 'Maybe' &&
-                    <TouchableOpacity style={tw`px-3 py-1.5 bg-[#CA8A04] z-99 rounded-full flex-row items-center`}
+                  : decision === 'Maybe' ?
+                    <TouchableOpacity style={tw`px-4 py-2 bg-[#CA8A04] z-99 rounded-full flex-row gap-2 items-center`}
                       onPress={() => setSelection(true)}>
                       <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Eh...maybe </Text>
                       <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>🤔</Text>
                     </TouchableOpacity>
-                  }
-                  {decision === 'Nope' &&
-                    <TouchableOpacity style={tw`px-3 py-1.5 bg-[#E11D48] z-99 rounded-full flex-row items-center`}
+                  : <TouchableOpacity style={tw`px-4 py-2 bg-[#E11D48] z-99 rounded-full flex-row gap-2 items-center`}
                       onPress={() => setSelection(true)}>
                       <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>I can't </Text>
                       <Text style={[tw`text-white text-[14px] -mt-0.5`, { fontFamily: 'Nunito-ExtraBold' }]}>😭</Text>
