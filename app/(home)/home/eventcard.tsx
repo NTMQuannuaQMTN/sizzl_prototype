@@ -5,7 +5,10 @@ import { useEffect, useState } from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 
+import ClockWhite from '@/assets/icons/clockwhite.svg';
 import Host from '@/assets/icons/hostwhite-icon.svg';
+import LocationWhite from '@/assets/icons/locationicon.svg';
+
 import DecisionModal from './eventDecision';
 
 export default function EventCard(props: any) {
@@ -151,10 +154,12 @@ export default function EventCard(props: any) {
                   )}
                 </View>}
                 {/* Card Content */}
-                <View style={tw`pt-1`}>
-                  <Text style={[tw`text-white text-lg mb-1`, { fontFamily: 'Nunito-ExtraBold' }]}>{props.event.title}</Text>
-                  <View style={tw`flex-row items-center mb-1`}>
-                    <Host width={14} height={14} style={tw`mr-2`} />
+                <View style={tw`pt-1.5`}>
+                  <Text style={[tw`text-white text-[22px] mb-2`, { fontFamily: 'Nunito-ExtraBold' }]}>{props.event.title}</Text>
+                  <View style={tw`flex-row items-center mb-1.5`}>
+                    <Host width={12} height={12} style={tw`mr-2`} />
+                    <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>Hosted by </Text>
+                    <Text style={[tw`text-white text-[15px] mr-0.5`, { fontFamily: 'Nunito-ExtraBold' }]}>{hostWC.host} {hostWC.count > 1 && `+${hostWC.count - 1}`}</Text>
                     {/* Host profile image */}
                     <Image
                       source={
@@ -162,15 +167,64 @@ export default function EventCard(props: any) {
                           ? { uri: hostPfp }
                           : require('@/assets/images/pfp-default2.png')
                       }
-                      style={{ width: 24, height: 24, borderRadius: 12, marginRight: 8, backgroundColor: '#fff' }}
+                      style={{ width: 24, height: 24, borderRadius: 12}}
                     />
-                    <Text style={[tw`text-white text-[15px] mr-2`, { fontFamily: 'Nunito-Medium' }]}>Hosted by {hostWC.host} {hostWC.count > 1 && `+${hostWC.count - 1}`}</Text>
                   </View>
-                  <View style={tw`flex-row items-center mb-1`}>
-                    <Text style={tw`text-white/80 text-xs`}>•</Text>
-                    <Text style={tw`text-white/80 text-xs ml-2`}>{props.event.start} - {props.event.end}</Text>
+                  <View style={tw`flex-row items-center mb-2`}>
+                    {/* Clock icon instead of dot */}
+                    <ClockWhite width={12} height={12} style={tw`mr-1`} />
+                    <Text style={[tw`text-white text-[14px] ml-1`, { fontFamily: 'Nunito-Bold' }]}>
+                      {(() => {
+                        // Helper to format date and time
+                        const formatDate = (dateStr: string) => {
+                          const date = new Date(dateStr);
+                          const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                          const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                          const day = days[date.getDay()];
+                          const month = months[date.getMonth()];
+                          const dateNum = date.getDate();
+                          let hours = date.getHours();
+                          const minutes = date.getMinutes();
+                          const ampm = hours >= 12 ? 'pm' : 'am';
+                          hours = hours % 12;
+                          if (hours === 0) hours = 12;
+                          const minStr = minutes === 0 ? '' : `:${minutes.toString().padStart(2, '0')}`;
+                          return `${day}, ${month} ${dateNum}, ${hours}${minStr}${ampm}`;
+                        };
+                        const start = props.event.start;
+                        const end = props.event.end;
+                        if (!start) return '';
+                        if (!end || start === end) {
+                          // Only start time
+                          return formatDate(start);
+                        }
+                        const startDate = new Date(start);
+                        const endDate = new Date(end);
+                        if (
+                          startDate.getFullYear() === endDate.getFullYear() &&
+                          startDate.getMonth() === endDate.getMonth() &&
+                          startDate.getDate() === endDate.getDate()
+                        ) {
+                          // Same day: Sat, Jul 18, 3pm - 5pm
+                          // Show start as full, end as time only
+                          let endHours = endDate.getHours();
+                          const endMinutes = endDate.getMinutes();
+                          const endAmpm = endHours >= 12 ? 'pm' : 'am';
+                          endHours = endHours % 12;
+                          if (endHours === 0) endHours = 12;
+                          const endMinStr = endMinutes === 0 ? '' : `:${endMinutes.toString().padStart(2, '0')}`;
+                          return `${formatDate(start)} - ${endHours}${endMinStr}${endAmpm}`;
+                        } else {
+                          // Different days: Sat, Jul 18, 3pm - Sun, Jul 19, 2:30am
+                          return `${formatDate(start)} - ${formatDate(end)}`;
+                        }
+                      })()}
+                    </Text>
                   </View>
-                  <Text style={tw`text-white/80 text-xs mb-1`}>{props.event.location_name}</Text>
+                  <View style={tw`flex-row items-center mb-1.5`}>
+                    <LocationWhite width={14} height={14} style={tw`-ml-0.25 mr-1.7`} />
+                    <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-Bold' }]}>{props.event.location_name}</Text>
+                  </View>
                   <View style={tw`flex-row items-center mb-1`}>
                     <Text style={tw`text-white/80 text-xs mr-2`}>10k+ going</Text>
                   </View>
@@ -188,13 +242,13 @@ export default function EventCard(props: any) {
                     );
                     if (daysLeft > 0) {
                       return (
-                        <Text style={tw`text-md font-bold text-white`}>
+                        <Text style={[tw`text-[12px] text-white/70`, { fontFamily: 'Nunito-Medium' }]}>
                           {daysLeft} day{daysLeft !== 1 ? 's' : ''} left to RSVP
                         </Text>
                       );
                     } else if (daysLeft === 0) {
                       return (
-                        <Text style={tw`text-xs font-bold text-yellow-900`}>
+                        <Text style={[tw`text-[12px] text-yellow-900`, { fontFamily: 'Nunito-Bold' }]}>
                           RSVP closes today
                         </Text>
                       );

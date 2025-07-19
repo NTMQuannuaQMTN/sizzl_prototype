@@ -70,10 +70,6 @@ export default function FriendEvents() {
 
     return (
         <ScrollView style={tw`flex-1`}>
-            {/* Upcoming hit event */}
-            <View style={tw`flex-row items-center mb-2`}>
-                <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>🔥 Upcoming hit event</Text>
-            </View>
             {/* Event Card 1 */}
             {events.map((e, index) => {
                 // console.log(e);
