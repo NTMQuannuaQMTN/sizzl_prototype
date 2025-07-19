@@ -534,8 +534,6 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
                   </TouchableOpacity>
                 </Modal>
               </View>
-// Add state for dropdown modal
-const [showTimeDropdown, setShowTimeDropdown] = useState(false);
             </View>
             {/* Custom warning for end time/date < 30 mins after start, now above Save button */}
             {activeTab === 'end' && endAvailable && (() => {
