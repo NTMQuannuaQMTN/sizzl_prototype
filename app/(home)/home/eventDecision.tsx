@@ -12,7 +12,7 @@ interface DecisionProps {
 
 
 export default function DecisionModal({ visible, onClose, eventTitle, maybe, onSelect }: DecisionProps) {
-    const MODAL_HEIGHT = 280;
+    const MODAL_HEIGHT = 300;
     const slideAnim = React.useRef(new Animated.Value(MODAL_HEIGHT)).current;
     const pan = React.useRef(new Animated.ValueXY()).current;
     const [isModalMounted, setIsModalMounted] = React.useState(false);
@@ -103,7 +103,7 @@ export default function DecisionModal({ visible, onClose, eventTitle, maybe, onS
             <View style={tw`flex-1 justify-end items-center`}>
                 {/* Backdrop for closing the modal by tapping outside */}
                 <TouchableOpacity
-                    style={tw`absolute inset-0 bg-black/50`}
+                    style={tw`absolute inset-0 bg-black/70`}
                     activeOpacity={1}
                     onPress={onClose}
                 />
@@ -119,9 +119,9 @@ export default function DecisionModal({ visible, onClose, eventTitle, maybe, onS
                         <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
                             {/* Draggable handle bar */}
                             <View style={tw`w-12 h-1.5 bg-gray-500 rounded-full self-center mb-3`} />
-                            <View style={tw`pb-14 pt-1 px-4 gap-y-3`}>
+                            <View style={tw`pb-16 pt-1 px-4 gap-y-3`}>
                                 {/* Header row: Clear button (left) + Centered title */}
-                                <View style={[tw`mb-3`, { position: 'relative', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 28 }]}> 
+                                <View style={[tw`mb-2`, { position: 'relative', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 28 }]}> 
                                     {/* Absolute Clear button on the left */}
                                     <TouchableOpacity
                                         style={{ position: 'absolute', left: 0, top: 0, bottom: 0, justifyContent: 'center', paddingVertical: 2, paddingHorizontal: 4, zIndex: 2 }}
@@ -132,26 +132,26 @@ export default function DecisionModal({ visible, onClose, eventTitle, maybe, onS
                                     </TouchableOpacity>
                                     {/* Centered title */}
                                     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                                        <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Your decision to {eventTitle}?</Text>
+                                        <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Going to {eventTitle}?</Text>
                                     </View>
                                 </View>
                                 <TouchableOpacity
-                                    style={tw`bg-green-500 rounded-md flex-row justify-center py-2.5 items-center gap-1.5`}
+                                    style={tw`bg-green-500 rounded-xl flex-row justify-center py-2.5 items-center`}
                                     onPress={() => {onSelect('Going')}}
                                 >
-                                    <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>I’m going 🥳</Text>
+                                    <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>I'm going 🥳</Text>
                                 </TouchableOpacity>
                                 {maybe && <TouchableOpacity
-                                    style={tw`bg-[#CA8A04] rounded-md flex-row justify-center py-2.5 items-center gap-1.5`}
+                                    style={tw`bg-yellow-600 rounded-xl flex-row justify-center py-2.5 items-center`}
                                     onPress={() => {onSelect('Maybe')}}
                                 >
-                                    <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Eh...maybe 🤔</Text>
+                                    <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Eh...maybe 🤔</Text>
                                 </TouchableOpacity>}
                                 <TouchableOpacity
-                                    style={tw`bg-[#E11D48] rounded-md flex-row justify-center py-2.5 items-center gap-1.5`}
+                                    style={tw`bg-rose-600 rounded-xl flex-row justify-center py-2.5 items-center`}
                                     onPress={() => {onSelect('Nope')}}
                                 >
-                                    <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>I can't 😭</Text>
+                                    <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>I can't 😭</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>

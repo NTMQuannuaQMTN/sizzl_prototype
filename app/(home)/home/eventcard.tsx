@@ -300,12 +300,12 @@ export default function EventCard(props: any) {
                         <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>🥳</Text>
                     </TouchableOpacity>
                   : decision === 'Maybe' ?
-                    <TouchableOpacity style={tw`px-3 py-1.5 bg-[#CA8A04] z-99 rounded-full flex-row items-center`}
+                    <TouchableOpacity style={tw`px-3 py-1.5 bg-yellow-600 z-99 rounded-full flex-row items-center`}
                       onPress={() => setSelection(true)}>
                       <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Eh...maybe </Text>
                       <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>🤔</Text>
                     </TouchableOpacity>
-                  : <TouchableOpacity style={tw`px-3 py-1.5 bg-[#E11D48] z-99 rounded-full flex-row items-center`}
+                  : <TouchableOpacity style={tw`px-3 py-1.5 bg-rose-600 z-99 rounded-full flex-row items-center`}
                       onPress={() => setSelection(true)}>
                       <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>I can't </Text>
                       <Text style={[tw`text-white text-[14px] -mt-0.5`, { fontFamily: 'Nunito-ExtraBold' }]}>😭</Text>
