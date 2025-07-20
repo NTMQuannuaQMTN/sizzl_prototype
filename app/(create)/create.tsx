@@ -474,19 +474,87 @@ export default function CreatePage() {
             <Text style={[tw`text-white text-base`, { fontFamily: 'Nunito-ExtraBold' }]}>Create event</Text>
           </View>
           {/* Done button - absolute right */}
-          <TouchableOpacity
-            style={[tw`absolute right-4 bg-[#7b61ff] rounded-full px-4 py-1`, { zIndex: 2 }]}
-            onPress={async () => {
-              const newId = await addEvent();
-              if (newId) {
-                await updateImage(newId);
-                await addCohost(newId);
-                router.replace('/home/homepage');
-              }
-              // If newId is null, stay on the page (do nothing)
-            }}>
-            <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Done</Text>
-          </TouchableOpacity>
+          {/* Determine if all required fields are filled */}
+          {(() => {
+            const requiredFilled = title && date.dateChosen && rsvpDL && (location.name || location.selected);
+            return (
+              <TouchableOpacity
+                style={[
+                  tw`absolute right-4 rounded-full px-4 py-1`,
+                  requiredFilled ? tw`bg-[#7b61ff]` : tw`bg-gray-500/60`,
+                  { zIndex: 2 }
+                ]}
+                onPress={async () => {
+                  if (requiredFilled) {
+                    const newId = await addEvent();
+                    if (newId) {
+                      await updateImage(newId);
+                      await addCohost(newId);
+                      router.replace('/home/homepage');
+                    }
+                  } else {
+                    // Save as draft (done: false)
+                    let draftErr, dataEvent;
+                    // Save image field for draft: default image as string, uploaded as local URI
+                    let draftImage = null;
+                    if (typeof image === 'string') {
+                      if (image.startsWith('file://') || image.startsWith('content://') || image.startsWith('http://') || image.startsWith('https://')) {
+                        draftImage = image;
+                      } else if (image.startsWith('default_')) {
+                        draftImage = image;
+                      } else {
+                        draftImage = image; // fallback
+                      }
+                    } else if (typeof image === 'number') {
+                      // If image is a require() result, find its index in imageOptions and save as 'default_X'
+                      const idx = imageOptions.findIndex(opt => opt === image);
+                      if (idx >= 0) {
+                        draftImage = `default_${idx + 1}`;
+                      } else {
+                        draftImage = 'default_1';
+                      }
+                    } else if (image && image.uri) {
+                      draftImage = image.uri;
+                    }
+                    ({ data: dataEvent, error: draftErr } = await supabase.from('events')
+                      .insert([{
+                        title: title,
+                        public: publicEvent,
+                        start: (date.dateChosen ? date.start : null),
+                        end: (date.endSet ? date.end : null),
+                        location_add: location.selected || '',
+                        location_name: location.name || location.selected || '',
+                        location_more: location.aptSuite || '',
+                        location_note: location.notes || '',
+                        rsvpfirst: location.rsvpFirst,
+                        rsvp_deadline: rsvpDL,
+                        bio: bio,
+                        cash_prize: specialBox.cash ? special.cash : null,
+                        free_food: specialBox.food ? special.food : null,
+                        free_merch: specialBox.merch ? special.merch : null,
+                        cool_prize: specialBox.coolPrize ? special.coolPrize : null,
+                        host_id: user.id,
+                        public_list: list.public,
+                        maybe: list.maybe,
+                        done: false,
+                        school_id: user.school_id,
+                        image: draftImage
+                      }])
+                      .select('id'));
+                    if (!draftErr && dataEvent && dataEvent[0]?.id) {
+                      setID(dataEvent[0].id);
+                      Alert.alert('Draft saved!');
+                  router.replace('/home/homepage');
+                    } else {
+                      Alert.alert('Failed to save draft');
+                    }
+                  }
+                }}
+              >
+                <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>{requiredFilled ? 'Done' : 'Draft'}</Text>
+              </TouchableOpacity>
+            );
+          })()}
         </View>
 
         {/* Title input */}

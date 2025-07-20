@@ -140,9 +140,11 @@ export default function EventCard(props: any) {
             <View style={tw`absolute left-0 right-0 top-0 bottom-0`}>
               <Image
                 source={
-                  props.event.image.startsWith('default_')
+                  typeof props.event.image === 'string' && props.event.image.startsWith('default_')
                     ? defaultImages[parseInt(props.event.image.replace('default_', ''), 10) - 1]
-                    : { uri: props.event.image }
+                    : props.event.image
+                      ? { uri: props.event.image }
+                      : defaultImages[0]
                 }
                 resizeMode='cover'
                 style={{ width: '100%', height: '100%' }}
@@ -168,7 +170,18 @@ export default function EventCard(props: any) {
                 </View>}
                 {/* Card Content */}
                 <View style={tw`pt-1.5`}>
-                  <Text style={[tw`text-white text-[22px] mb-1.5`, { fontFamily: 'Nunito-ExtraBold' }]}>{props.event.title}</Text>
+                  <Text style={[
+                    (!('done' in props.event) || props.event.done) ? tw`text-white text-[22px] mb-1.5` :
+                    (!props.event.title || props.event.title.trim() === '' ? tw`text-gray-400 text-[22px] mb-1.5` : tw`text-white text-[22px] mb-1.5`),
+                    { fontFamily: 'Nunito-ExtraBold' }
+                  ]}>
+                    {(!('done' in props.event) || props.event.done)
+                      ? props.event.title
+                      : (!props.event.title || props.event.title.trim() === ''
+                        ? 'not yet decided :('
+                        : props.event.title)
+                    }
+                  </Text>
                   <View style={tw`flex-row items-center mb-1.5`}>
                     <Host width={12} height={12} style={tw`mr-2`} />
                     <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>Hosted by </Text>
@@ -189,7 +202,12 @@ export default function EventCard(props: any) {
                   <View style={tw`flex-row items-center mb-2`}>
                     {/* Clock icon instead of dot */}
                     <ClockWhite width={12} height={12} style={tw`mr-1`} />
-                    <Text style={[tw`text-white text-[14px] ml-1`, { fontFamily: 'Nunito-Bold' }]}>
+                    <Text style={[
+                      (!('done' in props.event) || props.event.done)
+                        ? tw`text-white text-[14px] ml-1`
+                        : (!props.event.start || props.event.start === '' ? tw`text-gray-400 text-[14px] ml-1` : tw`text-white text-[14px] ml-1`),
+                      { fontFamily: 'Nunito-Bold' }
+                    ]}>
                       {(() => {
                         // Helper to format date and time
                         const formatDate = (dateStr: string) => {
@@ -209,7 +227,11 @@ export default function EventCard(props: any) {
                         };
                         const start = props.event.start;
                         const end = props.event.end;
-                        if (!start) return '';
+                        if (!('done' in props.event) || props.event.done) {
+                          if (!start) return '';
+                        } else {
+                          if (!start) return 'not yet decided :(';
+                        }
                         if (!end || start === end) {
                           // Only start time
                           return formatDate(start);
@@ -244,7 +266,12 @@ export default function EventCard(props: any) {
                       numberOfLines={1}
                       ellipsizeMode="tail"
                     >
-                      {props.event.host_id !== user.id && cohosts.indexOf(user.id) < 0 && props.event.rsvpfirst && decision === 'Not RSVP' ? 'You must RSVP first' : props.event.location_name}
+                      {(!('done' in props.event) || props.event.done)
+                        ? (props.event.host_id !== user.id && cohosts.indexOf(user.id) < 0 && props.event.rsvpfirst && decision === 'Not RSVP' ? 'You must RSVP first' : props.event.location_name)
+                        : (!props.event.location_name || props.event.location_name.trim() === ''
+                            ? <Text style={tw`text-gray-400`}>not yet decided :(</Text>
+                            : props.event.location_name)
+                      }
                     </Text>
                   </View>
                   <View style={tw`flex-row items-center mb-1`}>
@@ -279,10 +306,16 @@ export default function EventCard(props: any) {
                     }
                   })()}
                   {user.id === props.event.host_id ?
-                    <View style={tw`px-3 py-1.5 gap-1.5 bg-[#0A66C2] z-99 rounded-full flex-row items-center`}>
-                      <Host></Host>
-                      <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Host</Text>
-                    </View>
+                    (!('done' in props.event) || props.event.done ? (
+                      <View style={tw`px-3 py-1.5 gap-1.5 bg-[#0A66C2] z-99 rounded-full flex-row items-center`}>
+                        <Host></Host>
+                        <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Host</Text>
+                      </View>
+                    ) : (
+                      <View style={tw`px-3 py-1.5 gap-1.5 bg-[#CAE6DF] z-99 rounded-full flex-row items-center`}>
+                        <Text style={[tw`text-black text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Continue editing</Text>
+                      </View>
+                    ))
                   : cohosts.indexOf(user.id) >= 0 ?
                     <View style={tw`px-3 py-1.5 gap-1.5 bg-[#0A66C2] z-99 rounded-full flex-row items-center`}>
                       <Host></Host>
