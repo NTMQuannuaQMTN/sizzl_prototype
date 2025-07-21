@@ -10,7 +10,7 @@ import Host from '@/assets/icons/hostwhite-icon.svg';
 import LocationWhite from '@/assets/icons/locationicon.svg';
 import ThreeDot from '@/assets/icons/threedots.svg';
 
-import EventActionModal, { getDraftActions } from './eventAction';
+import EventActionModal, { getEventActions } from './eventAction';
 import DecisionModal from './eventDecision';
 
 export default function EventCard(props: any) {
@@ -386,89 +386,19 @@ export default function EventCard(props: any) {
         visible={actionModalVisible}
         onClose={() => setActionModalVisible(false)}
         title={"What's up with this event?"}
-        actions={(() => {
-          // Show draft actions if event is a draft
-          if (props.event.isDraft) {
-            return getDraftActions(
-              () => {
-                setActionModalVisible(false);
-                push({ pathname: '/(create)/create', params: { id: props.event.id } });
-              },
-              async () => {
-                setActionModalVisible(false);
-                if (props.onDeleteDraft) {
-                  await props.onDeleteDraft(props.event.id);
-                } else {
-                  // fallback: direct supabase delete
-                  try {
-                    await supabase.from('events').delete().eq('id', props.event.id);
-                  } catch (e) {}
-                }
-              }
-            );
-          }
-
-          // Host and Cohost actions
-          if (user.id === props.event.host_id) {
-            // Host: Edit event & Delete event
-            return [
-              {
-                label: 'Edit event',
-                color: 'bg-[#7A5CFA]',
-                onPress: () => {
-                  setActionModalVisible(false);
-                  push({ pathname: '/(create)/create', params: { id: props.event.id } });
-                }
-              },
-              {
-                label: 'Delete event',
-                destructive: true,
-                color: 'bg-rose-600',
-                onPress: async () => {
-                  setActionModalVisible(false);
-                  try {
-                    await supabase.from('events').delete().eq('id', props.event.id);
-                    if (props.onDelete) {
-                      props.onDelete(props.event.id);
-                    }
-                  } catch (e) {}
-                }
-              }
-            ];
-          }
-          if (Array.isArray(cohosts) && cohosts.indexOf(user.id) >= 0) {
-            // Cohost: Only Edit event
-            return [
-              {
-                label: 'Edit event',
-                color: 'bg-[#7A5CFA]',
-                onPress: () => {
-                  setActionModalVisible(false);
-                  push({ pathname: '/(create)/create', params: { id: props.event.id } });
-                }
-              }
-            ];
-          }
-          // Upcoming event or Explore/FriendsEvents scenario: only show 'Report event' button
-          if (props.fromUpcoming || props.fromExplore || props.fromFriendsEvents) {
-            return [
-              {
-                label: 'Report event',
-                color: 'bg-rose-600',
-                destructive: true,
-                onPress: () => {
-                  setActionModalVisible(false);
-                  // TODO: Implement report event logic/modal
-                  if (props.onReportEvent) {
-                    props.onReportEvent(props.event.id);
-                  }
-                }
-              }
-            ];
-          }
-          // Add other scenarios here
-          return [];
-        })()}
+        actions={getEventActions({
+          event: props.event,
+          user,
+          cohosts,
+          push,
+          setActionModalVisible,
+          onDeleteDraft: props.onDeleteDraft,
+          onDelete: props.onDelete,
+          onReportEvent: props.onReportEvent,
+          fromUpcoming: props.fromUpcoming,
+          fromExplore: props.fromExplore,
+          fromFriendsEvents: props.fromFriendsEvents
+        })}
       />
     </View>
   );

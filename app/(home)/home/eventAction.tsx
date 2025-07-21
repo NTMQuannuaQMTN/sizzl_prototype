@@ -1,6 +1,104 @@
+import { supabase } from '@/utils/supabase';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Modal, PanResponder, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import tw from 'twrnc';
+// Centralized event actions generator
+export function getEventActions({
+  event,
+  user,
+  cohosts,
+  push,
+  setActionModalVisible,
+  onDeleteDraft,
+  onDelete,
+  onReportEvent,
+  fromUpcoming,
+  fromExplore,
+  fromFriendsEvents
+}: {
+  event: any;
+  user: any;
+  cohosts: any[];
+  push: any;
+  setActionModalVisible: (v: boolean) => void;
+  onDeleteDraft?: (id: string) => Promise<void>;
+  onDelete?: (id: string) => void;
+  onReportEvent?: (id: string) => void;
+  fromUpcoming?: boolean;
+  fromExplore?: boolean;
+  fromFriendsEvents?: boolean;
+}) {
+  if (event.isDraft) {
+    return getDraftActions(
+      () => {
+        setActionModalVisible(false);
+        push({ pathname: '/(create)/create', params: { id: event.id } });
+      },
+      async () => {
+        setActionModalVisible(false);
+        if (onDeleteDraft) {
+          await onDeleteDraft(event.id);
+        } else {
+          try {
+            await supabase.from('events').delete().eq('id', event.id);
+          } catch (e) {}
+        }
+      }
+    );
+  }
+  if (user.id === event.host_id) {
+    return [
+      {
+        label: 'Edit event',
+        color: 'bg-[#7A5CFA]',
+        onPress: () => {
+          setActionModalVisible(false);
+          push({ pathname: '/(create)/create', params: { id: event.id } });
+        }
+      },
+      {
+        label: 'Delete event',
+        destructive: true,
+        color: 'bg-rose-600',
+        onPress: async () => {
+          setActionModalVisible(false);
+          try {
+            await supabase.from('events').delete().eq('id', event.id);
+            if (onDelete) {
+              onDelete(event.id);
+            }
+          } catch (e) {}
+        }
+      }
+    ];
+  }
+  if (Array.isArray(cohosts) && cohosts.indexOf(user.id) >= 0) {
+    return [
+      {
+        label: 'Edit event',
+        color: 'bg-[#7A5CFA]',
+        onPress: () => {
+          setActionModalVisible(false);
+          push({ pathname: '/(create)/create', params: { id: event.id } });
+        }
+      }
+    ];
+  }
+  if (fromUpcoming || fromExplore || fromFriendsEvents) {
+    return [
+      {
+        label: 'Report event',
+        color: 'bg-rose-600',
+        destructive: true,
+        onPress: () => {
+          setActionModalVisible(false);
+          push({ pathname: '/eventreports', params: { eventId: event.id } });
+        }
+      }
+    ];
+  }
+  return [];
+}
 
 export type EventActionModalProps = {
   visible: boolean;
