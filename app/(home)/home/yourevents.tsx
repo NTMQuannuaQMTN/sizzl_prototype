@@ -1,7 +1,7 @@
-import { Image } from 'expo-image';
 import React, { useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
+import Attended from './yourevents/attended';
 import Hosting from './yourevents/hosting';
 import Planning from './yourevents/planning';
 import Upcoming from './yourevents/upcoming';
@@ -67,10 +67,7 @@ export default function YourEvents() {
                 <Hosting />
             )}
             {activeTab === 'attended' && (
-                <View style={tw`flex-1 justify-center items-center`}>
-                    <Text style={tw`text-white text-2xl mb-4`}>Attended Events</Text>
-                    <Image source={require('../../../assets/gifs/rickroll.gif')} style={{ width: 300, height: 200, borderRadius: 16 }} resizeMode="contain" />
-                </View>
+                <Attended />
             )}
             {activeTab === 'planning' && (
                 <Planning />
