@@ -307,51 +307,57 @@ export default function CreatePage() {
   }
 
   const updateImage = async (eventId: string) => {
-    console.log('updating');
 
+    console.log('updating');
     let imgURL = '';
     if (image && typeof image !== 'number') {
-      try {
-        // Get file info and determine file extension
-        const fileUri = image;
-        const fileExtension = fileUri.split('.').pop()?.toLowerCase() || 'jpg';
-        const fileName = `event_cover/${eventId}.${fileExtension}`;
+      // If image is already a URL, just use it
+      if (typeof image === 'string' && (image.startsWith('http://') || image.startsWith('https://'))) {
+        setImageURL(image);
+        imgURL = image;
+      } else {
+        try {
+          // Get file info and determine file extension
+          const fileUri = image;
+          const fileExtension = fileUri.split('.').pop()?.toLowerCase() || 'jpg';
+          const fileName = `event_cover/${eventId}.${fileExtension}`;
 
-        // Read file as ArrayBuffer for proper binary upload
-        const fileArrayBuffer = await FileSystem.readAsStringAsync(fileUri, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
-
-        // Convert base64 to Uint8Array
-        const byteCharacters = atob(fileArrayBuffer);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const uint8Array = new Uint8Array(byteNumbers);
-
-        const { error: uploadError } = await supabase.storage
-          .from('sizzl-profileimg')
-          .upload(fileName, uint8Array, {
-            contentType: `image/${fileExtension === 'jpg' ? 'jpeg' : fileExtension}`,
-            upsert: true
+          // Read file as ArrayBuffer for proper binary upload
+          const fileArrayBuffer = await FileSystem.readAsStringAsync(fileUri, {
+            encoding: FileSystem.EncodingType.Base64,
           });
 
-        if (uploadError) {
-          console.error('Upload error:', uploadError);
-          return;
+          // Convert base64 to Uint8Array
+          const byteCharacters = atob(fileArrayBuffer);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+          const uint8Array = new Uint8Array(byteNumbers);
+
+          const { error: uploadError } = await supabase.storage
+            .from('sizzl-profileimg')
+            .upload(fileName, uint8Array, {
+              contentType: `image/${fileExtension === 'jpg' ? 'jpeg' : fileExtension}`,
+              upsert: true
+            });
+
+          if (uploadError) {
+            console.error('Upload error:', uploadError);
+            return;
+          }
+
+          const { data: urlData } = await supabase.storage
+            .from('sizzl-profileimg')
+            .getPublicUrl(fileName);
+
+          const publicUrl = urlData?.publicUrl;
+          setImageURL(publicUrl);
+          imgURL = publicUrl;
+        } catch (err) {
+          console.error('Image upload exception:', err);
+          Alert.alert('Image upload failed');
         }
-
-        const { data: urlData } = await supabase.storage
-          .from('sizzl-profileimg')
-          .getPublicUrl(fileName);
-
-        const publicUrl = urlData?.publicUrl;
-        setImageURL(publicUrl);
-        imgURL = publicUrl;
-      } catch (err) {
-        console.error('Image upload exception:', err);
-        Alert.alert('Image upload failed');
       }
     } else {
       setImageURL(`default_${image - 28}`);
