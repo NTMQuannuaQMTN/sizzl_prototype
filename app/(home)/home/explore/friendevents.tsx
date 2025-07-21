@@ -78,7 +78,7 @@ export default function FriendEvents() {
     }, [user]);
 
     return (
-        <ScrollView style={tw`flex-1`}>
+        <ScrollView style={tw`flex-1 pb-24`}>
             {loading ? <Loader /> :
                 (events.map((e, index) => {
                     // console.log(e);

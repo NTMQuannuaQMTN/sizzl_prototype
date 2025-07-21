@@ -96,7 +96,7 @@ export default function Hosting() {
             </View>
             {/* If no past events, show info message */}
             {pastEvents.length === 0 && (
-                <View style={tw``}>
+                <View style={tw`mb-16`}>
                     <Text style={[tw`text-gray-400 text-[13px] -mt-1`, { fontFamily: 'Nunito-Medium' }]}>Events you hosted will appear here once they end!</Text>
                 </View>
             )}
