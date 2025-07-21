@@ -4,6 +4,9 @@ import React, { useEffect, useState } from 'react';
 import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 import defaultImages from '../(create)/defaultimage';
+import Private from '../../assets/icons/private.svg';
+import Public from '../../assets/icons/public.svg';
+import { useUserStore } from '../store/userStore';
 
 type EventView = {
     id: string;
@@ -32,6 +35,8 @@ type EventView = {
 export default function EventDetails() {
     const { id } = useLocalSearchParams();
     const [event, setEvent] = useState<EventView | null>(null);
+    const [decision, setDecision] = useState<string>('');
+    const { user } = useUserStore();
 
     useEffect(() => {
         const getEventDetail = async () => {
@@ -40,11 +45,27 @@ export default function EventDetails() {
 
             if (!eventErr) {
                 setEvent(data);
+                console.log(data.image);
             } else {
                 console.log('Err');
             }
         }
+
+        const getDecision = async () => {
+            const { data, error } = await supabase.from('guests')
+                .select('decision').eq('event_id', id)
+                .eq('user_id', user.id).single()
+
+            if (error) {
+                setDecision('Not RSVP');
+                return;
+            }
+
+            setDecision(data.decision);
+        }
+
         getEventDetail();
+        getDecision();
     }, [id]);
 
     return (
@@ -69,9 +90,14 @@ export default function EventDetails() {
                 <View style={tw`px-4 pt-10 pb-2`}>
                     <Text style={[tw`text-white text-2xl font-extrabold`, { fontFamily: 'Nunito-ExtraBold' }]}>{event?.title}</Text>
                     <View style={tw`flex-row items-center mt-2`}>
-                        <View style={tw`bg-[#23244A] px-2 py-0.5 rounded-full flex-row items-center`}>
-                            <Text style={[tw`text-xs text-white`, { fontFamily: 'Nunito-Bold' }]}>🔒 Private</Text>
-                        </View>
+                        {event?.public ? <View style={tw`flex-row items-center gap-2 justify-center bg-[#064B55] border border-white/10 rounded-full px-2 py-0.5 mr-1`}>
+                            <Public />
+                            <Text style={[tw`text-[13px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Public</Text>
+                        </View> :
+                            <View style={tw`flex-row items-center gap-2 justify-center bg-[#080B32] border border-purple-900 rounded-full px-2 py-0.5`}>
+                                <Private />
+                                <Text style={[tw`text-[13px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Private</Text>
+                            </View>}
                     </View>
                 </View>
                 {/* Event Image */}
