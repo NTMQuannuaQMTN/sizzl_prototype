@@ -35,16 +35,34 @@ export default function Planning() {
     fetchDrafts();
   }, [user.id]);
 
-  if (loading) return <Text style={tw`text-white p-4`}>Loading drafts...</Text>;
+  // if (loading) return <Text style={tw`text-white p-4`}>Loading drafts...</Text>;
 
-  if (!drafts.length) return <Text style={tw`text-white p-4`}>No drafts found.</Text>;
+if (!drafts.length) return (
+  <View style={tw`flex-1 justify-center items-center -mt-30`}>
+    <Text style={[tw`text-white text-[18px]`, { fontFamily: 'Nunito-ExtraBold' }]}>No drafts yet 😶</Text>
+    <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Medium' }]}>Plan a new event to get started!</Text>
+    <TouchableOpacity
+      style={tw`mt-4 bg-[#7A5CFA] rounded-full px-6 py-2`}
+      activeOpacity={0.7}
+      onPress={() => router.push('/(create)/create')}
+    >
+      <Text style={[tw`text-white text-[16px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Create event</Text>
+    </TouchableOpacity>
+  </View>
+);
 
   return (
     <View style={tw`flex-1`}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {drafts.map(item => (
           <TouchableOpacity key={item.id} activeOpacity={0.85} onPress={() => router.push({ pathname: '/(create)/create', params: { id: item.id } })}>
-            <EventCard event={item} />
+            <EventCard
+              event={{ ...item, isDraft: true }}
+              onDeleteDraft={async (id: string) => {
+                await supabase.from('events').delete().eq('id', id);
+                setDrafts(drafts => drafts.filter(d => d.id !== id));
+              }}
+            />
           </TouchableOpacity>
         ))}
       </ScrollView>

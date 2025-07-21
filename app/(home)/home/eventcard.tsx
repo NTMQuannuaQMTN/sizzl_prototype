@@ -10,6 +10,7 @@ import Host from '@/assets/icons/hostwhite-icon.svg';
 import LocationWhite from '@/assets/icons/locationicon.svg';
 import ThreeDot from '@/assets/icons/threedots.svg';
 
+import EventActionModal, { getDraftActions } from './eventAction';
 import DecisionModal from './eventDecision';
 
 export default function EventCard(props: any) {
@@ -17,11 +18,15 @@ export default function EventCard(props: any) {
     host: '',
     count: 0,
   });
+  const { push } = require('expo-router').useRouter();
   const [hostPfp, setHostPfp] = useState<string | null>(null);
   const [cohosts, setCohosts] = useState<any[]>([]);
   const [spec, setSpec] = useState<string[][]>([]);
   const [decision, setDecision] = useState<string>('');
   const [selection, setSelection] = useState(false);
+
+  // State for EventActionModal
+  const [actionModalVisible, setActionModalVisible] = useState(false);
 
   const specCol = {
     '💸 Cash prize': 'bg-yellow-200',
@@ -136,14 +141,17 @@ export default function EventCard(props: any) {
     <View style={tw`mb-5`}>
       <View style={[tw`rounded-2xl overflow-hidden w-full items-center justify-center`, { aspectRatio: 410 / 279 }]}> 
         <View style={{ width: '100%', height: '100%' }}>
-          {/* Top right ThreeDot icon */}
-          <TouchableOpacity
-            activeOpacity={0.5}
-            style={[tw`absolute`, { top: 12, right: 12, zIndex: 10 }]}
-            onPress={() => { /* navigation to be setup later */ }}
-          >
-            <ThreeDot width={22} height={22} />
-          </TouchableOpacity>
+          {/* Top right ThreeDot icon - always on top, larger touch area */}
+          <View style={[tw`absolute`, { top: 0, right: 0, zIndex: 99, padding: 8 }]}> 
+            <TouchableOpacity
+              activeOpacity={0.7}
+              style={{ padding: 8 }}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              onPress={() => setActionModalVisible(true)}
+            >
+              <ThreeDot width={22} height={22} />
+            </TouchableOpacity>
+          </View>
           <View style={[tw`absolute left-0 right-0 top-0 bottom-0`, { zIndex: 1 }]} />
           <View style={tw`w-full h-full`}>
             <View style={tw`absolute left-0 right-0 top-0 bottom-0`}>
@@ -372,6 +380,78 @@ export default function EventCard(props: any) {
           handleDecision(dec);
           setSelection(false);
         }} />
+
+      {/* EventActionModal for ThreeDot */}
+      <EventActionModal
+        visible={actionModalVisible}
+        onClose={() => setActionModalVisible(false)}
+        title={"What's up with this event?"}
+        actions={(() => {
+          // Show draft actions if event is a draft
+          if (props.event.isDraft) {
+            return getDraftActions(
+              () => {
+                setActionModalVisible(false);
+                push({ pathname: '/(create)/create', params: { id: props.event.id } });
+              },
+              async () => {
+                setActionModalVisible(false);
+                if (props.onDeleteDraft) {
+                  await props.onDeleteDraft(props.event.id);
+                } else {
+                  // fallback: direct supabase delete
+                  try {
+                    await supabase.from('events').delete().eq('id', props.event.id);
+                  } catch (e) {}
+                }
+              }
+            );
+          }
+
+          // Host and Cohost actions
+          if (user.id === props.event.host_id) {
+            // Host: Edit event & Delete event
+            return [
+              {
+                label: 'Edit event',
+                color: 'bg-[#7A5CFA]',
+                onPress: () => {
+                  setActionModalVisible(false);
+                  push({ pathname: '/(create)/create', params: { id: props.event.id } });
+                }
+              },
+              {
+                label: 'Delete event',
+                destructive: true,
+                color: 'bg-rose-600',
+                onPress: async () => {
+                  setActionModalVisible(false);
+                  try {
+                    await supabase.from('events').delete().eq('id', props.event.id);
+                    if (props.onDelete) {
+                      props.onDelete(props.event.id);
+                    }
+                  } catch (e) {}
+                }
+              }
+            ];
+          }
+          if (Array.isArray(cohosts) && cohosts.indexOf(user.id) >= 0) {
+            // Cohost: Only Edit event
+            return [
+              {
+                label: 'Edit event',
+                onPress: () => {
+                  setActionModalVisible(false);
+                  push({ pathname: '/(create)/create', params: { id: props.event.id } });
+                }
+              }
+            ];
+          }
+          // Add other scenarios here
+          return [];
+        })()}
+      />
     </View>
   );
 }

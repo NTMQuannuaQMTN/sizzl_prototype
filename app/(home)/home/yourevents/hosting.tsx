@@ -1,7 +1,7 @@
 import { useUserStore } from '@/app/store/userStore';
 import { supabase } from '@/utils/supabase';
 import React, { useEffect, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 import EventCard from '../eventcard';
 
@@ -61,21 +61,49 @@ export default function Hosting() {
         fetchEvents();
     }, [user]);
 
+    // Handler to remove event from state after deletion
+    const handleDeleteEvent = (eventId: string) => {
+        setUpcomingEvents(prev => prev.filter(e => e.id !== eventId));
+        setPastEvents(prev => prev.filter(e => e.id !== eventId));
+    };
+
     return (
         <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}>
+            {/* If no upcoming events, show info message and create button */}
+            {upcomingEvents.length === 0 && (
+                <View style={tw`flex-1 justify-center items-center mt-50`}>
+                    <View style={tw`flex-1 justify-center items-center mb-20`}>
+                        <Text style={[tw`text-white text-[18px]`, { fontFamily: 'Nunito-ExtraBold' }]}>No events yet 😶</Text>
+                        <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Medium' }]}>Create an event today to get started!</Text>
+                        <TouchableOpacity
+                            style={tw`mt-4 bg-[#7A5CFA] rounded-full px-6 py-2`}
+                            activeOpacity={0.7}
+                            onPress={() => require('expo-router').useRouter().push('/(create)/create')}
+                        >
+                            <Text style={[tw`text-white text-[16px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Create event</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            )}
             {/* Event Card 1 */}
             {upcomingEvents.map((e, index) => {
                 console.log(e);
-                return <EventCard key={index} event={e} />
+                return <EventCard key={index} event={e} onDelete={handleDeleteEvent} />
             })}
             {/* Past events */}
             <View style={tw`flex-row items-center mb-2`}>
                 <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Past events</Text>
             </View>
+            {/* If no past events, show info message */}
+            {pastEvents.length === 0 && (
+                <View style={tw``}>
+                    <Text style={[tw`text-gray-400 text-[13px] -mt-1`, { fontFamily: 'Nunito-Medium' }]}>Events you hosted will appear here once they end!</Text>
+                </View>
+            )}
             {/* Event Card 1 */}
             {pastEvents.map((e, index) => {
                 console.log(e);
-                return <EventCard key={index} event={e} />
+                return <EventCard key={index} event={e} onDelete={handleDeleteEvent} />
             })}
         </ScrollView>
     );

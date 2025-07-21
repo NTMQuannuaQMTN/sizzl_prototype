@@ -541,15 +541,31 @@ export default function CreatePage() {
               </Text>
             </View>
             {/* Done button - absolute right */}
-            {/* Determine if all required fields are filled */}
+            {/* Determine if all required fields are filled and if editing */}
             {(() => {
               const requiredFilled = title && date.dateChosen && rsvpDL && (location.name || location.selected);
+              const isEditing = id && draftLoaded;
               return requiredFilled ? (
                 <TouchableOpacity
                   style={[tw`absolute right-4 rounded-full px-4 py-1 bg-[#7b61ff]`, { zIndex: 2 }]}
-                  onPress={() => setShowEventDoneModal(true)}
+                  onPress={async () => {
+                    if (isEditing) {
+                      // Directly publish the updated event
+                      setToastVisible(true);
+                      const newId = await addEvent();
+                      if (newId) {
+                        await updateImage(newId);
+                        await addCohost(newId);
+                        setTimeout(() => {
+                          router.replace('/home/homepage');
+                        }, 250);
+                      }
+                    } else {
+                      setShowEventDoneModal(true);
+                    }
+                  }}
                 >
-                  <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Done</Text>
+                  <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>{isEditing ? 'Update' : 'Done'}</Text>
                 </TouchableOpacity>
               ) : (
                 <TouchableOpacity
@@ -1061,10 +1077,10 @@ export default function CreatePage() {
                 if (!draftErr && dataEvent && dataEvent[0]?.id) {
                   setID(dataEvent[0].id);
                   setShowDraftSavedModal(true);
-                  setTimeout(() => {
+                setTimeout(() => {
                     setShowDraftSavedModal(false);
                     router.replace('/home/homepage');
-                  }, 1200);
+                }, 500);
                 } else {
                   Alert.alert('Failed to update draft');
                 }
@@ -1298,7 +1314,9 @@ export default function CreatePage() {
                 if (!draftErr && dataEvent && dataEvent[0]?.id) {
                   setID(dataEvent[0].id);
                   Alert.alert('Draft updated!');
-                  router.replace('/home/homepage');
+                  setTimeout(() => {
+                    router.replace('/home/homepage');
+                  }, 250);
                 } else {
                   Alert.alert('Failed to update draft');
                 }
@@ -1331,7 +1349,9 @@ export default function CreatePage() {
                 if (!draftErr && dataEvent && dataEvent[0]?.id) {
                   setID(dataEvent[0].id);
                   Alert.alert('Draft saved!');
-                  router.replace('/home/homepage');
+                  setTimeout(() => {
+                    router.replace('/home/homepage');
+                  }, 250);
                 } else {
                   Alert.alert('Failed to save draft');
                 }
