@@ -8,6 +8,7 @@ import tw from 'twrnc';
 import ClockWhite from '@/assets/icons/clockwhite.svg';
 import Host from '@/assets/icons/hostwhite-icon.svg';
 import LocationWhite from '@/assets/icons/locationicon.svg';
+import ThreeDot from '@/assets/icons/threedots.svg';
 
 import DecisionModal from './eventDecision';
 
@@ -132,9 +133,17 @@ export default function EventCard(props: any) {
   }, []);
 
   return (
-    <View style={tw`mb-5`}> 
+    <View style={tw`mb-5`}>
       <View style={[tw`rounded-2xl overflow-hidden w-full items-center justify-center`, { aspectRatio: 410 / 279 }]}> 
         <View style={{ width: '100%', height: '100%' }}>
+          {/* Top right ThreeDot icon */}
+          <TouchableOpacity
+            activeOpacity={0.5}
+            style={[tw`absolute`, { top: 12, right: 12, zIndex: 10 }]}
+            onPress={() => { /* navigation to be setup later */ }}
+          >
+            <ThreeDot width={22} height={22} />
+          </TouchableOpacity>
           <View style={[tw`absolute left-0 right-0 top-0 bottom-0`, { zIndex: 1 }]} />
           <View style={tw`w-full h-full`}>
             <View style={tw`absolute left-0 right-0 top-0 bottom-0`}>
