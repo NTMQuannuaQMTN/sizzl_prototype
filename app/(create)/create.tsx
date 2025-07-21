@@ -444,6 +444,8 @@ export default function CreatePage() {
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
   const [toastAnim] = useState(new Animated.Value(1));
+  // Draft Saved Modal
+  const [showDraftSavedModal, setShowDraftSavedModal] = useState(false);
 
   return (
     <View style={tw`w-full h-full`}>
@@ -457,7 +459,7 @@ export default function CreatePage() {
             ]}
           >
             <View style={[tw`absolute w-full h-full left-0 top-0`, { backgroundColor: 'rgba(0,0,0,0.5)' }]} />
-            <View style={[tw`bg-[#22C55E] px-0 py-6 rounded-2xl shadow-lg shadow-black/30 items-center`, { width: 300, maxWidth: '90%' }]}>
+            <View style={[tw`bg-[#22C55E] px-0 py-6 rounded-2xl shadow-lg shadow-black/30 items-center`, { width: 300, maxWidth: '90%' }]}> 
               <ExpoImage
                 source={require('../../assets/gifs/happycat.gif')}
                 style={{ width: 120, height: 120, borderRadius: 10, marginBottom: 20, resizeMode: 'cover' }}
@@ -467,6 +469,20 @@ export default function CreatePage() {
           </Animated.View>
         )
       }
+      {/* Draft Saved Modal (custom UI) */}
+      {showDraftSavedModal && (
+        <Animated.View
+          style={[
+            tw`absolute left-0 top-0 w-full h-full z-100`,
+            { opacity: toastAnim, justifyContent: 'center', alignItems: 'center', display: 'flex' }
+          ]}
+        >
+          <View style={[tw`absolute w-full h-full left-0 top-0`, { backgroundColor: 'rgba(0,0,0,0.5)' }]} />
+          <View style={[tw`bg-yellow-600 px-4 py-4 rounded-2xl shadow-lg shadow-black/30 items-center`]}> 
+            <Text style={[tw`text-white text-[15px] text-center`, { fontFamily: 'Nunito-ExtraBold' }]}>Draft saved!</Text>
+          </View>
+        </Animated.View>
+      )}
 
       <KeyboardAwareScrollView
         style={{ flex: 1 }}
@@ -1039,8 +1055,11 @@ export default function CreatePage() {
                   .select('id'));
                 if (!draftErr && dataEvent && dataEvent[0]?.id) {
                   setID(dataEvent[0].id);
-                  Alert.alert('Draft updated!');
-                  router.replace('/home/homepage');
+                  setShowDraftSavedModal(true);
+                  setTimeout(() => {
+                    setShowDraftSavedModal(false);
+                    router.replace('/home/homepage');
+                  }, 1200);
                 } else {
                   Alert.alert('Failed to update draft');
                 }
@@ -1072,8 +1091,11 @@ export default function CreatePage() {
                   .select('id'));
                 if (!draftErr && dataEvent && dataEvent[0]?.id) {
                   setID(dataEvent[0].id);
-                  Alert.alert('Draft saved!');
-                  router.replace('/home/homepage');
+                  setShowDraftSavedModal(true);
+                  setTimeout(() => {
+                    setShowDraftSavedModal(false);
+                    router.replace('/home/homepage');
+                  }, 1200);
                 } else {
                   Alert.alert('Failed to save draft');
                 }
@@ -1100,8 +1122,10 @@ export default function CreatePage() {
               setImage(imageOptions[Math.floor(Math.random() * imageOptions.length)]);
               setID('');
               setCohosts([]);
-              Alert.alert('Event discarded.');
-              router.replace('/home/homepage');
+              // No alert for event discarded
+              setTimeout(() => {
+                router.replace('/home/homepage');
+              }, 0);
             }}
           />
           <LocationModal
