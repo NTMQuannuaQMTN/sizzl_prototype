@@ -34,7 +34,7 @@ export default function Homepage() {
             </View>
 
             {/* Tab Content */}
-            <View style={tw`flex-1`}>
+            <View style={tw`flex-1 h-full mb-8`}>
                 {activeTab === 'explore' ? <Explore /> : <YourEvents />}
             </View>
         </LinearGradient>

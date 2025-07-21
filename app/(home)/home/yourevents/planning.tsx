@@ -52,7 +52,7 @@ if (!drafts.length) return (
 );
 
   return (
-    <View style={tw`flex-1`}>
+    <View style={tw`flex-1 pb-24`}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {drafts.map(item => (
           <TouchableOpacity key={item.id} activeOpacity={0.85} onPress={() => router.push({ pathname: '/(create)/create', params: { id: item.id } })}>

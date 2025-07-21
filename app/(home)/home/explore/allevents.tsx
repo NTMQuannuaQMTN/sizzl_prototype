@@ -33,7 +33,7 @@ export default function AllEvents() {
     }, [user]);
 
     return (
-        <ScrollView style={tw`flex-1`}>
+        <ScrollView style={tw`flex-1 pb-24`}>
             {/* Upcoming hit event */}
             <View style={tw`flex-row items-center mb-2`}>
                 <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>🔥 Upcoming hit event</Text>

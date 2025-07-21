@@ -57,7 +57,7 @@ export default function Upcoming() {
     }, [user]);
 
     return (
-        <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}>
+        <ScrollView style={tw`flex-1 pb-24`} showsVerticalScrollIndicator={false}>
             {/* Event Card 1 */}
             {upcomingEvents.map((e, index) => {
                 console.log(e);
