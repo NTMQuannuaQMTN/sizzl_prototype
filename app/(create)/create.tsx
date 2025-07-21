@@ -21,7 +21,7 @@ function formatFullDate(date: Date): string {
 import { supabase } from '@/utils/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -56,69 +56,16 @@ interface Friend {
 }
 
 export default function CreatePage() {
+  const params = useLocalSearchParams();
   const [title, setTitle] = useState('');
   const [publicEvent, setPublic] = useState(true);
   const [date, setDate] = useState({
-    // Set startDate and startTime to the closest future time selectable in the modal (15 minute interval)
-    ...(() => {
-      // 15-minute interval time options
-      const timeOptions: string[] = [];
-      for (let h = 0; h < 24; h++) {
-        for (let m = 0; m < 60; m += 15) {
-          let hour12 = h % 12 === 0 ? 12 : h % 12;
-          let ampm = h < 12 ? 'am' : 'pm';
-          let minStr = m.toString().padStart(2, '0');
-          timeOptions.push(`${hour12}:${minStr}${ampm}`);
-        }
-      }
-      const now = new Date();
-      let found = false;
-      let selectedTime = "12:00am";
-      for (const timeStr of timeOptions) {
-        const match = timeStr.match(/(\d+):(\d+)(am|pm)/i);
-        if (!match) continue;
-        let [_, hourStr, minStr, ampm] = match;
-        let hour = Number(hourStr);
-        let minute = Number(minStr);
-        if (ampm === 'pm' && hour !== 12) hour += 12;
-        if (ampm === 'am' && hour === 12) hour = 0;
-        if (
-          hour > now.getHours() ||
-          (hour === now.getHours() && minute > now.getMinutes())
-        ) {
-          selectedTime = timeStr;
-          found = true;
-          break;
-        }
-      }
-      // If no future time today, use tomorrow at 12:00am
-      let startDate = new Date();
-      let startTime = selectedTime;
-      if (!found) {
-        startDate.setDate(startDate.getDate() + 1);
-        startDate.setHours(0, 0, 0, 0);
-        startTime = "12:00am";
-      } else {
-        // Set startDate to today with the selected time
-        const match = selectedTime.match(/(\d+):(\d+)(am|pm)/i);
-        if (match) {
-          let hour = Number(match[1]);
-          let minute = Number(match[2]);
-          let ampm = match[3];
-          if (ampm === 'pm' && hour !== 12) hour += 12;
-          if (ampm === 'am' && hour === 12) hour = 0;
-          startDate.setHours(hour, minute, 0, 0);
-        }
-      }
-      return {
-        start: startDate,
-        end: new Date(),
-        startTime: startTime,
-        endTime: '12:00am',
-        endSet: false,
-        dateChosen: false,
-      };
-    })()
+    start: new Date(),
+    end: new Date(),
+    startTime: '12:00am',
+    endTime: '12:00am',
+    endSet: false,
+    dateChosen: false,
   });
   const imageOptions = defaultImages;
   const [image, setImage] = useState(imageOptions[Math.floor(Math.random() * imageOptions.length)]);
@@ -151,6 +98,73 @@ export default function CreatePage() {
   });
   const [rsvpDL, setRSVPDL] = useState<Date | null>(null);
   const [rsvpDLTime, setRSVPDLTime] = useState<string | null>(null);
+  // Load draft event if id param is present
+  useEffect(() => {
+    async function fetchDraft() {
+      if (params.id) {
+        const { data, error } = await supabase.from('events').select('*').eq('id', params.id).single();
+        if (!error && data) {
+          setID(data.id);
+          setTitle(data.title || '');
+          setPublic(data.public ?? true);
+          setBio(data.bio || '');
+          setLocation({
+            search: '',
+            selected: data.location_add || '',
+            rsvpFirst: data.rsvpfirst || false,
+            name: data.location_name || '',
+            aptSuite: data.location_more || '',
+            notes: data.location_note || '',
+          });
+          setRSVPDL(data.rsvp_deadline ? new Date(data.rsvp_deadline) : null);
+          // Parse RSVP time if available
+          if (data.rsvp_deadline) {
+            const rsvpDate = new Date(data.rsvp_deadline);
+            setRSVPDLTime(rsvpDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+          }
+          setSpecial({
+            cash: data.cash_prize || '',
+            food: data.free_food || '',
+            merch: data.free_merch || '',
+            coolPrize: data.cool_prize || '',
+          });
+          setSpecialBox({
+            cash: !!data.cash_prize,
+            food: !!data.free_food,
+            merch: !!data.free_merch,
+            coolPrize: !!data.cool_prize,
+          });
+          setDate(prev => ({
+            ...prev,
+            start: data.start ? new Date(data.start) : new Date(),
+            end: data.end ? new Date(data.end) : new Date(),
+            startTime: data.start ? new Date(data.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase().replace(' ', '') : '12:00am',
+            endTime: data.end ? new Date(data.end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase().replace(' ', '') : '12:00am',
+            endSet: !!data.end,
+            dateChosen: !!data.start,
+          }));
+          // Image
+          if (data.image) {
+            if (typeof data.image === 'string' && data.image.startsWith('default_')) {
+              // e.g. 'default_3'
+              const idx = parseInt(data.image.replace('default_', ''), 10) - 1;
+              if (!isNaN(idx) && idx >= 0 && idx < imageOptions.length) {
+                setImage(imageOptions[idx]);
+              } else {
+                setImage(imageOptions[0]);
+              }
+            } else if (typeof data.image === 'string') {
+              setImage(data.image);
+            } else {
+              setImage(imageOptions[0]);
+            }
+          }
+        }
+      }
+    }
+    fetchDraft();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.id]);
   const [showCohostModal, setShowCohostModal] = useState(false);
   const [showDateTimeModal, setShowDateTimeModal] = useState(false);
   useEffect(() => {
