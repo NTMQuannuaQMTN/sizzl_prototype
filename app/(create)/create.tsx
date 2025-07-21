@@ -60,6 +60,7 @@ interface Friend {
 
 export default function CreatePage() {
   // ...existing code...
+  const [draftLoaded, setDraftLoaded] = useState(false);
   const params = useLocalSearchParams();
   const [title, setTitle] = useState('');
   const [publicEvent, setPublic] = useState(true);
@@ -163,6 +164,7 @@ export default function CreatePage() {
               setImage(imageOptions[0]);
             }
           }
+          setDraftLoaded(true);
         }
       }
     }
@@ -534,7 +536,9 @@ export default function CreatePage() {
             </TouchableOpacity>
             {/* Centered title */}
             <View style={tw`flex-1 items-center justify-center`}>
-              <Text style={[tw`text-white text-base`, { fontFamily: 'Nunito-ExtraBold' }]}>Create event</Text>
+              <Text style={[tw`text-white text-base`, { fontFamily: 'Nunito-ExtraBold' }]}>
+                {id && draftLoaded ? 'Update event' : 'Create event'}
+              </Text>
             </View>
             {/* Done button - absolute right */}
             {/* Determine if all required fields are filled */}
@@ -1009,6 +1013,7 @@ export default function CreatePage() {
             onClose={() => setShowDraftModal(false)}
             onSaveDraft={async () => {
               setShowDraftModal(false);
+              setShowEventDoneModal(false);
               // Save as draft (done: false)
               let draftErr, dataEvent;
               let draftImage = null;
