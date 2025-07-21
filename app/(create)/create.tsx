@@ -23,10 +23,11 @@ import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Animated, Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import tw from 'twrnc';
 import { useUserStore } from '../store/userStore';
+import { Image as ExpoImage} from 'expo-image';
 
 import Back from '../../assets/icons/back.svg';
 import Camera from '../../assets/icons/camera_icon.svg';
@@ -290,7 +291,7 @@ export default function CreatePage() {
     // Check if event meets all conditions
     const isValid = title !== '' && date.dateChosen && rsvpDL;
     if (isValid && !draftErr) {
-      Alert.alert('create success');
+      setShowSuccessToast(true);
       if (dataEvent) {
         setID(dataEvent[0].id);
         console.log(dataEvent[0].id);
@@ -440,6 +441,9 @@ export default function CreatePage() {
   }, [showCohostModal]);
 
   const [showEventDoneModal, setShowEventDoneModal] = useState(false);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastAnim] = useState(new Animated.Value(1));
 
   return (
     <KeyboardAwareScrollView
@@ -452,6 +456,25 @@ export default function CreatePage() {
       resetScrollToCoords={{ x: 0, y: 0 }}
       scrollEnabled={!showImageModal}
     >
+      {/* Success Toast Modal (Animated overlay, styled like profile.tsx) */}
+      {(showSuccessToast || toastVisible) && (
+        <Animated.View
+          style={[
+            tw`absolute left-0 top-0 w-full h-full z-100`,
+            { opacity: toastAnim, justifyContent: 'center', alignItems: 'center', display: 'flex' }
+          ]}
+        >
+          <View style={[tw`absolute w-full h-full left-0 top-0`, { backgroundColor: 'rgba(0,0,0,0.5)' }]} />
+          <View style={[tw`bg-[#22C55E] px-0 py-6 rounded-2xl shadow-lg shadow-black/30 items-center`, { width: 300, maxWidth: '90%' }]}> 
+            <ExpoImage
+              source={require('../../assets/gifs/happycat.gif')}
+              style={{ width: 120, height: 120, borderRadius: 10, marginBottom: 20, resizeMode: 'cover' }}
+            />
+            <Text style={[tw`text-white text-[15px] text-center leading-[1.25]`, { fontFamily: 'Nunito-ExtraBold'}]}>Hell yah your event is published 🥳</Text>
+          </View>
+        </Animated.View>
+      )}
+
       {/* Background image and overlay */}
       <Image
         source={
@@ -1182,11 +1205,15 @@ export default function CreatePage() {
           onClose={() => setShowEventDoneModal(false)}
           onPublish={async () => {
             setShowEventDoneModal(false);
+            setToastVisible(true);
             const newId = await addEvent();
             if (newId) {
               await updateImage(newId);
               await addCohost(newId);
-              router.replace('/home/homepage');
+              // Navigation is temporarily disabled so toast remains visible
+              // setTimeout(() => {
+              //   router.replace('/home/homepage');
+              // }, 500);
             }
           }}
           onSaveDraft={async () => {
