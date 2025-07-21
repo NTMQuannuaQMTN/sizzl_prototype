@@ -3,16 +3,20 @@ import { supabase } from '@/utils/supabase';
 import React, { useEffect, useState } from 'react';
 import { ScrollView } from 'react-native';
 import tw from 'twrnc';
+import Loader from '../../loader';
 import EventCard from '../eventcard';
 
 export default function FriendEvents() {
     const [events, setEvents] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
     const { user } = useUserStore();
 
     useEffect(() => {
         const fetchEvents = async () => {
-            const {data: friendData, error: frErr} = await supabase.from('friends')
-            .select('friend').eq('user_id', user.id);
+            setLoading(true);
+
+            const { data: friendData, error: frErr } = await supabase.from('friends')
+                .select('friend').eq('user_id', user.id);
 
             if (frErr) {
                 console.log('Error get friends');
@@ -22,8 +26,8 @@ export default function FriendEvents() {
             const friends = (friendData.map(e => e.friend));
             console.log('Friends:', friends);
 
-            const {data: hostEvents, error: hosErr} = await supabase.from('hosts')
-            .select('event_id').eq('user_id', user.id);
+            const { data: hostEvents, error: hosErr } = await supabase.from('hosts')
+                .select('event_id').eq('user_id', user.id);
 
             if (hosErr) {
                 console.log('Error get host events');
@@ -33,14 +37,14 @@ export default function FriendEvents() {
             const userCohost = (hostEvents ? hostEvents.map(e => e.event_id) : []);
             console.log('User cohost', userCohost);
 
-            const {data: friendEvents, error: frevErr} = await supabase.from('hosts')
-            .select('event_id').in('user_id', friends);
+            const { data: friendEvents, error: frevErr } = await supabase.from('hosts')
+                .select('event_id').in('user_id', friends);
 
             if (frevErr) {
                 console.log('Error get host events');
                 return;
             }
-            
+
             const friendCohost = (friendEvents ? friendEvents.map(e => e.event_id) : []);
             console.log('Friend cohost', friendCohost);
 
@@ -67,17 +71,20 @@ export default function FriendEvents() {
             } else {
                 setEvents(data);
             }
+
+            setLoading(false);
         }
         fetchEvents();
     }, [user]);
 
     return (
         <ScrollView style={tw`flex-1`}>
-            {/* Event Card 1 */}
-            {events.map((e, index) => {
-                // console.log(e);
-                return <EventCard key={index} event={e} />
-            })}
+            {loading ? <Loader /> :
+                (events.map((e, index) => {
+                    // console.log(e);
+                    return <EventCard key={index} event={e} />
+                }))
+            }
         </ScrollView>
     );
 }

@@ -4,6 +4,7 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 import Hosting from './yourevents/hosting';
 import Planning from './yourevents/planning';
+import Upcoming from './yourevents/upcoming';
 
 export default function YourEvents() {
     const [activeTab, setActiveTab] = useState<'upcoming' | 'hosting' | 'attended' | 'planning'>('upcoming');
@@ -60,10 +61,7 @@ export default function YourEvents() {
 
             {/* Tab Content */}
             {activeTab === 'upcoming' && (
-                <View style={tw`flex-1 justify-center items-center`}>
-                    <Text style={tw`text-white text-2xl mb-4`}>Upcoming Events</Text>
-                    <Image source={require('../../../assets/gifs/rickroll.gif')} style={{ width: 300, height: 200, borderRadius: 16 }} resizeMode="contain" />
-                </View>
+                <Upcoming />
             )}
             {activeTab === 'hosting' && (
                 <Hosting />
