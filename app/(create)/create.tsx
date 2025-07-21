@@ -42,10 +42,12 @@ import RSVPWhite from '../../assets/icons/timewhite.svg';
 import CohostModal from './cohost';
 import DateTimeModal from './dateTimeModal';
 import defaultImages from './defaultimage';
+import EventDoneModal from './eventdonemodal';
 import ImageModal from './imageModal';
 import LocationModal from './location';
 import MoreSettingsModal from './moreSettingsModal';
 import RSVPDeadlineModal from './rsvpDeadlineModal';
+import SaveDraftModal from './savedraftmodal';
 // Define Friend and Cohost types locally
 interface Friend {
   id: string;
@@ -56,6 +58,7 @@ interface Friend {
 }
 
 export default function CreatePage() {
+  // ...existing code...
   const params = useLocalSearchParams();
   const [title, setTitle] = useState('');
   const [publicEvent, setPublic] = useState(true);
@@ -166,6 +169,7 @@ export default function CreatePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
   const [showCohostModal, setShowCohostModal] = useState(false);
+  const [showDraftModal, setShowDraftModal] = useState(false);
   const [showDateTimeModal, setShowDateTimeModal] = useState(false);
   useEffect(() => {
     console.log(date);
@@ -435,6 +439,8 @@ export default function CreatePage() {
     if (!showCohostModal) fetchFriends();
   }, [showCohostModal]);
 
+  const [showEventDoneModal, setShowEventDoneModal] = useState(false);
+
   return (
     <KeyboardAwareScrollView
       style={{ flex: 1 }}
@@ -491,120 +497,19 @@ export default function CreatePage() {
           {/* Determine if all required fields are filled */}
           {(() => {
             const requiredFilled = title && date.dateChosen && rsvpDL && (location.name || location.selected);
-            return (
+            return requiredFilled ? (
               <TouchableOpacity
-                style={[
-                  tw`absolute right-4 rounded-full px-4 py-1`,
-                  requiredFilled ? tw`bg-[#7b61ff]` : tw`bg-gray-500/60`,
-                  { zIndex: 2 }
-                ]}
-                onPress={async () => {
-                  if (requiredFilled) {
-                    const newId = await addEvent();
-                    if (newId) {
-                      await updateImage(newId);
-                      await addCohost(newId);
-                      router.replace('/home/homepage');
-                    }
-                  } else {
-                    // Save as draft (done: false)
-                    let draftErr, dataEvent;
-                    // Save image field for draft: default image as string, uploaded as local URI
-                    let draftImage = null;
-                    if (typeof image === 'string') {
-                      if (image.startsWith('file://') || image.startsWith('content://') || image.startsWith('http://') || image.startsWith('https://')) {
-                        draftImage = image;
-                      } else if (image.startsWith('default_')) {
-                        draftImage = image;
-                      } else {
-                        draftImage = image; // fallback
-                      }
-                    } else if (typeof image === 'number') {
-                      // If image is a require() result, find its index in imageOptions and save as 'default_X'
-                      const idx = imageOptions.findIndex(opt => opt === image);
-                      if (idx >= 0) {
-                        draftImage = `default_${idx + 1}`;
-                      } else {
-                        draftImage = 'default_1';
-                      }
-                    } else if (image && image.uri) {
-                      draftImage = image.uri;
-                    }
-
-                    if (id) {
-                      // Update existing draft
-                      ({ data: dataEvent, error: draftErr } = await supabase.from('events')
-                        .update({
-                          title: title,
-                          public: publicEvent,
-                          start: (date.dateChosen ? date.start : null),
-                          end: (date.endSet ? date.end : null),
-                          location_add: location.selected || '',
-                          location_name: location.name || location.selected || '',
-                          location_more: location.aptSuite || '',
-                          location_note: location.notes || '',
-                          rsvpfirst: location.rsvpFirst,
-                          rsvp_deadline: rsvpDL,
-                          bio: bio,
-                          cash_prize: specialBox.cash ? special.cash : null,
-                          free_food: specialBox.food ? special.food : null,
-                          free_merch: specialBox.merch ? special.merch : null,
-                          cool_prize: specialBox.coolPrize ? special.coolPrize : null,
-                          host_id: user.id,
-                          public_list: list.public,
-                          maybe: list.maybe,
-                          done: false,
-                          school_id: user.school_id,
-                          image: draftImage
-                        })
-                        .eq('id', id)
-                        .select('id'));
-                      if (!draftErr && dataEvent && dataEvent[0]?.id) {
-                        setID(dataEvent[0].id);
-                        Alert.alert('Draft updated!');
-                        router.replace('/home/homepage');
-                      } else {
-                        Alert.alert('Failed to update draft');
-                      }
-                    } else {
-                      // Insert new draft
-                      ({ data: dataEvent, error: draftErr } = await supabase.from('events')
-                        .insert([{
-                          title: title,
-                          public: publicEvent,
-                          start: (date.dateChosen ? date.start : null),
-                          end: (date.endSet ? date.end : null),
-                          location_add: location.selected || '',
-                          location_name: location.name || location.selected || '',
-                          location_more: location.aptSuite || '',
-                          location_note: location.notes || '',
-                          rsvpfirst: location.rsvpFirst,
-                          rsvp_deadline: rsvpDL,
-                          bio: bio,
-                          cash_prize: specialBox.cash ? special.cash : null,
-                          free_food: specialBox.food ? special.food : null,
-                          free_merch: specialBox.merch ? special.merch : null,
-                          cool_prize: specialBox.coolPrize ? special.coolPrize : null,
-                          host_id: user.id,
-                          public_list: list.public,
-                          maybe: list.maybe,
-                          done: false,
-                          school_id: user.school_id,
-                          image: draftImage
-                        }])
-                        .select('id'));
-                      if (!draftErr && dataEvent && dataEvent[0]?.id) {
-                        setID(dataEvent[0].id);
-                        Alert.alert('Draft saved!');
-                        router.replace('/home/homepage');
-                      } else {
-                        Alert.alert('Failed to save draft');
-                      }
-                    }
-                  }
-                }}
+                style={[tw`absolute right-4 rounded-full px-4 py-1 bg-[#7b61ff]`, { zIndex: 2 }]}
+                onPress={() => setShowEventDoneModal(true)}
               >
-                <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>{requiredFilled ? 'Done' : 'Draft'}</Text>
+                <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Done</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={[tw`absolute right-4 rounded-full px-4 py-1 bg-gray-500/60`, { zIndex: 2 }]}
+                onPress={() => setShowDraftModal(true)}
+              >
+                <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Draft</Text>
               </TouchableOpacity>
             );
           })()}
@@ -1056,6 +961,122 @@ export default function CreatePage() {
           cohosts={cohosts}
           onSave={setCohosts}
         />
+        <SaveDraftModal
+          visible={showDraftModal}
+          onClose={() => setShowDraftModal(false)}
+          onSaveDraft={async () => {
+            setShowDraftModal(false);
+            // Save as draft (done: false)
+            let draftErr, dataEvent;
+            let draftImage = null;
+            if (typeof image === 'string') {
+              if (image.startsWith('file://') || image.startsWith('content://') || image.startsWith('http://') || image.startsWith('https://')) {
+                draftImage = image;
+              } else if (image.startsWith('default_')) {
+                draftImage = image;
+              } else {
+                draftImage = image;
+              }
+            } else if (typeof image === 'number') {
+              const idx = imageOptions.findIndex(opt => opt === image);
+              draftImage = idx >= 0 ? `default_${idx + 1}` : 'default_1';
+            } else if (image && image.uri) {
+              draftImage = image.uri;
+            }
+            if (id) {
+              ({ data: dataEvent, error: draftErr } = await supabase.from('events')
+                .update({
+                  title: title,
+                  public: publicEvent,
+                  start: (date.dateChosen ? date.start : null),
+                  end: (date.endSet ? date.end : null),
+                  location_add: location.selected || '',
+                  location_name: location.name || location.selected || '',
+                  location_more: location.aptSuite || '',
+                  location_note: location.notes || '',
+                  rsvpfirst: location.rsvpFirst,
+                  rsvp_deadline: rsvpDL,
+                  bio: bio,
+                  cash_prize: specialBox.cash ? special.cash : null,
+                  free_food: specialBox.food ? special.food : null,
+                  free_merch: specialBox.merch ? special.merch : null,
+                  cool_prize: specialBox.coolPrize ? special.coolPrize : null,
+                  host_id: user.id,
+                  public_list: list.public,
+                  maybe: list.maybe,
+                  done: false,
+                  school_id: user.school_id,
+                  image: draftImage
+                })
+                .eq('id', id)
+                .select('id'));
+              if (!draftErr && dataEvent && dataEvent[0]?.id) {
+                setID(dataEvent[0].id);
+                Alert.alert('Draft updated!');
+                router.replace('/home/homepage');
+              } else {
+                Alert.alert('Failed to update draft');
+              }
+            } else {
+              ({ data: dataEvent, error: draftErr } = await supabase.from('events')
+                .insert([{
+                  title: title,
+                  public: publicEvent,
+                  start: (date.dateChosen ? date.start : null),
+                  end: (date.endSet ? date.end : null),
+                  location_add: location.selected || '',
+                  location_name: location.name || location.selected || '',
+                  location_more: location.aptSuite || '',
+                  location_note: location.notes || '',
+                  rsvpfirst: location.rsvpFirst,
+                  rsvp_deadline: rsvpDL,
+                  bio: bio,
+                  cash_prize: specialBox.cash ? special.cash : null,
+                  free_food: specialBox.food ? special.food : null,
+                  free_merch: specialBox.merch ? special.merch : null,
+                  cool_prize: specialBox.coolPrize ? special.coolPrize : null,
+                  host_id: user.id,
+                  public_list: list.public,
+                  maybe: list.maybe,
+                  done: false,
+                  school_id: user.school_id,
+                  image: draftImage
+                }])
+                .select('id'));
+              if (!draftErr && dataEvent && dataEvent[0]?.id) {
+                setID(dataEvent[0].id);
+                Alert.alert('Draft saved!');
+                router.replace('/home/homepage');
+              } else {
+                Alert.alert('Failed to save draft');
+              }
+            }
+          }}
+          onContinueEditing={() => setShowDraftModal(false)}
+          onDiscardEvent={() => {
+            setShowDraftModal(false);
+            setTitle('');
+            setBio('');
+            setLocation({ search: '', selected: '', rsvpFirst: false, name: '', aptSuite: '', notes: '' });
+            setRSVPDL(null);
+            setRSVPDLTime(null);
+            setSpecial({ cash: '', food: '', merch: '', coolPrize: '' });
+            setSpecialBox({ cash: false, food: false, merch: false, coolPrize: false });
+            setDate({
+              start: new Date(),
+              end: new Date(),
+              startTime: '12:00am',
+              endTime: '12:00am',
+              endSet: false,
+              dateChosen: false,
+            });
+            setImage(imageOptions[Math.floor(Math.random() * imageOptions.length)]);
+            setID('');
+            setCohosts([]);
+            Alert.alert('Event discarded.');
+            router.replace('/home/homepage');
+          }}
+        />
         <LocationModal
           visible={showLocationModal}
           onClose={() => setShowLocationModal(false)}
@@ -1155,6 +1176,108 @@ export default function CreatePage() {
             setShowRSVPModal(false);
 
           }}
+        />
+        <EventDoneModal
+          visible={showEventDoneModal}
+          onClose={() => setShowEventDoneModal(false)}
+          onPublish={async () => {
+            setShowEventDoneModal(false);
+            const newId = await addEvent();
+            if (newId) {
+              await updateImage(newId);
+              await addCohost(newId);
+              router.replace('/home/homepage');
+            }
+          }}
+          onSaveDraft={async () => {
+            setShowEventDoneModal(false);
+            // Save as draft (done: false)
+            let draftErr, dataEvent;
+            let draftImage = null;
+            if (typeof image === 'string') {
+              if (image.startsWith('file://') || image.startsWith('content://') || image.startsWith('http://') || image.startsWith('https://')) {
+                draftImage = image;
+              } else if (image.startsWith('default_')) {
+                draftImage = image;
+              } else {
+                draftImage = image;
+              }
+            } else if (typeof image === 'number') {
+              const idx = imageOptions.findIndex(opt => opt === image);
+              draftImage = idx >= 0 ? `default_${idx + 1}` : 'default_1';
+            } else if (image && image.uri) {
+              draftImage = image.uri;
+            }
+            if (id) {
+              ({ data: dataEvent, error: draftErr } = await supabase.from('events')
+                .update({
+                  title: title,
+                  public: publicEvent,
+                  start: (date.dateChosen ? date.start : null),
+                  end: (date.endSet ? date.end : null),
+                  location_add: location.selected || '',
+                  location_name: location.name || location.selected || '',
+                  location_more: location.aptSuite || '',
+                  location_note: location.notes || '',
+                  rsvpfirst: location.rsvpFirst,
+                  rsvp_deadline: rsvpDL,
+                  bio: bio,
+                  cash_prize: specialBox.cash ? special.cash : null,
+                  free_food: specialBox.food ? special.food : null,
+                  free_merch: specialBox.merch ? special.merch : null,
+                  cool_prize: specialBox.coolPrize ? special.coolPrize : null,
+                  host_id: user.id,
+                  public_list: list.public,
+                  maybe: list.maybe,
+                  done: false,
+                  school_id: user.school_id,
+                  image: draftImage
+                })
+                .eq('id', id)
+                .select('id'));
+              if (!draftErr && dataEvent && dataEvent[0]?.id) {
+                setID(dataEvent[0].id);
+                Alert.alert('Draft updated!');
+                router.replace('/home/homepage');
+              } else {
+                Alert.alert('Failed to update draft');
+              }
+            } else {
+              ({ data: dataEvent, error: draftErr } = await supabase.from('events')
+                .insert([{
+                  title: title,
+                  public: publicEvent,
+                  start: (date.dateChosen ? date.start : null),
+                  end: (date.endSet ? date.end : null),
+                  location_add: location.selected || '',
+                  location_name: location.name || location.selected || '',
+                  location_more: location.aptSuite || '',
+                  location_note: location.notes || '',
+                  rsvpfirst: location.rsvpFirst,
+                  rsvp_deadline: rsvpDL,
+                  bio: bio,
+                  cash_prize: specialBox.cash ? special.cash : null,
+                  free_food: specialBox.food ? special.food : null,
+                  free_merch: specialBox.merch ? special.merch : null,
+                  cool_prize: specialBox.coolPrize ? special.coolPrize : null,
+                  host_id: user.id,
+                  public_list: list.public,
+                  maybe: list.maybe,
+                  done: false,
+                  school_id: user.school_id,
+                  image: draftImage
+                }])
+                .select('id'));
+              if (!draftErr && dataEvent && dataEvent[0]?.id) {
+                setID(dataEvent[0].id);
+                Alert.alert('Draft saved!');
+                router.replace('/home/homepage');
+              } else {
+                Alert.alert('Failed to save draft');
+              }
+            }
+          }}
+          onContinueEdit={() => setShowEventDoneModal(false)}
         />
       </View>
     </KeyboardAwareScrollView >
