@@ -82,7 +82,18 @@ export default function FriendEvents() {
             {loading ? <Loader /> :
                 (events.map((e, index) => {
                     // console.log(e);
-                    return <EventCard key={index} event={e} />
+                    return (
+                        <EventCard
+                            key={index}
+                            event={e}
+                            fromFriendsEvents={true}
+                            onReportEvent={(eventId: string) => {
+                                // TODO: Implement report event logic/modal here
+                                console.log('Report event:', eventId);
+                                // You can show a modal, send to API, etc.
+                            }}
+                        />
+                    );
                 }))
             }
         </ScrollView>

@@ -449,8 +449,8 @@ export default function EventCard(props: any) {
               }
             ];
           }
-          // Upcoming event scenario: only show 'Report event' button
-          if (props.fromUpcoming) {
+          // Upcoming event or Explore/FriendsEvents scenario: only show 'Report event' button
+          if (props.fromUpcoming || props.fromExplore || props.fromFriendsEvents) {
             return [
               {
                 label: 'Report event',
