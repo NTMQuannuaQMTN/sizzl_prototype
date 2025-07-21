@@ -27,13 +27,13 @@ export default function Loader() {
         Animated.loop(
             Animated.sequence([
                 Animated.timing(beefAnimation, {
-                    toValue: 1,
-                    duration: 1000,
+                    toValue: 2,
+                    duration: 2000,
                     useNativeDriver: true,
                 }),
                 Animated.timing(beefAnimation, {
                     toValue: 0,
-                    duration: 1000,
+                    duration: 0,
                     useNativeDriver: true,
                 }),
             ])
@@ -47,14 +47,14 @@ export default function Loader() {
     });
 
     const beefRotate = beefAnimation.interpolate({
-        inputRange: [0, 1],
-        outputRange: ['0deg', '360deg'],
+        inputRange: [0, 1, 2],
+        outputRange: ['0deg', '270deg', '540deg'],
         extrapolate: 'clamp',
     });
 
     const beefVertical = beefAnimation.interpolate({
-        inputRange: [0, 1],
-        outputRange: [10, -100],
+        inputRange: [0, 0.1, 1, 1.9, 2],
+        outputRange: [10, 15, -100, 18, 10],
         extrapolate: 'clamp',
     });
 
