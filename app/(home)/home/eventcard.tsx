@@ -291,7 +291,7 @@ export default function EventCard(props: any) {
                     );
                     if (daysLeft > 0) {
                       return (
-                        <Text style={[tw`text-[12px] text-gray-400`, { fontFamily: 'Nunito-Medium' }]}>
+                        <Text style={[tw`text-[12px] text-white`, { fontFamily: 'Nunito-Medium' }]}>
                           {daysLeft} day{daysLeft !== 1 ? 's' : ''} left to RSVP
                         </Text>
                       );
@@ -302,7 +302,11 @@ export default function EventCard(props: any) {
                         </Text>
                       );
                     } else {
-                      return null;
+                      return (
+                        <Text style={[tw`text-[12px] text-gray-400`, { fontFamily: 'Nunito-Medium' }]}>
+                          RSVP has closed :(
+                        </Text>
+                      );
                     }
                   })()}
                   {user.id === props.event.host_id ?

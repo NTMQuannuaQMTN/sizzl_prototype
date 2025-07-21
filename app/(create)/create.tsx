@@ -530,37 +530,76 @@ export default function CreatePage() {
                     } else if (image && image.uri) {
                       draftImage = image.uri;
                     }
-                    ({ data: dataEvent, error: draftErr } = await supabase.from('events')
-                      .insert([{
-                        title: title,
-                        public: publicEvent,
-                        start: (date.dateChosen ? date.start : null),
-                        end: (date.endSet ? date.end : null),
-                        location_add: location.selected || '',
-                        location_name: location.name || location.selected || '',
-                        location_more: location.aptSuite || '',
-                        location_note: location.notes || '',
-                        rsvpfirst: location.rsvpFirst,
-                        rsvp_deadline: rsvpDL,
-                        bio: bio,
-                        cash_prize: specialBox.cash ? special.cash : null,
-                        free_food: specialBox.food ? special.food : null,
-                        free_merch: specialBox.merch ? special.merch : null,
-                        cool_prize: specialBox.coolPrize ? special.coolPrize : null,
-                        host_id: user.id,
-                        public_list: list.public,
-                        maybe: list.maybe,
-                        done: false,
-                        school_id: user.school_id,
-                        image: draftImage
-                      }])
-                      .select('id'));
-                    if (!draftErr && dataEvent && dataEvent[0]?.id) {
-                      setID(dataEvent[0].id);
-                      Alert.alert('Draft saved!');
-                  router.replace('/home/homepage');
+
+                    if (id) {
+                      // Update existing draft
+                      ({ data: dataEvent, error: draftErr } = await supabase.from('events')
+                        .update({
+                          title: title,
+                          public: publicEvent,
+                          start: (date.dateChosen ? date.start : null),
+                          end: (date.endSet ? date.end : null),
+                          location_add: location.selected || '',
+                          location_name: location.name || location.selected || '',
+                          location_more: location.aptSuite || '',
+                          location_note: location.notes || '',
+                          rsvpfirst: location.rsvpFirst,
+                          rsvp_deadline: rsvpDL,
+                          bio: bio,
+                          cash_prize: specialBox.cash ? special.cash : null,
+                          free_food: specialBox.food ? special.food : null,
+                          free_merch: specialBox.merch ? special.merch : null,
+                          cool_prize: specialBox.coolPrize ? special.coolPrize : null,
+                          host_id: user.id,
+                          public_list: list.public,
+                          maybe: list.maybe,
+                          done: false,
+                          school_id: user.school_id,
+                          image: draftImage
+                        })
+                        .eq('id', id)
+                        .select('id'));
+                      if (!draftErr && dataEvent && dataEvent[0]?.id) {
+                        setID(dataEvent[0].id);
+                        Alert.alert('Draft updated!');
+                        router.replace('/home/homepage');
+                      } else {
+                        Alert.alert('Failed to update draft');
+                      }
                     } else {
-                      Alert.alert('Failed to save draft');
+                      // Insert new draft
+                      ({ data: dataEvent, error: draftErr } = await supabase.from('events')
+                        .insert([{
+                          title: title,
+                          public: publicEvent,
+                          start: (date.dateChosen ? date.start : null),
+                          end: (date.endSet ? date.end : null),
+                          location_add: location.selected || '',
+                          location_name: location.name || location.selected || '',
+                          location_more: location.aptSuite || '',
+                          location_note: location.notes || '',
+                          rsvpfirst: location.rsvpFirst,
+                          rsvp_deadline: rsvpDL,
+                          bio: bio,
+                          cash_prize: specialBox.cash ? special.cash : null,
+                          free_food: specialBox.food ? special.food : null,
+                          free_merch: specialBox.merch ? special.merch : null,
+                          cool_prize: specialBox.coolPrize ? special.coolPrize : null,
+                          host_id: user.id,
+                          public_list: list.public,
+                          maybe: list.maybe,
+                          done: false,
+                          school_id: user.school_id,
+                          image: draftImage
+                        }])
+                        .select('id'));
+                      if (!draftErr && dataEvent && dataEvent[0]?.id) {
+                        setID(dataEvent[0].id);
+                        Alert.alert('Draft saved!');
+                        router.replace('/home/homepage');
+                      } else {
+                        Alert.alert('Failed to save draft');
+                      }
                     }
                   }
                 }}
