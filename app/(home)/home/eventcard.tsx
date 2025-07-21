@@ -441,9 +441,27 @@ export default function EventCard(props: any) {
             return [
               {
                 label: 'Edit event',
+                color: 'bg-[#7A5CFA]',
                 onPress: () => {
                   setActionModalVisible(false);
                   push({ pathname: '/(create)/create', params: { id: props.event.id } });
+                }
+              }
+            ];
+          }
+          // Upcoming event scenario: only show 'Report event' button
+          if (props.fromUpcoming) {
+            return [
+              {
+                label: 'Report event',
+                color: 'bg-rose-600',
+                destructive: true,
+                onPress: () => {
+                  setActionModalVisible(false);
+                  // TODO: Implement report event logic/modal
+                  if (props.onReportEvent) {
+                    props.onReportEvent(props.event.id);
+                  }
                 }
               }
             ];

@@ -61,7 +61,7 @@ export default function Upcoming() {
             {/* Event Card 1 */}
             {upcomingEvents.map((e, index) => {
                 console.log(e);
-                return <EventCard key={index} event={e} />
+                return <EventCard key={index} event={e} fromUpcoming />
             })}
         </ScrollView>
     );
