@@ -23,13 +23,13 @@ export default function Homepage() {
                     style={tw`flex-1 items-center py-2 ${activeTab === 'explore' ? 'bg-[#7A5CFA] rounded-full' : ''}`}
                     onPress={() => setActiveTab('explore')}
                 >
-                    <Text style={[tw`text-[15px] ${activeTab === 'explore' ? 'text-white' : 'text-gray-400'}`, { fontFamily: 'Nunito-ExtraBold' }]}>Explore</Text>
+                    <Text style={[tw`text-[15px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Explore</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={tw`flex-1 items-center py-2 ${activeTab === 'yourevents' ? 'bg-[#7A5CFA] rounded-full' : ''}`}
                     onPress={() => setActiveTab('yourevents')}
                 >
-                    <Text style={[tw`text-[15px] ${activeTab === 'yourevents' ? 'text-white' : 'text-gray-400'}`, { fontFamily: 'Nunito-ExtraBold' }]}>Your events</Text>
+                    <Text style={[tw`text-[15px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Your events</Text>
                 </TouchableOpacity>
             </View>
 
