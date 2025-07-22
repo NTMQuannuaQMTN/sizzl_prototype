@@ -86,9 +86,9 @@ export default function EventDetails() {
                 }}
             />
             {/* Header */}
-            <ScrollView style={tw`bg-black absolute top-0 left-0 bg-opacity-60 w-full h-full`}>
-                <View style={tw`px-4 pt-10 pb-2`}>
-                    <Text style={[tw`text-white text-2xl font-extrabold`, { fontFamily: 'Nunito-ExtraBold' }]}>{event?.title}</Text>
+            <ScrollView style={tw`bg-black absolute top-0 left-0 bg-opacity-60 w-full h-full pt-10`}>
+                <View style={tw`px-4 pt-3 pb-2`}>
+                    <Text style={[tw`text-white text-2xl`, { fontFamily: 'Nunito-ExtraBold' }]}>{event?.title}</Text>
                     <View style={tw`flex-row items-center mt-2`}>
                         {event?.public ? <View style={tw`flex-row items-center gap-2 justify-center bg-[#064B55] border border-white/10 rounded-full px-2 py-0.5 mr-1`}>
                             <Public />
