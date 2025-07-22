@@ -56,8 +56,9 @@ export default function Verify() {
     };
 
     // Function to verify the entered OTP code
-    const checkCode = async () => {
-        if (code.length !== MAXLENGTH || !signupInfo?.email) {
+    const checkCode = async (inputCode?: string) => {
+        const codeToCheck = inputCode ?? code;
+        if (codeToCheck.length !== MAXLENGTH || !signupInfo?.email) {
             setValid(false);
             return;
         }
@@ -69,7 +70,7 @@ export default function Verify() {
 
         const { data, error } = await supabase.auth.verifyOtp({
             email: lowerEmail,
-            token: code,
+            token: codeToCheck,
             type: "email", // Use "email_otp" if "email" doesn't work for your supabase-js version.
         });
 
@@ -140,9 +141,12 @@ export default function Verify() {
                                     }
                                 ]}
                                 value={code}
-                                onChangeText={newCode => { 
-                                    setCode(newCode); 
-                                    setValid(true); 
+                                onChangeText={newCode => {
+                                    setCode(newCode);
+                                    setValid(true);
+                                    if (newCode.length === MAXLENGTH) {
+                                        checkCode(newCode);
+                                    }
                                 }}
                                 onFocus={() => setIsFocused(true)}
                                 onBlur={() => setIsFocused(false)}
@@ -185,7 +189,7 @@ export default function Verify() {
             {/* Bottom button - fixed at bottom */}
             <TouchableOpacity
                 style={tw`bg-white rounded-full py-[10] w-full items-center mb-8 ${loading ? 'opacity-50' : ''}`}
-                onPress={checkCode}
+                onPress={() => checkCode()}
                 disabled={loading}
             >
                 <Text style={[tw`text-black`, { fontFamily: 'Nunito-ExtraBold' }]}>
