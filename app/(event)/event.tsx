@@ -48,7 +48,6 @@ export default function EventDetails() {
         host: '',
         count: 0,
     });
-    const [hostPfp, setHostPfp] = useState<string | null>(null);
     const [cohosts, setCohosts] = useState<any[]>([]);
     const { user } = useUserStore();
 
@@ -75,27 +74,31 @@ export default function EventDetails() {
             if (cohErr) {
                 console.log('Err get coh', id);
             } else {
-                setCohosts(cohost.filter(e => e.user_id).map(e => e.user_id));
-                if (cohost.filter(e => e.name).map(e => e.name).length !== 0) {
-                    setHostWC({ host: cohost.filter(e => e.name).map(e => e.name)[0], count: cohost.length + 1 })
-                    // fetch pfp for cohost
-                    const { data: hostUser, error: hostUserErr } = await supabase.from('users')
-                        .select('profile_image').eq('id', cohost[0].user_id).single();
-                    if (!hostUserErr && hostUser && hostUser.profile_image) {
-                        setHostPfp(hostUser.profile_image);
-                    } else {
-                        setHostPfp(null);
-                    }
+                const cohostID = [event.host_id, ...cohost.filter(e => e.user_id && e.user_id !== event.host_id).map(e => e.user_id)];
+                const cohostName = cohost.filter(e => e.name).map(e => e.name);
+
+                if (cohostName.length > 0) {
+                    setHostWC({ host: cohostName[0], count: cohost.length + 1 });
                 } else {
-                    const { data: host, error: hostErr } = await supabase.from('users')
-                        .select('firstname, profile_image').eq('id', event?.host_id).single();
-                    if (hostErr) {
-                        console.log('Err get hos', id);
-                    } else {
-                        setHostWC({ host: host.firstname, count: cohost.length + 1 });
-                        setHostPfp(host.profile_image || null);
+                    setHostWC({ host: '', count: cohost.length + 1 });
+                }
+
+                console.log(cohostID);
+
+                // For each element in cohostID, get the user and add to cohosts
+                let users: any[] = [];
+                for (const uid of cohostID) {
+                    const { data: userData, error: userErr } = await supabase
+                        .from('users')
+                        .select('firstname, profile_image')
+                        .eq('id', uid)
+                        .single();
+                    if (!userErr && userData) {
+                        users.push(userData);
                     }
                 }
+                setCohosts(users);
+                console.log('Coh: ', users);
             }
         }
 
@@ -315,18 +318,24 @@ export default function EventDetails() {
                         <Host width={12} height={12} style={tw`mr-2`} />
                         <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>Hosted by </Text>
                         <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>{hostWC.host}</Text>
-                        {/* Host profile image */}
-                        {hostPfp ? <Image
-                            source={
-                                hostPfp
-                                    ? { uri: hostPfp }
-                                    : require('@/assets/images/pfp-default2.png')
-                            }
-                            style={{ width: 24, height: 24, borderRadius: 12, marginLeft: 6 }}
-                        /> : null}
-                        {hostWC.count > 1 && (
-                            <Text style={[tw`text-white text-[10px] ml-1.5`, { fontFamily: 'Nunito-Medium' }]}>+{hostWC.count - 1}</Text>
-                        )}
+                    </View>
+                    <View style={tw`flex-row items-center mb-1.5 gap-1.5`}>
+                        {cohosts.slice(0, 2).map((cohost, idx) => {
+                            console.log(cohosts);
+                            return (
+                                <View key={cohost.id} style={tw`flex-row items-center gap-1.5 bg-white/10 border border-white/20 px-2 py-2 rounded-xl`}>
+                                    <View key={idx} style={[tw`rounded-full border border-white/20 items-center justify-center bg-white/10`, { width: 30, height: 30, overflow: 'hidden' }]}>
+                                        <Image
+                                            source={cohost.profile_image ? { uri: cohost.profile_image } : require('../../assets/icons/pfpdefault.svg')}
+                                            style={{ width: 30, height: 30, borderRadius: 60 }}
+                                            resizeMode="cover"
+                                            defaultSource={require('../../assets/icons/pfpdefault.svg')}
+                                        />
+                                    </View>
+                                    <Text style={[tw`text-white`, { fontFamily: 'Nunito-Bold' }]}>{cohost.firstname}</Text>
+                                </View>
+                            );
+                        })}
                     </View>
                     {event?.bio && (
                         <Text style={[tw`text-white text-base`, { fontFamily: 'Nunito-Medium' }]}>{event.bio}</Text>
