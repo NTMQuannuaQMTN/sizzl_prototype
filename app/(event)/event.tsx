@@ -155,33 +155,33 @@ export default function EventDetails() {
                 <View style={tw`flex-row px-4 mt-3.5 mb-2 gap-2`}>
                     {status === 'Host' ?
                         (event && !('done' in event) || event?.done ? (
-                            <View style={tw`bg-[#0A66C2] flex-1 flex-row py-2.5 rounded-full items-center justify-center`}>
+                            <View style={tw`bg-[#0A66C2] flex-1 flex-row py-2.5 rounded-full items-center justify-center gap-1.5`}>
                                 <Host></Host>
                                 <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Host</Text>
                             </View>
                         ) : (
-                            <View style={tw`bg-[#CAE6DF] flex-1 flex-row py-2.5 rounded-full items-center justify-center`}>
+                            <View style={tw`bg-[#CAE6DF] flex-1 flex-row py-2.5 rounded-full items-center justify-center gap-1.5`}>
                                 <Text style={[tw`text-black text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Continue editing</Text>
                             </View>
                         ))
                         : status === 'Cohost' ?
-                            <View style={tw`bg-[#0A66C2] flex-1 flex-row py-2.5 rounded-full items-center justify-center`}>
+                            <View style={tw`bg-[#0A66C2] flex-1 flex-row py-2.5 rounded-full items-center justify-center gap-1.5`}>
                                 <Host></Host>
                                 <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Cohost</Text>
                             </View>
                             : status === 'Not RSVP' ?
-                                <TouchableOpacity style={tw`bg-[#7A5CFA] flex-1 flex-row py-2.5 rounded-full items-center justify-center`}
+                                <TouchableOpacity style={tw`bg-[#7A5CFA] flex-1 flex-row py-2.5 rounded-full items-center justify-center gap-1.5`}
                                     onPress={() => setShowDecisionModal(true)}>
                                     <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>RSVP</Text>
                                 </TouchableOpacity>
                                 : status === 'Going' ?
-                                    <TouchableOpacity style={tw`bg-green-500 flex-1 flex-row py-2.5 rounded-full items-center justify-center`}
+                                    <TouchableOpacity style={tw`bg-green-500 flex-1 flex-row py-2.5 rounded-full items-center justify-center gap-1.5`}
                                         onPress={() => setShowDecisionModal(true)}>
                                         <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>I’m going </Text>
                                         <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>🥳</Text>
                                     </TouchableOpacity>
                                     : status === 'Maybe' ?
-                                        <TouchableOpacity style={tw`bg-yellow-600 flex-1 flex-row py-2.5 rounded-full items-center justify-center`}
+                                        <TouchableOpacity style={tw`bg-yellow-600 flex-1 flex-row py-2.5 rounded-full items-center justify-center gap-1.5`}
                                             onPress={() => setShowDecisionModal(true)}>
                                             <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Eh...maybe </Text>
                                             <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>🤔</Text>

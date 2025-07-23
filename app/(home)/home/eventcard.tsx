@@ -144,7 +144,11 @@ export default function EventCard(props: any) {
     <>
       <TouchableOpacity
         style={tw`mb-5`}
-        onPress={() => router.push({ pathname: '/event', params: { id: props.event.id, status: user.id === props.event.host_id ? 'Host' : cohosts.indexOf(user.id) >= 0 ? 'Cohost' : decision } })}
+        onPress={() => {
+          if ((user.id !== props.event.host_id && cohosts.indexOf(user.id) < 0) || props.event.done) {
+            router.push({ pathname: '/event', params: { id: props.event.id, status: user.id === props.event.host_id ? 'Host' : cohosts.indexOf(user.id) >= 0 ? 'Cohost' : decision } })
+          }
+        }}
       >
         <View style={[tw`rounded-2xl overflow-hidden w-full items-center justify-center`, { aspectRatio: 410 / 279 }]}>
           <View style={{ width: '100%', height: '100%' }}>
@@ -340,9 +344,10 @@ export default function EventCard(props: any) {
                           <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Host</Text>
                         </View>
                       ) : (
-                        <View style={tw`px-3 py-1.5 gap-1.5 bg-[#CAE6DF] z-99 rounded-full flex-row items-center`}>
+                        <TouchableOpacity style={tw`px-3 py-1.5 gap-1.5 bg-[#CAE6DF] z-99 rounded-full flex-row items-center`}
+                          onPress={() => router.push({ pathname: '/(create)/create', params: { id: props.event.id } })}>
                           <Text style={[tw`text-black text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Continue editing</Text>
-                        </View>
+                        </TouchableOpacity>
                       ))
                       : cohosts.indexOf(user.id) >= 0 ?
                         <View style={tw`px-3 py-1.5 gap-1.5 bg-[#0A66C2] z-99 rounded-full flex-row items-center`}>
@@ -388,26 +393,26 @@ export default function EventCard(props: any) {
             setSelection(false);
           }} />
 
-      {/* EventActionModal for ThreeDot */}
-      <EventActionModal
-        visible={actionModalVisible}
-        onClose={() => setActionModalVisible(false)}
-        title={"What's up with this event?"}
-        actions={getEventActions({
-          event: props.event,
-          user,
-          cohosts,
-          push,
-          setActionModalVisible,
-          onDeleteDraft: props.onDeleteDraft,
-          onDelete: props.onDelete,
-          onReportEvent: props.onReportEvent,
-          fromUpcoming: props.fromUpcoming,
-          fromExplore: props.fromExplore,
-          fromFriendsEvents: props.fromFriendsEvents
-        })}
-      />
-    </TouchableOpacity>
+        {/* EventActionModal for ThreeDot */}
+        <EventActionModal
+          visible={actionModalVisible}
+          onClose={() => setActionModalVisible(false)}
+          title={"What's up with this event?"}
+          actions={getEventActions({
+            event: props.event,
+            user,
+            cohosts,
+            push,
+            setActionModalVisible,
+            onDeleteDraft: props.onDeleteDraft,
+            onDelete: props.onDelete,
+            onReportEvent: props.onReportEvent,
+            fromUpcoming: props.fromUpcoming,
+            fromExplore: props.fromExplore,
+            fromFriendsEvents: props.fromFriendsEvents
+          })}
+        />
+      </TouchableOpacity>
     </>
   );
 }
