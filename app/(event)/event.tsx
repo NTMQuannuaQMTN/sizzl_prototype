@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 
+import Host from '@/assets/icons/hostwhite-icon.svg';
 import defaultImages from '../(create)/defaultimage';
 import DecisionModal from '../(home)/home/eventDecision';
 import Back from '../../assets/icons/back.svg';
@@ -39,10 +40,10 @@ type EventView = {
 }
 
 export default function EventDetails() {
-    const { id } = useLocalSearchParams();
+    const { id, status } = useLocalSearchParams();
     const [event, setEvent] = useState<EventView | null>(null);
-    const [decision, setDecision] = useState<string>('');
     const [showDecisionModal, setShowDecisionModal] = useState(false);
+    const [curStatus, setStatus] = useState(status);
     const { user } = useUserStore();
 
     useEffect(() => {
@@ -58,25 +59,11 @@ export default function EventDetails() {
             }
         }
 
-        const getDecision = async () => {
-            const { data, error } = await supabase.from('guests')
-                .select('decision').eq('event_id', id)
-                .eq('user_id', user.id).single()
-
-            if (error) {
-                setDecision('Not RSVP');
-                return;
-            }
-
-            setDecision(data.decision);
-        }
-
         getEventDetail();
-        getDecision();
     }, [id]);
 
     const handleDecisionSelect = (d: string) => {
-        setDecision(d);
+        setStatus(d);
         setShowDecisionModal(false);
     };
 
@@ -114,38 +101,38 @@ export default function EventDetails() {
             {/* Header */}
             <ScrollView style={tw`bg-black absolute top-0 left-0 bg-opacity-60 w-full h-full pt-10`}>
                 <View style={tw`px-4 pt-3 pb-1`}>
-                {/* Top bar with back and threedots icons */}
+                    {/* Top bar with back and threedots icons */}
                     <View style={tw`flex-row items-center justify-between mb-1.5`}>
                         <TouchableOpacity onPress={() => router.back()} style={tw`p-1`}>
                             <Back width={24} height={24} />
                         </TouchableOpacity>
                         <View style={tw`flex-1`} />
-                        <TouchableOpacity onPress={() => {/* TODO: add menu logic */}} style={tw`p-1`}>
+                        <TouchableOpacity onPress={() => {/* TODO: add menu logic */ }} style={tw`p-1`}>
                             <ThreeDots width={22} height={22} />
                         </TouchableOpacity>
                     </View>
-                        <Text
-                            style={[tw`text-white text-[24px] w-full leading-[1.25]`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}
-                            numberOfLines={2}
-                            allowFontScaling={true}
-                            ellipsizeMode="tail"
-                        >
-                            {event?.title}
-                        </Text>
-                        <View style={tw`flex-row items-center my-2`}>
-                            {event?.public ? <View style={tw`flex-row items-center gap-2 justify-center bg-[#064B55] border border-white/10 rounded-full px-2 py-0.5`}>
-                                <Public />
-                                <Text style={[tw`text-[13px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Public</Text>
-                            </View> :
-                                <View style={tw`flex-row items-center gap-2 justify-center bg-[#080B32] border border-purple-900 rounded-full px-2 py-0.5`}>
-                                    <Private />
-                                    <Text style={[tw`text-[13px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Private</Text>
-                                </View>}
-                        </View>
+                    <Text
+                        style={[tw`text-white text-[24px] w-full leading-[1.25]`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}
+                        numberOfLines={2}
+                        allowFontScaling={true}
+                        ellipsizeMode="tail"
+                    >
+                        {event?.title}
+                    </Text>
+                    <View style={tw`flex-row items-center my-2`}>
+                        {event?.public ? <View style={tw`flex-row items-center gap-2 justify-center bg-[#064B55] border border-white/10 rounded-full px-2 py-0.5`}>
+                            <Public />
+                            <Text style={[tw`text-[13px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Public</Text>
+                        </View> :
+                            <View style={tw`flex-row items-center gap-2 justify-center bg-[#080B32] border border-purple-900 rounded-full px-2 py-0.5`}>
+                                <Private />
+                                <Text style={[tw`text-[13px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Private</Text>
+                            </View>}
                     </View>
+                </View>
                 {/* Event Image */}
                 <View style={tw`px-4`}>
-                    <View style={[tw`rounded-xl overflow-hidden w-full items-center justify-center relative`, { aspectRatio: 410 / 279 }]}> 
+                    <View style={[tw`rounded-xl overflow-hidden w-full items-center justify-center relative`, { aspectRatio: 410 / 279 }]}>
                         <Image
                             source={
                                 event ? typeof event.image === 'string' && event.image.startsWith('default_')
@@ -166,9 +153,45 @@ export default function EventDetails() {
                 </View>
                 {/* RSVP/Invite Buttons */}
                 <View style={tw`flex-row px-4 mt-3.5 mb-2 gap-2`}>
-                    <TouchableOpacity style={tw`flex-1 bg-[#7A5CFA] py-2.5 rounded-full items-center`} onPress={() => setShowDecisionModal(true)}>
-                        <Text style={[tw`text-white text-[16px]`, { fontFamily: 'Nunito-ExtraBold' }]}>RSVP</Text>
-                    </TouchableOpacity>
+                    {status === 'Host' ?
+                        (event && !('done' in event) || event?.done ? (
+                            <View style={tw`bg-[#0A66C2] flex-1 flex-row py-2.5 rounded-full items-center justify-center`}>
+                                <Host></Host>
+                                <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Host</Text>
+                            </View>
+                        ) : (
+                            <View style={tw`bg-[#CAE6DF] flex-1 flex-row py-2.5 rounded-full items-center justify-center`}>
+                                <Text style={[tw`text-black text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Continue editing</Text>
+                            </View>
+                        ))
+                        : status === 'Cohost' ?
+                            <View style={tw`bg-[#0A66C2] flex-1 flex-row py-2.5 rounded-full items-center justify-center`}>
+                                <Host></Host>
+                                <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Cohost</Text>
+                            </View>
+                            : status === 'Not RSVP' ?
+                                <TouchableOpacity style={tw`bg-[#7A5CFA] flex-1 flex-row py-2.5 rounded-full items-center justify-center`}
+                                    onPress={() => setShowDecisionModal(true)}>
+                                    <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>RSVP</Text>
+                                </TouchableOpacity>
+                                : status === 'Going' ?
+                                    <TouchableOpacity style={tw`bg-green-500 flex-1 flex-row py-2.5 rounded-full items-center justify-center`}
+                                        onPress={() => setShowDecisionModal(true)}>
+                                        <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>I’m going </Text>
+                                        <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>🥳</Text>
+                                    </TouchableOpacity>
+                                    : status === 'Maybe' ?
+                                        <TouchableOpacity style={tw`bg-yellow-600 flex-1 flex-row py-2.5 rounded-full items-center justify-center`}
+                                            onPress={() => setShowDecisionModal(true)}>
+                                            <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Eh...maybe </Text>
+                                            <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>🤔</Text>
+                                        </TouchableOpacity>
+                                        : <TouchableOpacity style={tw`bg-rose-600 flex-1 py-2.5 rounded-full items-center`}
+                                            onPress={() => setShowDecisionModal(true)}>
+                                            <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>I can't </Text>
+                                            <Text style={[tw`text-white text-[14px] -mt-0.5`, { fontFamily: 'Nunito-ExtraBold' }]}>😭</Text>
+                                        </TouchableOpacity>
+                    }
                     <TouchableOpacity style={tw`flex-row bg-[#23244A] gap-x-2 py-2.5 px-6 rounded-full items-center`}>
                         <Invite width={18} height={18} />
                         <Text style={[tw`text-white text-[16px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Invite</Text>
@@ -201,10 +224,10 @@ export default function EventDetails() {
                             // Only start, or start/end on same day
                             return (
                                 <View>
-                                    <Text style={[tw`text-white text-[22px] `, { fontFamily: 'Nunito-ExtraBold', textAlign: 'left' }]}> 
+                                    <Text style={[tw`text-white text-[22px] `, { fontFamily: 'Nunito-ExtraBold', textAlign: 'left' }]}>
                                         {formatDate(startDate)}
                                     </Text>
-                                    <Text style={[tw`text-white text-[15px] `, { fontFamily: 'Nunito-Medium', textAlign: 'left' }]}> 
+                                    <Text style={[tw`text-white text-[15px] `, { fontFamily: 'Nunito-Medium', textAlign: 'left' }]}>
                                         {formatTime(startDate)}
                                         {endDate ? ` - ${formatTime(endDate)}` : ''}
                                     </Text>
@@ -214,10 +237,10 @@ export default function EventDetails() {
                             // Start/end on different days
                             return (
                                 <View>
-                                    <Text style={[tw`text-white text-[22px] `, { fontFamily: 'Nunito-ExtraBold', textAlign: 'left' }]}> 
+                                    <Text style={[tw`text-white text-[22px] `, { fontFamily: 'Nunito-ExtraBold', textAlign: 'left' }]}>
                                         {formatDate(startDate)}, {formatTime(startDate)}
                                     </Text>
-                                    <Text style={[tw`text-white text-[15px] `, { fontFamily: 'Nunito-Medium', textAlign: 'left' }]}> 
+                                    <Text style={[tw`text-white text-[15px] `, { fontFamily: 'Nunito-Medium', textAlign: 'left' }]}>
                                         to {formatDate(endDate)}, {formatTime(endDate)}
                                     </Text>
                                 </View>
@@ -226,20 +249,20 @@ export default function EventDetails() {
                     })()}
                 </View>
                 {/* Host and Description */}
-                 <View style={tw`px-4 mt-1 mb-2`}>
-                <View style={tw`flex-row items-center mb-1`}>
-                    <Text style={[tw`text-white text-sm`, { fontFamily: 'Nunito-Bold' }]}>
-                        {event?.host_id ? `Host: ${event.host_id}` : ''}
-                    </Text>
-                    <Text style={[tw`text-xs text-gray-300 ml-2`, { fontFamily: 'Nunito-Medium' }]}>RSVP to see details</Text>
+                <View style={tw`px-4 mt-1 mb-2`}>
+                    <View style={tw`flex-row items-center mb-1`}>
+                        <Text style={[tw`text-white text-sm`, { fontFamily: 'Nunito-Bold' }]}>
+                            {event?.host_id ? `Host: ${event.host_id}` : ''}
+                        </Text>
+                        <Text style={[tw`text-xs text-gray-300 ml-2`, { fontFamily: 'Nunito-Medium' }]}>RSVP to see details</Text>
+                    </View>
+                    {event?.bio && (
+                        <Text style={[tw`text-white text-base`, { fontFamily: 'Nunito-Medium' }]}>{event.bio}</Text>
+                    )}
+                    {event?.rsvp_deadline && (
+                        <Text style={[tw`text-gray-300 text-xs mt-1`, { fontFamily: 'Nunito-Medium' }]}>{event.rsvp_deadline}</Text>
+                    )}
                 </View>
-                {event?.bio && (
-                    <Text style={[tw`text-white text-base`, { fontFamily: 'Nunito-Medium' }]}>{event.bio}</Text>
-                )}
-                {event?.rsvp_deadline && (
-                    <Text style={[tw`text-gray-300 text-xs mt-1`, { fontFamily: 'Nunito-Medium' }]}>{event.rsvp_deadline}</Text>
-                )}
-            </View>
                 {/* What's special */}
                 {/* <View style={tw`px-4 mt-2 mb-2`}>
                 <Text style={[tw`text-white text-base  mb-2`, { fontFamily: 'Nunito-Bold' }]}>What’s special?</Text>

@@ -10,9 +10,9 @@ import Host from '@/assets/icons/hostwhite-icon.svg';
 import LocationWhite from '@/assets/icons/locationicon.svg';
 import ThreeDot from '@/assets/icons/threedots.svg';
 
+import { router } from 'expo-router';
 import EventActionModal, { getEventActions } from './eventAction';
 import DecisionModal from './eventDecision';
-import { router } from 'expo-router';
 
 export default function EventCard(props: any) {
   const [hostWC, setHostWC] = useState({
@@ -144,7 +144,7 @@ export default function EventCard(props: any) {
     <>
       <TouchableOpacity
         style={tw`mb-5`}
-        onPress={() => router.push({ pathname: '/event', params: { id: props.event.id } })}
+        onPress={() => router.push({ pathname: '/event', params: { id: props.event.id, status: user.id === props.event.host_id ? 'Host' : cohosts.indexOf(user.id) >= 0 ? 'Cohost' : decision } })}
       >
         <View style={[tw`rounded-2xl overflow-hidden w-full items-center justify-center`, { aspectRatio: 410 / 279 }]}>
           <View style={{ width: '100%', height: '100%' }}>
