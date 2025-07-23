@@ -121,7 +121,7 @@ export default function FriendsList() {
                         <TouchableOpacity
                             style={tw`mt-5 bg-[#7A5CFA] items-center justify-center px-6 py-2 rounded-xl`}
                             activeOpacity={0.7}
-                            onPress={() => router.push('/(community)/explorefriends')}
+                            onPress={() => router.replace('/(community)/explorefriends')}
                         >
                             <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Start exploring!</Text>
                         </TouchableOpacity>

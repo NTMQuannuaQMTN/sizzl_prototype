@@ -146,7 +146,7 @@ export default function EventCard(props: any) {
         style={tw`mb-5`}
         onPress={() => {
           if ((user.id !== props.event.host_id && cohosts.indexOf(user.id) < 0) || props.event.done) {
-            router.push({ pathname: '/event', params: { id: props.event.id, status: user.id === props.event.host_id ? 'Host' : cohosts.indexOf(user.id) >= 0 ? 'Cohost' : decision } })
+            router.replace({ pathname: '/event', params: { id: props.event.id, status: user.id === props.event.host_id ? 'Host' : cohosts.indexOf(user.id) >= 0 ? 'Cohost' : decision } })
           }
         }}
       >

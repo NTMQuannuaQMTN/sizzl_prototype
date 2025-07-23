@@ -59,7 +59,6 @@ export default function EventDetails() {
 
             if (!eventErr) {
                 setEvent(data);
-                console.log(data.image);
             } else {
                 console.log('Err');
             }
@@ -69,11 +68,12 @@ export default function EventDetails() {
     }, [id]);
 
     useEffect(() => {
+        if (!event) return;
         const getHost = async () => {
             const { data: cohost, error: cohErr } = await supabase.from('hosts')
-                .select('user_id, name').eq('event_id', event?.id);
+                .select('user_id, name').eq('event_id', id);
             if (cohErr) {
-                console.log('Err get coh');
+                console.log('Err get coh', id);
             } else {
                 setCohosts(cohost.filter(e => e.user_id).map(e => e.user_id));
                 if (cohost.filter(e => e.name).map(e => e.name).length !== 0) {
@@ -90,7 +90,7 @@ export default function EventDetails() {
                     const { data: host, error: hostErr } = await supabase.from('users')
                         .select('firstname, profile_image').eq('id', event?.host_id).single();
                     if (hostErr) {
-                        console.log('Err get hos');
+                        console.log('Err get hos', id);
                     } else {
                         setHostWC({ host: host.firstname, count: cohost.length + 1 });
                         setHostPfp(host.profile_image || null);
@@ -227,7 +227,7 @@ export default function EventDetails() {
                 <View style={tw`flex-row px-4 mt-3.5 mb-2 gap-2`}>
                     {curStatus === 'Host' || curStatus === 'Cohost' ?
                         <TouchableOpacity style={tw`bg-[#CAE6DF] flex-1 flex-row py-2.5 rounded-full items-center justify-center gap-1.5`}
-                            onPress={() => router.push({ pathname: '/(create)/create', params: { id: event?.id } })}>
+                            onPress={() => router.replace({ pathname: '/(create)/create', params: { id: event?.id } })}>
                             <Text style={[tw`text-black text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Edit event</Text>
                         </TouchableOpacity>
                         : curStatus === 'Not RSVP' ?

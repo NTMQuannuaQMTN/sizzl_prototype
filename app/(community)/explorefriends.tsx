@@ -12,7 +12,7 @@ export default function ExploreFriends() {
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <TouchableOpacity
         style={{ position: 'absolute', top: 40, left: 20, zIndex: 10 }}
-        onPress={() => router.push('/(home)/home/homepage')}
+        onPress={() => router.replace('/(home)/home/homepage')}
       >
         <BackIcon width={32} height={32} />
       </TouchableOpacity>
