@@ -60,7 +60,6 @@ export default function Attended() {
         <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}>
             {/* Event Card 1 */}
             {attendedEvents.map((e, index) => {
-                console.log(e);
                 return <EventCard key={index} event={e} />
             })}
         </ScrollView>

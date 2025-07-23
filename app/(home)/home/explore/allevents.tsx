@@ -40,7 +40,6 @@ export default function AllEvents() {
             </View>
             {/* Event Card 1 */}
             {events.map((e, index) => {
-                console.log(e);
                 return <EventCard key={index} event={e} />
             })}
         </ScrollView>

@@ -62,10 +62,42 @@ export default function EventDetails() {
         getEventDetail();
     }, [id]);
 
-    const handleDecisionSelect = (d: string) => {
+    const handleDecisionSelect = async (d: string) => {
+        if (d === 'Not RSVP') {
+            setStatus('Not RSVP');
+            // Optionally, you can also remove the RSVP from the database:
+            const { error } = await supabase.from('guests')
+                .delete()
+                .eq('event_id', event?.id)
+                .eq('user_id', user.id);
+            if (error) { console.log('Error not rsvp'); return;}
+        }
         setStatus(d);
+        if (curStatus !== 'Not RSVP') {
+            const { error } = await supabase.from('guests')
+                .update({ 'decision': d }).eq('event_id', event?.id)
+                .eq('user_id', user.id);
+
+            if (error) {
+                console.log('Update error');
+                return;
+            }
+        } else {
+            const { error } = await supabase.from('guests')
+                .insert([{
+                    'decision': d, 'event_id': event?.id,
+                    'user_id': user.id
+                }]);
+
+            if (error) {
+                console.log('Add error');
+                return;
+            } else {
+                console.log('okay');
+            }
+        }
         setShowDecisionModal(false);
-    };
+    }
 
     return (
         <View style={tw`w-full h-full`}>
@@ -153,34 +185,28 @@ export default function EventDetails() {
                 </View>
                 {/* RSVP/Invite Buttons */}
                 <View style={tw`flex-row px-4 mt-3.5 mb-2 gap-2`}>
-                    {status === 'Host' ?
-                        (event && !('done' in event) || event?.done ? (
-                            <View style={tw`bg-[#0A66C2] flex-1 flex-row py-2.5 rounded-full items-center justify-center gap-1.5`}>
-                                <Host></Host>
-                                <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Host</Text>
-                            </View>
-                        ) : (
-                            <View style={tw`bg-[#CAE6DF] flex-1 flex-row py-2.5 rounded-full items-center justify-center gap-1.5`}>
-                                <Text style={[tw`text-black text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Continue editing</Text>
-                            </View>
-                        ))
-                        : status === 'Cohost' ?
+                    {curStatus === 'Host' ?
+                        <View style={tw`bg-[#0A66C2] flex-1 flex-row py-2.5 rounded-full items-center justify-center gap-1.5`}>
+                            <Host></Host>
+                            <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Host</Text>
+                        </View>
+                        : curStatus === 'Cohost' ?
                             <View style={tw`bg-[#0A66C2] flex-1 flex-row py-2.5 rounded-full items-center justify-center gap-1.5`}>
                                 <Host></Host>
                                 <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Cohost</Text>
                             </View>
-                            : status === 'Not RSVP' ?
+                            : curStatus === 'Not RSVP' ?
                                 <TouchableOpacity style={tw`bg-[#7A5CFA] flex-1 flex-row py-2.5 rounded-full items-center justify-center gap-1.5`}
                                     onPress={() => setShowDecisionModal(true)}>
                                     <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>RSVP</Text>
                                 </TouchableOpacity>
-                                : status === 'Going' ?
+                                : curStatus === 'Going' ?
                                     <TouchableOpacity style={tw`bg-green-500 flex-1 flex-row py-2.5 rounded-full items-center justify-center gap-1.5`}
                                         onPress={() => setShowDecisionModal(true)}>
                                         <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>I’m going </Text>
                                         <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>🥳</Text>
                                     </TouchableOpacity>
-                                    : status === 'Maybe' ?
+                                    : curStatus === 'Maybe' ?
                                         <TouchableOpacity style={tw`bg-yellow-600 flex-1 flex-row py-2.5 rounded-full items-center justify-center gap-1.5`}
                                             onPress={() => setShowDecisionModal(true)}>
                                             <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Eh...maybe </Text>
@@ -304,7 +330,7 @@ export default function EventDetails() {
                     onClose={() => setShowDecisionModal(false)}
                     eventTitle={event?.title || ''}
                     maybe={!!event?.maybe}
-                    onSelect={handleDecisionSelect}
+                    onSelect={(dec) => { handleDecisionSelect(dec); }}
                 />
             </ScrollView>
         </View>

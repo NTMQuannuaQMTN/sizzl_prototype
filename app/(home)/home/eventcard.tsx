@@ -88,7 +88,7 @@ export default function EventCard(props: any) {
   }, []);
 
   const handleDecision = async (dec: string) => {
-    if (dec === 'Clear') {
+    if (dec === 'Not RSVP') {
       setDecision('Not RSVP');
       // Optionally, you can also remove the RSVP from the database:
       try {
