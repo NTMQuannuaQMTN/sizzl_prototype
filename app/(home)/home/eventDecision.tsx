@@ -132,7 +132,9 @@ export default function DecisionModal({ visible, onClose, eventTitle, maybe, onS
                                     </TouchableOpacity>
                                     {/* Centered title */}
                                     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                                        <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Going to {eventTitle}?</Text>
+                                        <Text style={[tw`text-white text-[15px] mx-12`, { fontFamily: 'Nunito-Medium', textAlign: 'center' }]}>
+                                            Going to <Text style={{ fontFamily: 'Nunito-ExtraBold' }}>{eventTitle}</Text>?
+                                        </Text>
                                     </View>
                                 </View>
                                 <TouchableOpacity

@@ -195,7 +195,7 @@ export default function EventCard(props: any) {
                   {/* Card Content */}
                   <View style={tw`pt-1.5`}>
                     <Text style={[
-                      (!('done' in props.event) || props.event.done) ? tw`text-white text-[22px] mb-1.5` :
+                      (!('done' in props.event) || props.event.done) ? tw`text-white text-[22px] mb-1.5 leading-[1.25]` :
                         (!props.event.title || props.event.title.trim() === '' ? tw`text-gray-400 text-[22px] mb-1.5` : tw`text-white text-[22px] mb-1.5`),
                       { fontFamily: 'Nunito-ExtraBold' }
                     ]}>
@@ -243,7 +243,7 @@ export default function EventCard(props: any) {
                             const dateNum = date.getDate();
                             let hours = date.getHours();
                             const minutes = date.getMinutes();
-                            const ampm = hours >= 12 ? 'pm' : 'am';
+                            const ampm = hours >= 12 ? 'PM' : 'AM';
                             hours = hours % 12;
                             if (hours === 0) hours = 12;
                             const minStr = minutes === 0 ? '' : `:${minutes.toString().padStart(2, '0')}`;
@@ -271,7 +271,7 @@ export default function EventCard(props: any) {
                             // Show start as full, end as time only
                             let endHours = endDate.getHours();
                             const endMinutes = endDate.getMinutes();
-                            const endAmpm = endHours >= 12 ? 'pm' : 'am';
+                            const endAmpm = endHours >= 12 ? 'PM' : 'AM';
                             endHours = endHours % 12;
                             if (endHours === 0) endHours = 12;
                             const endMinStr = endMinutes === 0 ? '' : `:${endMinutes.toString().padStart(2, '0')}`;
