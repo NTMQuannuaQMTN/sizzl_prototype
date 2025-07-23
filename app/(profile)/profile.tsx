@@ -571,7 +571,7 @@ export default function ProfilePage() {
                 <QrIcon width={20} height={20} />
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => router.push('/(profile)/settings')}
+                onPress={() => router.replace('/(profile)/settings')}
                 accessibilityLabel="Open settings"
               >
                 <SettingIcon width={20} height={20} />

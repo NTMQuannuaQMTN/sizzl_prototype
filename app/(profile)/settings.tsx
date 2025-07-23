@@ -2,23 +2,39 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Share, Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
+import { useUserStore } from '../store/userStore';
+import LogoutModal from './logoutmodal';
 
 import { Ionicons } from '@expo/vector-icons';
 import BackIcon from '../../assets/icons/back.svg';
 import AboutIcon from '../../assets/icons/catforfun.svg';
-import HelpIcon from '../../assets/icons/help-icon.svg';
+import FeedbackIcon from '../../assets/icons/feedback-icon.svg';
 import InstaIcon from '../../assets/icons/insta-icon.svg';
 import InviteIcon from '../../assets/icons/invite-icon.svg';
 import Logout from '../../assets/icons/logout-icon.svg';
-import XIcon from '../../assets/icons/x-icon.svg';
 import MailIcon from '../../assets/icons/mail-icon.svg';
-import FeedbackIcon from '../../assets/icons/feedback-icon.svg';
 import TermsIcon from '../../assets/icons/terms-icon.svg';
+import XIcon from '../../assets/icons/x-icon.svg';
 
 export default function Settings() {
     const router = useRouter();
+    const { user } = useUserStore();
+    const [showLogoutModal, setShowLogoutModal] = React.useState(false);
+    const handleInviteShare = async () => {
+        try {
+            await Share.share({
+                message: "Hey yo! I'm inviting you to Sizzl! Let's go to events together! https://sizzl.app"
+            });
+        } catch (error) {
+            // Optionally handle error
+        }
+    };
+    const handleLogout = () => {
+        // Add your logout logic here
+        setShowLogoutModal(false);
+    };
     return (
         <LinearGradient
             colors={['#080B32', '#0E1241', '#291C56', '#392465', '#51286A']}
@@ -28,7 +44,12 @@ export default function Settings() {
         >
             {/* Top row: back icon and settings title */}
             <View style={tw`flex-row items-center px-4 pt-13 pb-4 w-full`}>
-                <TouchableOpacity style={tw`mr-2`} onPress={() => router.back()} accessibilityLabel="Go back">
+                <TouchableOpacity
+                    style={tw`mr-2`}
+                    onPress={() => user?.id && router.replace({ pathname: '/(profile)/profile', params: { user_id: user.id } })}
+                    accessibilityLabel="Go back"
+                    disabled={!user?.id}
+                >
                     <BackIcon width={24} height={24} />
                 </TouchableOpacity>
                 <View style={tw`flex-1 items-center`}>
@@ -40,7 +61,11 @@ export default function Settings() {
 
             {/* Invite friends box/button */}
             <View style={tw`px-6 mt-3`}>
-                <TouchableOpacity style={tw`bg-white/10 rounded-lg flex-row items-center gap-x-2.5 py-4 px-4`} activeOpacity={0.8}>
+                <TouchableOpacity
+                    style={tw`bg-white/10 rounded-lg flex-row items-center gap-x-2.5 py-4 px-4`}
+                    activeOpacity={0.8}
+                    onPress={handleInviteShare}
+                >
                     <InviteIcon width={20} height={20} />
                     <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Invite friends to Sizzl</Text>
                 </TouchableOpacity>
@@ -118,12 +143,23 @@ export default function Settings() {
             </View>
 
             {/* Logout box/button */}
-            <View style={tw`px-6 mt-4`}>
-                <TouchableOpacity style={tw`bg-white/10 rounded-lg flex-row items-center gap-x-2.5 py-4 px-4`} activeOpacity={0.8}>
+            <View style={tw`px-6 mt-8`}>
+                <TouchableOpacity
+                    style={tw`bg-white/10 rounded-lg flex-row items-center gap-x-2.5 py-4 px-4`}
+                    activeOpacity={0.8}
+                    onPress={() => setShowLogoutModal(true)}
+                >
                     <Logout width={20} height={20} />
                     <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Log out</Text>
                 </TouchableOpacity>
             </View>
+
+            {/* Logout confirmation modal */}
+            <LogoutModal
+                visible={showLogoutModal}
+                onLogout={handleLogout}
+                onCancel={() => setShowLogoutModal(false)}
+            />
         </LinearGradient>
     );
 }
