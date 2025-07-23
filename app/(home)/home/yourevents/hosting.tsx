@@ -39,7 +39,9 @@ export default function Hosting() {
             if (upcomingErr) {
                 console.log('Yes problem in getting events');
             } else {
-                setUpcomingEvents(upcomingData || []);
+                // Sort upcoming events by start date/time ascending
+                const sortedUpcoming = (upcomingData || []).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+                setUpcomingEvents(sortedUpcoming);
             }
 
             let query_past = supabase

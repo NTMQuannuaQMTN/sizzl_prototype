@@ -16,7 +16,7 @@ export default function TopBar() {
       </View>
       <View style={tw`flex-row items-center`}>
         <TouchableOpacity
-          style={tw`py-2 mr-5 -mt-0.5`}
+          style={tw`py-2 mr-6 -mt-0.5`}
           onPress={() => router.push('/(community)/explorefriends')}
         >
           <FriendsIcon width={24} height={24} />

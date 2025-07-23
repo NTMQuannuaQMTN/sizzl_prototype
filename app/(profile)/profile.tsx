@@ -565,12 +565,15 @@ export default function ProfilePage() {
                     });
                   }
                 }}
-                style={tw`mr-4.5`}
+                style={tw`mr-6`}
                 accessibilityLabel="Show QR code"
               >
                 <QrIcon width={20} height={20} />
               </TouchableOpacity>
-              <TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => router.push('/(profile)/settings')}
+                accessibilityLabel="Open settings"
+              >
                 <SettingIcon width={20} height={20} />
               </TouchableOpacity>
             </View>

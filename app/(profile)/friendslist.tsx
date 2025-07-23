@@ -93,7 +93,7 @@ export default function FriendsList() {
             end={{ x: 0, y: 1 }}
             style={{ flex: 1 }}
         >
-            <View style={tw`relative flex-row items-center px-4 mt-10 mb-1.5 h-10`}>
+            <View style={tw`relative flex-row items-center px-4 mt-10 pt-3 mb-1.5 h-10`}>
                 {/* Back button - absolute left */}
                 <TouchableOpacity
                     onPress={() => router.back()}
