@@ -125,7 +125,7 @@ export default function DecisionModal({ visible, onClose, eventTitle, maybe, onS
                                     {/* Absolute Clear button on the left */}
                                     <TouchableOpacity
                                         style={{ position: 'absolute', left: 0, top: 0, bottom: 0, justifyContent: 'center', paddingVertical: 2, paddingHorizontal: 4, zIndex: 2 }}
-                                        onPress={() => { onSelect('Clear'); }}
+                                        onPress={() => { onSelect('Not RSVP'); }}
                                         activeOpacity={0.7}
                                     >
                                         <Text style={[tw`text-[#7A5CFA] text-[13px]`, { fontFamily: 'Nunito-Bold' }]}>Reset</Text>

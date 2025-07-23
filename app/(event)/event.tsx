@@ -44,6 +44,12 @@ export default function EventDetails() {
     const [event, setEvent] = useState<EventView | null>(null);
     const [showDecisionModal, setShowDecisionModal] = useState(false);
     const [curStatus, setStatus] = useState(status);
+    const [hostWC, setHostWC] = useState({
+        host: '',
+        count: 0,
+    });
+    const [hostPfp, setHostPfp] = useState<string | null>(null);
+    const [cohosts, setCohosts] = useState<any[]>([]);
     const { user } = useUserStore();
 
     useEffect(() => {
@@ -53,7 +59,6 @@ export default function EventDetails() {
 
             if (!eventErr) {
                 setEvent(data);
-                console.log(data.image);
             } else {
                 console.log('Err');
             }
@@ -62,10 +67,77 @@ export default function EventDetails() {
         getEventDetail();
     }, [id]);
 
-    const handleDecisionSelect = (d: string) => {
+    useEffect(() => {
+        if (!event) return;
+        const getHost = async () => {
+            const { data: cohost, error: cohErr } = await supabase.from('hosts')
+                .select('user_id, name').eq('event_id', id);
+            if (cohErr) {
+                console.log('Err get coh', id);
+            } else {
+                setCohosts(cohost.filter(e => e.user_id).map(e => e.user_id));
+                if (cohost.filter(e => e.name).map(e => e.name).length !== 0) {
+                    setHostWC({ host: cohost.filter(e => e.name).map(e => e.name)[0], count: cohost.length + 1 })
+                    // fetch pfp for cohost
+                    const { data: hostUser, error: hostUserErr } = await supabase.from('users')
+                        .select('profile_image').eq('id', cohost[0].user_id).single();
+                    if (!hostUserErr && hostUser && hostUser.profile_image) {
+                        setHostPfp(hostUser.profile_image);
+                    } else {
+                        setHostPfp(null);
+                    }
+                } else {
+                    const { data: host, error: hostErr } = await supabase.from('users')
+                        .select('firstname, profile_image').eq('id', event?.host_id).single();
+                    if (hostErr) {
+                        console.log('Err get hos', id);
+                    } else {
+                        setHostWC({ host: host.firstname, count: cohost.length + 1 });
+                        setHostPfp(host.profile_image || null);
+                    }
+                }
+            }
+        }
+
+        getHost();
+    }, [event]);
+
+    const handleDecisionSelect = async (d: string) => {
+        if (d === 'Not RSVP') {
+            setStatus('Not RSVP');
+            // Optionally, you can also remove the RSVP from the database:
+            const { error } = await supabase.from('guests')
+                .delete()
+                .eq('event_id', event?.id)
+                .eq('user_id', user.id);
+            if (error) { console.log('Error not rsvp'); return; }
+        }
         setStatus(d);
+        if (curStatus !== 'Not RSVP') {
+            const { error } = await supabase.from('guests')
+                .update({ 'decision': d }).eq('event_id', event?.id)
+                .eq('user_id', user.id);
+
+            if (error) {
+                console.log('Update error');
+                return;
+            }
+        } else {
+            const { error } = await supabase.from('guests')
+                .insert([{
+                    'decision': d, 'event_id': event?.id,
+                    'user_id': user.id
+                }]);
+
+            if (error) {
+                console.log('Add error');
+                return;
+            } else {
+                console.log('okay');
+            }
+        }
         setShowDecisionModal(false);
-    };
+    }
 
     return (
         <View style={tw`w-full h-full`}>
@@ -153,44 +225,33 @@ export default function EventDetails() {
                 </View>
                 {/* RSVP/Invite Buttons */}
                 <View style={tw`flex-row px-4 mt-3.5 mb-2 gap-2`}>
-                    {status === 'Host' ?
-                        (event && !('done' in event) || event?.done ? (
-                            <View style={tw`bg-[#0A66C2] flex-1 flex-row py-2.5 rounded-full items-center justify-center gap-1.5`}>
-                                <Host></Host>
-                                <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Host</Text>
-                            </View>
-                        ) : (
-                            <View style={tw`bg-[#CAE6DF] flex-1 flex-row py-2.5 rounded-full items-center justify-center gap-1.5`}>
-                                <Text style={[tw`text-black text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Continue editing</Text>
-                            </View>
-                        ))
-                        : status === 'Cohost' ?
-                            <View style={tw`bg-[#0A66C2] flex-1 flex-row py-2.5 rounded-full items-center justify-center gap-1.5`}>
-                                <Host></Host>
-                                <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Cohost</Text>
-                            </View>
-                            : status === 'Not RSVP' ?
-                                <TouchableOpacity style={tw`bg-[#7A5CFA] flex-1 flex-row py-2.5 rounded-full items-center justify-center gap-1.5`}
+                    {curStatus === 'Host' || curStatus === 'Cohost' ?
+                        <TouchableOpacity style={tw`bg-[#CAE6DF] flex-1 flex-row py-2.5 rounded-full items-center justify-center gap-1.5`}
+                            onPress={() => router.replace({ pathname: '/(create)/create', params: { id: event?.id } })}>
+                            <Text style={[tw`text-black text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Edit event</Text>
+                        </TouchableOpacity>
+                        : curStatus === 'Not RSVP' ?
+                            <TouchableOpacity style={tw`bg-[#7A5CFA] flex-1 flex-row py-2.5 rounded-full items-center justify-center gap-1.5`}
+                                onPress={() => setShowDecisionModal(true)}>
+                                <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>RSVP</Text>
+                            </TouchableOpacity>
+                            : curStatus === 'Going' ?
+                                <TouchableOpacity style={tw`bg-green-500 flex-1 flex-row py-2.5 rounded-full items-center justify-center gap-1.5`}
                                     onPress={() => setShowDecisionModal(true)}>
-                                    <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>RSVP</Text>
+                                    <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>I’m going </Text>
+                                    <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>🥳</Text>
                                 </TouchableOpacity>
-                                : status === 'Going' ?
-                                    <TouchableOpacity style={tw`bg-green-500 flex-1 flex-row py-2.5 rounded-full items-center justify-center gap-1.5`}
+                                : curStatus === 'Maybe' ?
+                                    <TouchableOpacity style={tw`bg-yellow-600 flex-1 flex-row py-2.5 rounded-full items-center justify-center gap-1.5`}
                                         onPress={() => setShowDecisionModal(true)}>
-                                        <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>I’m going </Text>
-                                        <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>🥳</Text>
+                                        <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Eh...maybe </Text>
+                                        <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>🤔</Text>
                                     </TouchableOpacity>
-                                    : status === 'Maybe' ?
-                                        <TouchableOpacity style={tw`bg-yellow-600 flex-1 flex-row py-2.5 rounded-full items-center justify-center gap-1.5`}
-                                            onPress={() => setShowDecisionModal(true)}>
-                                            <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Eh...maybe </Text>
-                                            <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>🤔</Text>
-                                        </TouchableOpacity>
-                                        : <TouchableOpacity style={tw`bg-rose-600 flex-1 py-2.5 rounded-full items-center`}
-                                            onPress={() => setShowDecisionModal(true)}>
-                                            <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>I can't </Text>
-                                            <Text style={[tw`text-white text-[14px] -mt-0.5`, { fontFamily: 'Nunito-ExtraBold' }]}>😭</Text>
-                                        </TouchableOpacity>
+                                    : <TouchableOpacity style={tw`bg-rose-600 flex-1 py-2.5 rounded-full items-center`}
+                                        onPress={() => setShowDecisionModal(true)}>
+                                        <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>I can't </Text>
+                                        <Text style={[tw`text-white text-[14px] -mt-0.5`, { fontFamily: 'Nunito-ExtraBold' }]}>😭</Text>
+                                    </TouchableOpacity>
                     }
                     <TouchableOpacity style={tw`flex-row bg-[#23244A] gap-x-2 py-2.5 px-6 rounded-full items-center`}>
                         <Invite width={18} height={18} />
@@ -250,11 +311,22 @@ export default function EventDetails() {
                 </View>
                 {/* Host and Description */}
                 <View style={tw`px-4 mt-1 mb-2`}>
-                    <View style={tw`flex-row items-center mb-1`}>
-                        <Text style={[tw`text-white text-sm`, { fontFamily: 'Nunito-Bold' }]}>
-                            {event?.host_id ? `Host: ${event.host_id}` : ''}
-                        </Text>
-                        <Text style={[tw`text-xs text-gray-300 ml-2`, { fontFamily: 'Nunito-Medium' }]}>RSVP to see details</Text>
+                    <View style={tw`flex-row items-center mb-1.5`}>
+                        <Host width={12} height={12} style={tw`mr-2`} />
+                        <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>Hosted by </Text>
+                        <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>{hostWC.host}</Text>
+                        {/* Host profile image */}
+                        {hostPfp ? <Image
+                            source={
+                                hostPfp
+                                    ? { uri: hostPfp }
+                                    : require('@/assets/images/pfp-default2.png')
+                            }
+                            style={{ width: 24, height: 24, borderRadius: 12, marginLeft: 6 }}
+                        /> : null}
+                        {hostWC.count > 1 && (
+                            <Text style={[tw`text-white text-[10px] ml-1.5`, { fontFamily: 'Nunito-Medium' }]}>+{hostWC.count - 1}</Text>
+                        )}
                     </View>
                     {event?.bio && (
                         <Text style={[tw`text-white text-base`, { fontFamily: 'Nunito-Medium' }]}>{event.bio}</Text>
@@ -304,7 +376,7 @@ export default function EventDetails() {
                     onClose={() => setShowDecisionModal(false)}
                     eventTitle={event?.title || ''}
                     maybe={!!event?.maybe}
-                    onSelect={handleDecisionSelect}
+                    onSelect={(dec) => { handleDecisionSelect(dec); }}
                 />
             </ScrollView>
         </View>

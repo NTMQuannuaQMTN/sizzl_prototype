@@ -89,7 +89,6 @@ export default function Hosting() {
             )}
             {/* Event Card 1 */}
             {upcomingEvents.map((e, index) => {
-                console.log(e);
                 return <EventCard key={index} event={e} onDelete={handleDeleteEvent} />
             })}
             {/* Past events */}
@@ -104,7 +103,6 @@ export default function Hosting() {
             )}
             {/* Event Card 1 */}
             {pastEvents.map((e, index) => {
-                console.log(e);
                 return <EventCard key={index} event={e} onDelete={handleDeleteEvent} />
             })}
         </ScrollView>

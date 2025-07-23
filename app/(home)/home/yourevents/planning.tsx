@@ -44,7 +44,7 @@ if (!drafts.length) return (
     <TouchableOpacity
       style={tw`mt-4 bg-[#7A5CFA] rounded-full px-6 py-2`}
       activeOpacity={0.7}
-      onPress={() => router.push('/(create)/create')}
+      onPress={() => router.replace('/(create)/create')}
     >
       <Text style={[tw`text-white text-[16px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Create event</Text>
     </TouchableOpacity>
@@ -55,7 +55,7 @@ if (!drafts.length) return (
     <View style={tw`flex-1 pb-24`}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {drafts.map(item => (
-          <TouchableOpacity key={item.id} activeOpacity={0.85} onPress={() => router.push({ pathname: '/(create)/create', params: { id: item.id } })}>
+          <TouchableOpacity key={item.id} activeOpacity={0.85} onPress={() => router.replace({ pathname: '/(create)/create', params: { id: item.id } })}>
             <EventCard
               event={{ ...item, isDraft: true }}
               onDeleteDraft={async (id: string) => {
