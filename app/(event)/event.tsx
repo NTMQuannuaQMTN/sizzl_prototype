@@ -9,10 +9,12 @@ import defaultImages from '../(create)/defaultimage';
 import DecisionModal from '../(home)/home/eventDecision';
 import Back from '../../assets/icons/back.svg';
 import Invite from '../../assets/icons/invite-icon.svg';
+import Location from '../../assets/icons/locationwhite-icon.svg';
 import Private from '../../assets/icons/private.svg';
 import Public from '../../assets/icons/public.svg';
 import ThreeDots from '../../assets/icons/threedots.svg';
 
+import { Ionicons } from '@expo/vector-icons';
 import { useUserStore } from '../store/userStore';
 
 type EventView = {
@@ -83,8 +85,6 @@ export default function EventDetails() {
                     setHostWC({ host: '', count: cohost.length + 1 });
                 }
 
-                console.log(cohostID);
-
                 // For each element in cohostID, get the user and add to cohosts
                 let users: any[] = [];
                 for (const uid of cohostID) {
@@ -98,7 +98,6 @@ export default function EventDetails() {
                     }
                 }
                 setCohosts(users);
-                console.log('Coh: ', users);
             }
         }
 
@@ -321,10 +320,9 @@ export default function EventDetails() {
                     </View>
                     <View style={tw`flex-row items-center mb-1.5 gap-1.5`}>
                         {cohosts.slice(0, 2).map((cohost, idx) => {
-                            console.log(cohosts);
                             return (
-                                <View key={cohost.id} style={tw`flex-row items-center gap-1.5 bg-white/10 border border-white/20 px-2 py-2 rounded-xl`}>
-                                    <View key={idx} style={[tw`rounded-full border border-white/20 items-center justify-center bg-white/10`, { width: 30, height: 30, overflow: 'hidden' }]}>
+                                <View key={idx} style={tw`flex-row items-center gap-1.5 bg-white/10 border border-white/20 px-2 py-2 rounded-xl`}>
+                                    <View style={[tw`rounded-full border border-white/20 items-center justify-center bg-white/10`, { width: 30, height: 30, overflow: 'hidden' }]}>
                                         <Image
                                             source={cohost.profile_image ? { uri: cohost.profile_image } : require('../../assets/icons/pfpdefault.svg')}
                                             style={{ width: 30, height: 30, borderRadius: 60 }}
@@ -337,12 +335,15 @@ export default function EventDetails() {
                             );
                         })}
                     </View>
-                    {event?.bio && (
-                        <Text style={[tw`text-white text-base`, { fontFamily: 'Nunito-Medium' }]}>{event.bio}</Text>
-                    )}
-                    {event?.rsvp_deadline && (
-                        <Text style={[tw`text-gray-300 text-xs mt-1`, { fontFamily: 'Nunito-Medium' }]}>{event.rsvp_deadline}</Text>
-                    )}
+                    <View style={tw`flex-row items-center mb-1.5 gap-2`}>
+                        <Location width={12} height={12} />
+                        {event?.rsvpfirst && curStatus === 'Not RSVP' ?
+                            <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>RSVP to see details</Text>
+                            : <TouchableOpacity style={tw`flex-row items-center justify-center`}>
+                                <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>{event?.location_name}</Text>
+                                <Ionicons name="chevron-forward" size={16} color="#fff" style={tw`ml-1 mt-0.5`} />
+                            </TouchableOpacity>}
+                    </View>
                 </View>
                 {/* What's special */}
                 {/* <View style={tw`px-4 mt-2 mb-2`}>
