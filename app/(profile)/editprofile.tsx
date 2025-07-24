@@ -310,24 +310,23 @@ export default function EditProfile() {
               keyboardShouldPersistTaps="handled"
               contentContainerStyle={{ paddingBottom: Object.values(focus).some(Boolean) ? 20 : 0 }}
             >
-              <View style={{ marginTop: 50, paddingTop: 3, marginHorizontal: 'auto', width: '90%' }}>
-                <Text style={[tw`w-full text-center text-white text-[15px] mb-4`, { fontFamily: 'Nunito-ExtraBold' }]}>Edit profile</Text>
+              <View style={{ marginTop: 50, paddingTop: 3, marginHorizontal: 'auto', width: '90%', paddingBottom: 20 }}>
+                <Text style={[tw`w-full text-center text-white text-[16px] mb-4`, { fontFamily: 'Nunito-ExtraBold' }]}>Edit profile</Text>
                 {/* Change background button */}
                 <TouchableOpacity
                   style={[
-                    tw`flex-row items-center justify-center mb-4 bg-white`,
-                    { borderRadius: 8, paddingVertical: 8, paddingHorizontal: 16 }
+                    tw`flex-row rounded-xl items-center justify-center mb-4 bg-white p-2.5`
                   ]}
                   onPress={pickBackground} // Placeholder for background change logic
                   activeOpacity={0.7}
                 >
                   <View style={tw`flex-row gap-2 items-center`}>
                     <Camera></Camera>
-                    <Text style={[tw`text-black`, { fontFamily: 'Nunito-ExtraBold', fontSize: 13 }]}>Change background</Text>
+                    <Text style={[tw`text-black`, { fontFamily: 'Nunito-ExtraBold', fontSize: 14 }]}>Change background</Text>
                   </View>
                 </TouchableOpacity>
                 {/* Profile picture */}
-                <View style={{ alignItems: 'center', marginBottom: 8 }}>
+                <View style={{ alignItems: 'center', marginBottom: 12 }}>
                   <View style={{ width: 100, height: 100, position: 'relative' }}>
                     <TouchableOpacity
                       style={[tw`rounded-full border-2 border-white`, { width: 100, height: 100, overflow: 'hidden', backgroundColor: '#222' }]}
@@ -365,7 +364,7 @@ export default function EditProfile() {
                 <View style={{ width: '100%' }}>
                   <View style={tw`flex-row mb-2`}>
                     {/* First name */}
-                    <View style={tw`flex-1 mr-2`}>
+                    <View style={tw`flex-1`}>
                       <ImageBackground
                         source={require('../../assets/images/galaxy.jpg')}
                         imageStyle={{ borderRadius: 8, opacity: focus.firstname ? 0.3 : 0 }}
@@ -373,7 +372,7 @@ export default function EditProfile() {
                       >
                         <TextInput
                           style={[
-                            tw`px-4 py-2 text-center text-[13px]`,
+                            tw`px-4 py-2.5 text-center text-[14px]`,
                             {
                               fontFamily: 'Nunito-Medium',
                               color: input.firstname && input.firstname.trim() ? '#fff' : '#fff',
@@ -407,7 +406,7 @@ export default function EditProfile() {
                       >
                         <TextInput
                           style={[
-                            tw`px-4 py-2 text-center text-[13px]`,
+                            tw`px-4 py-2.5 text-center text-[14px]`,
                             {
                               fontFamily: 'Nunito-Medium',
                               color: input.lastname && input.lastname.trim() ? '#fff' : '#fff',
@@ -441,7 +440,7 @@ export default function EditProfile() {
                     >
                       <TextInput
                         style={[
-                          tw`px-4 py-2 text-center text-[13px]`,
+                          tw`px-4 py-2.5 text-center text-[14px]`,
                           {
                             fontFamily: 'Nunito-Medium',
                             color: input.username && input.username.trim() ? '#fff' : '#fff',
@@ -481,7 +480,7 @@ export default function EditProfile() {
                     >
                       <TextInput
                         style={[
-                          tw`px-4 py-2 text-center text-[13px]`,
+                          tw`px-4 py-2.5 text-center text-[14px]`,
                           {
                             fontFamily: 'Nunito-Medium',
                             color: dobAvail && dob ? '#fff' : '#fff',
@@ -510,7 +509,7 @@ export default function EditProfile() {
                     >
                       <TextInput
                         style={[
-                          tw`px-4 py-2 text-[13px]`,
+                          tw`px-4 py-2.5 text-[14px]`,
                           {
                             fontFamily: 'Nunito-Medium',
                             color: input.bio && input.bio.trim() ? '#fff' : '#fff',
@@ -546,7 +545,7 @@ export default function EditProfile() {
                     </View>
                   </View>
 
-                  <Text style={[tw`text-white mb-3`, { fontFamily: 'Nunito-Bold', fontSize: 14 }]}>
+                  <Text style={[tw`text-white mb-2.5`, { fontFamily: 'Nunito-ExtraBold', fontSize: 15 }]}>
                     Your social media (optional)
                   </Text>
                   <View style={{ gap: 8, marginBottom: 16 }}>
@@ -571,7 +570,7 @@ export default function EditProfile() {
                         <InstagramIcon width={22} height={22} style={{ marginRight: 8, zIndex: 1 }} />
                         <TextInput
                           style={[
-                            tw`flex-1 text-left px-2 text-[13px]`,
+                            tw`flex-1 text-left px-2 text-[14px]`,
                             {
                               fontFamily: 'Nunito-Medium',
                               color: input.instagramurl && input.instagramurl.trim() ? '#fff' : '#fff',
@@ -613,7 +612,7 @@ export default function EditProfile() {
                         <XIcon width={22} height={22} style={{ marginRight: 8, zIndex: 1 }} />
                         <TextInput
                           style={[
-                            tw`flex-1 text-left px-2 text-[13px]`,
+                            tw`flex-1 text-left px-2 text-[14px]`,
                             {
                               fontFamily: 'Nunito-Medium',
                               color: input.xurl && input.xurl.trim() ? '#fff' : '#fff',
@@ -655,7 +654,7 @@ export default function EditProfile() {
                         <SnapchatIcon width={22} height={22} style={{ marginRight: 8, zIndex: 1 }} />
                         <TextInput
                           style={[
-                            tw`flex-1 text-left px-2 text-[13px]`,
+                            tw`flex-1 text-left px-2 text-[14px]`,
                             {
                               fontFamily: 'Nunito-Medium',
                               color: input.snapchaturl && input.snapchaturl.trim() ? '#fff' : '#fff',
@@ -697,7 +696,7 @@ export default function EditProfile() {
                         <FBIcon width={22} height={22} style={{ marginRight: 8, zIndex: 1 }} />
                         <TextInput
                           style={[
-                            tw`flex-1 text-left px-2 text-[13px]`,
+                            tw`flex-1 text-left px-2 text-[14px]`,
                             {
                               fontFamily: 'Nunito-Medium',
                               color: input.facebookurl && input.facebookurl.trim() ? '#fff' : '#fff',
@@ -732,13 +731,13 @@ export default function EditProfile() {
                   activeOpacity={input.firstname && input.firstname.trim() && input.lastname && input.lastname.trim() && input.username && input.username.trim() ? 0.85 : 1}
                   disabled={!(input.firstname && input.firstname.trim() && input.lastname && input.lastname.trim() && input.username && input.username.trim())}
                 >
-                  <Text style={[tw`text-black text-[14px]`, { fontFamily: 'Nunito-ExtraBold', opacity: input.firstname && input.firstname.trim() && input.lastname && input.lastname.trim() && input.username && input.username.trim() ? 1 : 0.5 }]}>Save changes</Text>
+                  <Text style={[tw`text-black text-[15px]`, { fontFamily: 'Nunito-ExtraBold', opacity: input.firstname && input.firstname.trim() && input.lastname && input.lastname.trim() && input.username && input.username.trim() ? 1 : 0.5 }]}>Save changes</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={tw`flex-row items-center justify-center mt-4`}
                   onPress={() => router.replace({ pathname: '/(profile)/profile', params: { user_id: user?.id } })}
                 >
-                  <Text style={[tw`text-gray-400 text-[12px]`, { fontFamily: 'Nunito-Medium' }]}>Not now</Text>
+                  <Text style={[tw`text-gray-400 text-[13px]`, { fontFamily: 'Nunito-Medium' }]}>Not now</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
@@ -758,7 +757,7 @@ export default function EditProfile() {
               pointerEvents="none"
               >
               <View style={[tw`px-6 py-2 rounded-full shadow-lg`, { backgroundColor: bggreenmodal, flexDirection: 'row', alignItems: 'center', gap: 8 }]}>
-                <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Profile updated successfully 🥳</Text>
+                <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Profile updated successfully 🥳</Text>
               </View>
               </View>
             )}
