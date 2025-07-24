@@ -8,6 +8,7 @@ import Host from '@/assets/icons/hostwhite-icon.svg';
 import defaultImages from '../(create)/defaultimage';
 import DecisionModal from '../(home)/home/eventDecision';
 import Back from '../../assets/icons/back.svg';
+import Deadline from '../../assets/icons/hourglasswhite-icon.svg';
 import Invite from '../../assets/icons/invite-icon.svg';
 import Location from '../../assets/icons/locationwhite-icon.svg';
 import Private from '../../assets/icons/private.svg';
@@ -343,7 +344,7 @@ export default function EventDetails() {
                         {cohosts.map((cohost, idx) => {
                             return (
                                 <TouchableOpacity key={idx} style={tw`flex-row items-center gap-1.5 bg-white/10 border border-white/20 px-2 py-2 rounded-xl`}
-                                onPress={() => router.push({pathname: '/(profile)/profile', params: {user_id: cohost.id}})}>
+                                    onPress={() => router.push({ pathname: '/(profile)/profile', params: { user_id: cohost.id } })}>
                                     <View style={[tw`rounded-full border border-white/20 items-center justify-center bg-white/10`, { width: 30, height: 30, overflow: 'hidden' }]}>
                                         <Image
                                             source={cohost.profile_image ? { uri: cohost.profile_image } : require('../../assets/icons/pfpdefault.svg')}
@@ -358,7 +359,7 @@ export default function EventDetails() {
                         })}
                     </ScrollView>
                     <View style={tw`flex-row mb-1.5 items-center gap-2`}>
-                        <Location width={12} height={12} style={tw``}/>
+                        <Location width={12} height={12} style={tw``} />
                         {event?.rsvpfirst && curStatus === 'Not RSVP' ?
                             <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>RSVP to see details</Text>
                             : <TouchableOpacity style={tw`flex-row items-center justify-center`} onPress={() => setViewLocation(1 - viewLocation)}>
@@ -370,11 +371,48 @@ export default function EventDetails() {
                     </View>
                     {viewLocation === 1 && <Animated.View style={[tw`h-fit w-fit overflow-hidden`]}>
                         <View style={[tw`w-80 px-4 gap-1 py-2 bg-white rounded-md`]}>
-                            {event?.location_add && event?.location_add !== event?.location_name && <Text style={[tw`text-[15px]`, {fontFamily: 'Nunito-Bold'}]}>Address: {event.location_add}</Text>}
-                            {event?.location_more && <Text style={[tw`text-[15px]`, {fontFamily: 'Nunito-Bold'}]}>Address: {event.location_more}</Text>}
-                            {event?.location_note && <Text style={[tw`text-[15px]`, {fontFamily: 'Nunito-Bold'}]}>Note: {event.location_note}</Text>}
+                            {event?.location_add && event?.location_add !== event?.location_name && <Text style={[tw`text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>Address: {event.location_add}</Text>}
+                            {event?.location_more && <Text style={[tw`text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>Address: {event.location_more}</Text>}
+                            {event?.location_note && <Text style={[tw`text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>Note: {event.location_note}</Text>}
                         </View>
                     </Animated.View>}
+                    <View style={tw`flex-row mb-1.5 items-center gap-2`}>
+                        {event?.bio && <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>{event.bio}</Text>}
+                    </View>
+                    {event?.rsvp_deadline && <View style={tw`flex-row mb-1.5 items-center gap-2`}>
+                        <Deadline width={12} height={12}></Deadline>
+                        {event?.rsvp_deadline && (() => {
+                            const deadline = new Date(event.rsvp_deadline);
+                            const now = new Date();
+                            // Zero out the time for both dates to count full days
+                            deadline.setHours(0, 0, 0, 0);
+                            now.setHours(0, 0, 0, 0);
+                            const msPerDay = 1000 * 60 * 60 * 24;
+                            const daysLeft = Math.ceil(
+                                (deadline.getTime() - now.getTime()) / msPerDay
+                            );
+                            if (daysLeft > 0) {
+                                return (
+                                    <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>
+                                        {daysLeft} day{daysLeft !== 1 ? 's' : ''} left to RSVP
+                                    </Text>
+                                );
+                            } else if (daysLeft === 0) {
+                                return (
+                                    <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>
+                                        RSVP closes today
+                                    </Text>
+                                );
+                            } else {
+                                return (
+                                    <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>
+                                        RSVP has closed :(
+                                    </Text>
+                                );
+                            }
+                        })()}
+                    </View>}
+                    <Text style={[tw`text-[16px]`, { fontFamily: 'Nunito-Bold' }]}>What's special?</Text>
                 </View>
                 {/* What's special */}
                 {/* <View style={tw`px-4 mt-2 mb-2`}>
