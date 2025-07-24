@@ -412,6 +412,7 @@ export default function EventDetails() {
                             }
                         })()}
                     </View>}
+                    <Text style={[tw`text-[16px]`, { fontFamily: 'Nunito-Bold' }]}>What's special?</Text>
                 </View>
                 {/* What's special */}
                 {/* <View style={tw`px-4 mt-2 mb-2`}>
