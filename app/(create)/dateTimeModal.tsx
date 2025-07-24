@@ -35,7 +35,26 @@ const timeOptions = getTimeOptions();
 export default function DateTimeModal({ visible, onClose, startDate, startTime, endSet, endDate, endTime, onSave }: DateTimeModalProps) {
   const [localStart, setLocalStart] = useState<Date>(startDate);
   const [localEnd, setLocalEnd] = useState<Date>(endDate);
-  const [locStartTime, setLocStartTime] = useState<String>(startTime);
+  // Find closest future 15-min interval for default start time
+  const getClosestFutureTime = () => {
+    const now = new Date();
+    let defaultTime = timeOptions[0];
+    for (const t of timeOptions) {
+      const match = t.match(/(\d+):(\d+)(am|pm)/i);
+      if (!match) continue;
+      let [_, hourStr, minStr, ampm] = match;
+      let hour = Number(hourStr);
+      let minute = Number(minStr);
+      if (ampm === 'pm' && hour !== 12) hour += 12;
+      if (ampm === 'am' && hour === 12) hour = 0;
+      if (hour > now.getHours() || (hour === now.getHours() && minute > now.getMinutes())) {
+        defaultTime = t;
+        break;
+      }
+    }
+    return defaultTime;
+  };
+  const [locStartTime, setLocStartTime] = useState<String>(!startTime || startTime === '12:00am' ? getClosestFutureTime() : startTime);
   const [locEndTime, setLocEndTime] = useState<String>(endTime);
   const [endAvailable, setEndAvailable] = useState<boolean>(endSet);
   const [activeTab, setActiveTab] = useState<'start' | 'end'>('start');
@@ -149,7 +168,7 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
     if (visible) {
       setLocalStart(startDate);
       setLocalEnd(endDate);
-      setLocStartTime(startTime);
+      setLocStartTime(!startTime || startTime === '12:00am' ? getClosestFutureTime() : startTime);
       setLocEndTime(endTime);
       setEndAvailable(endSet);
       setStartDateChosen(!!startDate);
@@ -237,7 +256,7 @@ export default function DateTimeModal({ visible, onClose, startDate, startTime, 
                         setLocalStart(startDate);
                         setLocalEnd(endDate);
                         setEndAvailable(false);
-                        setLocStartTime(startTime);
+                        setLocStartTime(!startTime || startTime === '12:00am' ? getClosestFutureTime() : startTime);
                         setLocEndTime(endTime);
                         setStartDateChosen(false);
                         setEndDateChosen(false);
