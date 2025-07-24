@@ -91,12 +91,13 @@ const NotificationScreen: React.FC = () => {
       </View>
       <View style={[tw`flex-1`]}>
         {loading ? (
-          <View style={tw`flex-1 items-center justify-center`}>
-            <Text style={[tw`text-white text-lg`, { fontFamily: 'Nunito-Bold' }]}>Loading...</Text>
+          <View style={tw`flex-1 items-center justify-center -mt-30`}>
+            <Text style={[tw`text-white text-[16px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Loading...</Text>
           </View>
         ) : notifications.length === 0 ? (
-          <View style={tw`flex-1 items-center justify-center`}>
-            <Text style={[tw`text-white text-lg`, { fontFamily: 'Nunito-Bold' }]}>Notifications will appear here</Text>
+          <View style={tw`flex-1 items-center justify-center -mt-30`}>
+            <Text style={[tw`text-white text-[17px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Yay! No more notifications 🎉</Text>
+            <Text style={[tw`text-white text-[15px] mt-0.5`, { fontFamily: 'Nunito-Medium' }]}>Or, it's just started...</Text>
           </View>
         ) : (
           <ScrollView contentContainerStyle={tw`px-4 pt-2 pb-8`}>
@@ -157,7 +158,7 @@ const NotificationScreen: React.FC = () => {
                           });
                         }}
                       >
-                        <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Cancel</Text>
+                        <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Reject</Text>
                       </TouchableOpacity>
                     </View>
                   )}
