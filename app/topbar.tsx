@@ -21,7 +21,10 @@ export default function TopBar() {
         >
           <FriendsIcon width={24} height={24} />
         </TouchableOpacity>
-        <TouchableOpacity style={tw`py-2`}>
+        <TouchableOpacity
+          style={tw`py-2`}
+          onPress={() => router.replace('/(noti)/notification')}
+        >
           <NotiIcon width={24} height={24} />
         </TouchableOpacity>
       </View>

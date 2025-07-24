@@ -11,7 +11,7 @@ import HomeTab from '../assets/icons/hometab.svg';
 import HomeTabActive from '../assets/icons/hometab_active.svg';
 import DefaultAvatar from '../assets/icons/pfpdefault.svg';
 
-export default function BotBar({ currentTab = 'home', selfView = false }: { currentTab?: 'home' | 'create' | 'profile', selfView?: boolean }) {
+export default function BotBar({ currentTab = 'home', selfView = false }: { currentTab?: 'home' | 'create' | 'profile' | 'noti', selfView?: boolean }) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { user, setUser } = useUserStore();
