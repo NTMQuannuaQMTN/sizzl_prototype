@@ -27,16 +27,16 @@ export default function Index() {
       {/* Bottom button(s) - fixed at bottom */}
       {slide < 2 ? (
         <TouchableOpacity onPress={() => setSlide(slide + 1)}
-          style={tw`bg-white rounded-[5] py-[10] w-full items-center mb-8`}>
+          style={tw`bg-white rounded-full py-[10] w-full items-center mb-8`}>
           <Text 
-            style={[tw`text-black text-[15px]`, 
+            style={[tw`text-black text-[16px]`, 
             { fontFamily: 'Nunito-ExtraBold' }]}>Next
           </Text>
         </TouchableOpacity>
       ) : (
         <>
           <Text 
-            style={[tw`text-white text-[10px] text-center mb-4`,
+            style={[tw`text-white text-[11px] text-center mb-4`,
             { fontFamily: 'Nunito-Regular' }]}>
               By tapping LOGIN or SIGNUP, you are agreeing to our {'\n'}
               <Text style={{ fontFamily: 'Nunito-Bold' }}>Community Guidelines</Text>, <Text style={{ fontFamily: 'Nunito-Bold' }}>Privacy Policy</Text> and <Text style={{ fontFamily: 'Nunito-Bold' }}>Terms of Service</Text>
@@ -47,13 +47,13 @@ export default function Index() {
               onPress={() => router.replace('/(auth)/signup')}
               style={tw`bg-white rounded-full py-[10] w-[48.5%] items-center`}
             >
-              <Text style={[tw`text-black text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Signup</Text>
+              <Text style={[tw`text-black text-[16px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Signup</Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => router.replace('/(auth)/login')}
               style={tw`bg-white rounded-full py-[10] w-[48.5%] items-center`}
             >
-              <Text style={[tw`text-black text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Login</Text>
+              <Text style={[tw`text-black text-[16px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Login</Text>
             </TouchableOpacity>
           </View>
         </>

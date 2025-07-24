@@ -90,7 +90,7 @@ export default function SignUp() {
 
                 {/* Form */}
                 <View style={tw`w-full`}>
-                    <Text style={[tw`text-white mb-1.5 text-[13px]`, { fontFamily: 'Nunito-SemiBold' }]}>College email</Text>
+                    <Text style={[tw`text-white mb-1.5 text-[15px]`, { fontFamily: 'Nunito-SemiBold' }]}>College email</Text>
                     <ImageBackground
                         source={require('../../assets/images/galaxy.jpg')}
                         imageStyle={{ borderRadius: 8, opacity: isFocused ? 0.3 : 0 }}
@@ -98,7 +98,7 @@ export default function SignUp() {
                     >
                         <TextInput
                             style={[
-                                tw`h-10 w-full px-3 py-2 text-white text-[13px]`,
+                                tw`h-10 w-full px-3 py-2 text-white text-[14px]`,
                                 {
                                     fontFamily: 'Nunito-Medium',
                                     borderWidth: 1,
@@ -130,10 +130,10 @@ export default function SignUp() {
             </View>
 
             {/* Bottom content - fixed at bottom */}
-            <Text style={[tw`text-white text-[10px] text-center mb-4`, { fontFamily: 'Nunito-Regular' }]}>By tapping SEND CODE, you consent to receive email updates from us or event hosts. Unsubscribe in the emails</Text>
+            <Text style={[tw`text-white text-[11px] text-center mb-4`, { fontFamily: 'Nunito-Regular' }]}>By tapping SEND CODE, you consent to receive email updates from us or event hosts. Unsubscribe in the emails</Text>
             <TouchableOpacity onPress={checkEmail}
                 style={tw`bg-white rounded-full py-[10] w-full items-center mb-4`}>
-                <Text style={[tw`text-black`, { fontFamily: 'Nunito-ExtraBold' }]}>Send code</Text>
+                <Text style={[tw`text-black text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Send code</Text>
             </TouchableOpacity>
             <View style={tw`flex-row items-center justify-center mb-8`}>
                 <Text style={[tw`text-white text-[12px] mr-1`, { fontFamily: 'Nunito-Regular' }]}>Already have an account?</Text>

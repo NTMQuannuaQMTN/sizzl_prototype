@@ -120,7 +120,7 @@ export default function Verify() {
 
                 {/* Form */}
                 <View style={tw`w-full`}>
-                    <Text style={[tw`text-white mb-1.5 text-[13px]`, { fontFamily: 'Nunito-SemiBold' }]}>Verification code</Text>
+                    <Text style={[tw`text-white mb-1.5 text-[15px]`, { fontFamily: 'Nunito-SemiBold' }]}>Verification code</Text>
                     <ImageBackground
                         source={require('../../assets/images/galaxy.jpg')}
                         imageStyle={{ borderRadius: 8, opacity: isFocused ? 0.3 : 0 }}
@@ -129,7 +129,7 @@ export default function Verify() {
                         <View style={tw`w-full relative items-center`}>
                             <TextInput 
                                 style={[
-                                    tw`text-center h-10 w-full px-3 py-2 text-[13px]`,
+                                    tw`text-center h-10 w-full px-3 py-2 text-[14px]`,
                                     {
                                         fontFamily: 'Nunito-Medium',
                                         borderWidth: 1,
@@ -192,7 +192,7 @@ export default function Verify() {
                 onPress={() => checkCode()}
                 disabled={loading}
             >
-                <Text style={[tw`text-black`, { fontFamily: 'Nunito-ExtraBold' }]}>
+                <Text style={[tw`text-black text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>
                     {loading ? 'Verifying...' : 'Continue'}
                 </Text>
             </TouchableOpacity>
