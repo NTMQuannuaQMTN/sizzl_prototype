@@ -559,7 +559,7 @@ export default function ProfilePage() {
               <TouchableOpacity
                 onPress={() => {
                   if (userView) {
-                    router.replace({
+                    router.push({
                       pathname: '/(profile)/qrprofile',
                       params: { username: userView.username, userId: userView.id },
                     });

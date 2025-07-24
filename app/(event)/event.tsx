@@ -1,7 +1,7 @@
 import { supabase } from '@/utils/supabase';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Image, ScrollView, Text, TouchableOpacity, useAnimatedValue, View } from 'react-native';
 import tw from 'twrnc';
 
 import Host from '@/assets/icons/hostwhite-icon.svg';
@@ -52,6 +52,17 @@ export default function EventDetails() {
     });
     const [cohosts, setCohosts] = useState<any[]>([]);
     const { user } = useUserStore();
+    const [viewLocation, setViewLocation] = useState(0);
+    const viewLocationAnimation = useAnimatedValue(0);
+
+    useEffect(() => {
+        viewLocationAnimation.setValue(1 - viewLocation);
+        Animated.timing(viewLocationAnimation, {
+            toValue: viewLocation,
+            duration: 150,
+            useNativeDriver: false,
+        }).start();
+    }, [viewLocation]);
 
     useEffect(() => {
         const getEventDetail = async () => {
@@ -90,7 +101,7 @@ export default function EventDetails() {
                 for (const uid of cohostID) {
                     const { data: userData, error: userErr } = await supabase
                         .from('users')
-                        .select('firstname, profile_image')
+                        .select('id, firstname, profile_image')
                         .eq('id', uid)
                         .single();
                     if (!userErr && userData) {
@@ -140,6 +151,12 @@ export default function EventDetails() {
         }
         setShowDecisionModal(false);
     }
+
+    const viewLocationRotate = viewLocationAnimation.interpolate({
+        inputRange: [0, 0.25, 0.5, 0.75, 1],
+        outputRange: ['0deg', '11.25deg', '45deg', '78.75deg', '90deg'],
+        extrapolate: 'clamp',
+    });
 
     return (
         <View style={tw`w-full h-full`}>
@@ -318,10 +335,15 @@ export default function EventDetails() {
                         <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>Hosted by </Text>
                         <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>{hostWC.host}</Text>
                     </View>
-                    <View style={tw`flex-row items-center mb-1.5 gap-1.5`}>
-                        {cohosts.slice(0, 2).map((cohost, idx) => {
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={tw`flex-row items-center mb-1.5 gap-1.5`}
+                    >
+                        {cohosts.map((cohost, idx) => {
                             return (
-                                <View key={idx} style={tw`flex-row items-center gap-1.5 bg-white/10 border border-white/20 px-2 py-2 rounded-xl`}>
+                                <TouchableOpacity key={idx} style={tw`flex-row items-center gap-1.5 bg-white/10 border border-white/20 px-2 py-2 rounded-xl`}
+                                onPress={() => router.push({pathname: '/(profile)/profile', params: {user_id: cohost.id}})}>
                                     <View style={[tw`rounded-full border border-white/20 items-center justify-center bg-white/10`, { width: 30, height: 30, overflow: 'hidden' }]}>
                                         <Image
                                             source={cohost.profile_image ? { uri: cohost.profile_image } : require('../../assets/icons/pfpdefault.svg')}
@@ -331,19 +353,28 @@ export default function EventDetails() {
                                         />
                                     </View>
                                     <Text style={[tw`text-white`, { fontFamily: 'Nunito-Bold' }]}>{cohost.firstname}</Text>
-                                </View>
+                                </TouchableOpacity>
                             );
                         })}
-                    </View>
-                    <View style={tw`flex-row items-center mb-1.5 gap-2`}>
-                        <Location width={12} height={12} />
+                    </ScrollView>
+                    <View style={tw`flex-row mb-1.5 items-center gap-2`}>
+                        <Location width={12} height={12} style={tw``}/>
                         {event?.rsvpfirst && curStatus === 'Not RSVP' ?
                             <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>RSVP to see details</Text>
-                            : <TouchableOpacity style={tw`flex-row items-center justify-center`}>
-                                <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>{event?.location_name}</Text>
-                                <Ionicons name="chevron-forward" size={16} color="#fff" style={tw`ml-1 mt-0.5`} />
+                            : <TouchableOpacity style={tw`flex-row items-center justify-center`} onPress={() => setViewLocation(1 - viewLocation)}>
+                                <Text style={[tw`text-white text-[15px] max-w-72`, { fontFamily: 'Nunito-Bold' }]}>{event?.location_name}</Text>
+                                {(event?.location_add !== event?.location_name || event?.location_more || event?.location_note) && <Animated.View style={{ transform: [{ rotate: viewLocationRotate }] }}>
+                                    <Ionicons name="chevron-forward" size={16} color="#fff" style={tw`ml-1 mt-0.5`} />
+                                </Animated.View>}
                             </TouchableOpacity>}
                     </View>
+                    {viewLocation === 1 && <Animated.View style={[tw`h-fit w-fit overflow-hidden`]}>
+                        <View style={[tw`w-80 px-4 gap-1 py-2 bg-white rounded-md`]}>
+                            {event?.location_add && event?.location_add !== event?.location_name && <Text style={[tw`text-[15px]`, {fontFamily: 'Nunito-Bold'}]}>Address: {event.location_add}</Text>}
+                            {event?.location_more && <Text style={[tw`text-[15px]`, {fontFamily: 'Nunito-Bold'}]}>Address: {event.location_more}</Text>}
+                            {event?.location_note && <Text style={[tw`text-[15px]`, {fontFamily: 'Nunito-Bold'}]}>Note: {event.location_note}</Text>}
+                        </View>
+                    </Animated.View>}
                 </View>
                 {/* What's special */}
                 {/* <View style={tw`px-4 mt-2 mb-2`}>
