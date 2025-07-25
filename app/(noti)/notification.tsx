@@ -234,7 +234,7 @@ const NotificationScreen: React.FC = () => {
                 <Text style={{ fontFamily: 'Nunito-Medium', color: 'white', fontSize: 15, marginLeft: 4 }}>responds</Text>
                 {notif.decision && (
                   <Text style={[
-                    tw`rounded-full px-2 py-0.5 ml-1.5`,
+                    tw`rounded-full px-2 pt-0.5 pb-1 ml-1.5`,
                     {
                       backgroundColor:
                         badgeColor === 'bg-green-500' ? '#22C55E' :
