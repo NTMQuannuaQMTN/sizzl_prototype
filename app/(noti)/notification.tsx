@@ -26,7 +26,7 @@ import PfpDefault from '../../assets/icons/pfpdefault.svg';
 
 import BotBar from '../botbar';
 import { useUserStore } from '../store/userStore';
-import { fetchFriendRequestNotifications } from '../utils/notificationsUtils';
+import { fetchEventRSVPNotifications, fetchFriendRequestNotifications } from '../utils/notificationsUtils';
 // Accept friend request
 async function handleAcceptFriend(myId: string, friendId: string, refresh: () => void) {
   const { error: addError } = await supabase.from('friends')
@@ -85,8 +85,9 @@ const NotificationScreen: React.FC = () => {
     setLoading(true);
     const friendNotifs = await fetchFriendRequestNotifications(user.id);
     setFriendNotifications(friendNotifs);
-    // TODO: Replace with real event notification fetch
-    setEventNotifications([]); // No event notifications yet
+    // Fetch event RSVP notifications for events hosted by the user
+    const eventNotifs = await fetchEventRSVPNotifications(user.id);
+    setEventNotifications(eventNotifs);
     setLoading(false);
   };
 
@@ -98,7 +99,7 @@ const NotificationScreen: React.FC = () => {
   const renderNotificationCard = (notif: any, idx: number) => {
     const notifId = getNotifId(notif);
     const isRead = readNotifs.includes(notifId);
-    // If it's a friend request notification
+    // Friend request notification
     if (notif.type === 'friend' || notif.user) {
       const timeString = notif.created_at ? getRelativeTime(notif.created_at) : '';
       const profileId = notif.user?.id || notif.user_id;
@@ -108,7 +109,6 @@ const NotificationScreen: React.FC = () => {
           <TouchableOpacity
             activeOpacity={0.5}
             onPress={() => {
-              // Mark as read
               if (!isRead) setReadNotifs(prev => [...prev, notifId]);
               if (showActions && profileId) {
                 router.push({ pathname: '/(profile)/profile', params: { user_id: profileId } });
@@ -164,19 +164,71 @@ const NotificationScreen: React.FC = () => {
         </View>
       );
     }
-    // Placeholder for event notification card
-    // You can customize this as needed
+    // Event RSVP notification
     const timeString = notif.created_at ? getRelativeTime(notif.created_at) : '';
+    // Decision badge color logic
+    let badgeColor = 'bg-gray-500';
+    const dec = notif.decision ? notif.decision.toLowerCase() : '';
+    if (dec === 'going') badgeColor = 'bg-green-500';
+    else if (dec === 'maybe') badgeColor = 'bg-yellow-600';
+    else if (dec === 'nope' || dec === "can't go" || dec === 'cant go' || dec === "can't go") badgeColor = 'bg-rose-600';
+
     return (
       <View key={idx} style={tw`${isRead ? 'bg-white/10' : 'bg-[#7A5CFA]/70'} rounded-xl p-4 mb-3`}>
         <TouchableOpacity
           activeOpacity={0.5}
           onPress={() => {
             if (!isRead) setReadNotifs(prev => [...prev, notifId]);
+            // Navigate to event page
+            if (notif.event_id) {
+              router.push({ pathname: '/(event)/event', params: { id: notif.event_id } });
+            }
           }}
         >
-          <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Event notification</Text>
-          {notif.title && <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-Medium' }]}>{notif.title}</Text>}
+          <View style={tw`flex-row items-start`}>
+            {/* Avatar */}
+            {notif.guest_profile_image ? (
+              <View style={tw`w-7 h-7 rounded-full overflow-hidden mr-2 bg-white/20 items-center justify-center mt-0.5`}>
+                <Image
+                  source={{ uri: notif.guest_profile_image }}
+                  style={{ width: 28, height: 28, borderRadius: 14 }}
+                />
+              </View>
+            ) : (
+              <View style={tw`w-7 h-7 rounded-full overflow-hidden mr-2 bg-white/20 items-center justify-center mt-0.5`}>
+                <PfpDefault width={24} height={24} />
+              </View>
+            )}
+            {/* Message - all in one Text for natural wrapping */}
+            <View style={{ flex: 1 }}>
+              <View style={tw`flex-row items-center flex-shrink flex-wrap`}> 
+                <Text style={{ fontFamily: 'Nunito-ExtraBold', color: 'white', fontSize: 15 }}>
+                  @{notif.guest_username || 'Someone'}
+                </Text>
+                <Text style={{ fontFamily: 'Nunito-Medium', color: 'white', fontSize: 15, marginLeft: 4 }}>responds</Text>
+                {notif.decision && (
+                  <Text style={[
+                    tw`rounded-full px-2 py-0.5 ml-1.5`,
+                    {
+                      backgroundColor:
+                        badgeColor === 'bg-green-500' ? '#22C55E' :
+                        badgeColor === 'bg-yellow-600' ? '#CA8A04' :
+                        badgeColor === 'bg-rose-600' ? '#E11D48' :
+                        badgeColor === 'bg-gray-500' ? '#6B7280' :
+                        undefined,
+                      color: 'white',
+                      fontFamily: 'Nunito-ExtraBold',
+                      fontSize: 15,
+                      overflow: 'hidden',
+                    }
+                  ]}>{notif.action.toUpperCase()}</Text>
+                )}
+              </View>
+              <Text style={{ color: 'white', fontFamily: 'Nunito-Medium', fontSize: 15, marginTop: 2 }}>
+                to <Text style={{ fontFamily: 'Nunito-ExtraBold' }}>"{notif.event_title}"</Text> event.
+              </Text>
+            </View>
+          </View>
           {timeString && (
             <Text style={[tw`text-gray-400 text-xs mt-2`, { fontFamily: 'Nunito-Regular' }]}>{timeString}</Text>
           )}
@@ -195,8 +247,8 @@ const NotificationScreen: React.FC = () => {
   } else if (activeTab === 'friend') {
     tabContent = friendNotifications.length === 0 ? (
       <View style={tw`flex-1 items-center justify-center -mt-30`}>
-        <Text style={[tw`text-white text-[17px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Yay! No more notifications 🎉</Text>
-        <Text style={[tw`text-white text-[15px] mt-0.5`, { fontFamily: 'Nunito-Medium' }]}>Or, it's just started...</Text>
+        <Text style={[tw`text-white text-[17px]`, { fontFamily: 'Nunito-ExtraBold' }]}>You've checked all your requests 🎉</Text>
+        <Text style={[tw`text-white text-[15px] mt-0.5`, { fontFamily: 'Nunito-Medium' }]}>Or, you haven't had any yet :(</Text>
       </View>
     ) : (
       <ScrollView contentContainerStyle={tw`px-4 pt-2 pb-8`}>
