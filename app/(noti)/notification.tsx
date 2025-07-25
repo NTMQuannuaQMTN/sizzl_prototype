@@ -226,16 +226,20 @@ const NotificationScreen: React.FC = () => {
                 <PfpDefault width={24} height={24} />
               </View>
             )}
-            {/* Message - all in one Text for natural wrapping */}
+            {/* Message */}
             <View style={{ flex: 1 }}>
-              <View style={tw`flex-row items-center flex-shrink flex-wrap`}> 
-                <Text style={{ fontFamily: 'Nunito-ExtraBold', color: 'white', fontSize: 15 }}>
-                  @{notif.guest_username || 'Someone'}
+              <Text style={{ color: 'white', fontFamily: 'Nunito-ExtraBold', fontSize: 15 }}>
+                @{notif.guest_username || 'Someone'}{' '}
+                <Text style={{ fontFamily: 'Nunito-Medium' }}>has responded to </Text>
+                <Text style={{ fontFamily: 'Nunito-ExtraBold' }}>
+                  {notif.event_title ? `"${notif.event_title}"` : 'an event'}
                 </Text>
-                <Text style={{ fontFamily: 'Nunito-Medium', color: 'white', fontSize: 15, marginLeft: 4 }}>responds</Text>
-                {notif.decision && (
-                  <Text style={[
-                    tw`rounded-full px-2 pt-0.5 pb-1 ml-1.5`,
+                <Text style={{ fontFamily: 'Nunito-Medium' }}> event</Text>
+              </Text>
+              {notif.decision && (
+                <Text
+                  style={[
+                    tw`rounded-full px-2 pb-1 pt-0.5 mt-2 self-start`,
                     {
                       backgroundColor:
                         badgeColor === 'bg-green-500' ? '#22C55E' :
@@ -247,13 +251,12 @@ const NotificationScreen: React.FC = () => {
                       fontFamily: 'Nunito-ExtraBold',
                       fontSize: 15,
                       overflow: 'hidden',
-                    }
-                  ]}>{notif.action.toUpperCase()}</Text>
-                )}
-              </View>
-              <Text style={{ color: 'white', fontFamily: 'Nunito-Medium', fontSize: 15, marginTop: 2 }}>
-                to <Text style={{ fontFamily: 'Nunito-ExtraBold' }}>"{notif.event_title}"</Text> event.
-              </Text>
+                    },
+                  ]}
+                >
+                  {notif.action ? notif.action.toUpperCase() : ''}
+                </Text>
+              )}
             </View>
           </View>
           {timeString && (
