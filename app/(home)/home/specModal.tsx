@@ -18,15 +18,13 @@ const SpecModal: React.FC<SpecModalProps> = ({ visible, color, title, spec, onCl
             animationType="slide"
             onRequestClose={onClose}
         >
-            <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
+            <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}
+            onPress={onClose}>
                 <View style={tw`${color} w-full absolute bottom-0 left-0 p-4`}>
                     <Text style={{ marginBottom: 16, fontWeight: 'bold', fontSize: 18 }}>{title}</Text>
-                    {/* Add your modal content here */}
-                    <TouchableOpacity onPress={onClose} style={{ marginTop: 16, padding: 10, backgroundColor: '#7A5CFA', borderRadius: 8 }}>
-                        <Text style={{ color: 'white', fontWeight: 'bold' }}>Close</Text>
-                    </TouchableOpacity>
+                    <Text style={{ marginBottom: 16, fontWeight: 'bold', fontSize: 18 }}>{spec}</Text>
                 </View>
-            </View>
+            </TouchableOpacity>
         </Modal>
     );
 };

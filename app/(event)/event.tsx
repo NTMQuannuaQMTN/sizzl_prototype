@@ -202,7 +202,7 @@ export default function EventDetails() {
         setStatus(d);
         if (curStatus !== 'Not RSVP') {
             const { error } = await supabase.from('guests')
-                .update({ 'decision': d }).eq('event_id', event?.id)
+                .update({ 'decision': d, 'created_at': new Date().toISOString() }).eq('event_id', event?.id)
                 .eq('user_id', user.id);
 
             if (error) {
@@ -364,10 +364,10 @@ export default function EventDetails() {
                                         <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Eh...maybe </Text>
                                         <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>🤔</Text>
                                     </TouchableOpacity>
-                                    : <TouchableOpacity style={tw`bg-rose-600 flex-1 py-2.5 rounded-full items-center`}
+                                    : <TouchableOpacity style={tw`bg-rose-600 flex-1 flex-row py-2.5 rounded-full items-center justify-center gap-1.5`}
                                         onPress={() => setShowDecisionModal(true)}>
                                         <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>I can't </Text>
-                                        <Text style={[tw`text-white text-[14px] -mt-0.5`, { fontFamily: 'Nunito-ExtraBold' }]}>😭</Text>
+                                        <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>😭</Text>
                                     </TouchableOpacity>
                     }
                     <TouchableOpacity style={tw`flex-row bg-[#23244A] gap-x-2 py-2.5 px-6 rounded-full items-center`}>
