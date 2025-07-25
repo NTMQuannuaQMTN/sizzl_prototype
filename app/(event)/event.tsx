@@ -16,6 +16,7 @@ import Public from '../../assets/icons/public.svg';
 import ThreeDots from '../../assets/icons/threedots.svg';
 
 import { Ionicons } from '@expo/vector-icons';
+import SpecModal from '../(home)/home/specModal';
 import { useUserStore } from '../store/userStore';
 
 type EventView = {
@@ -55,6 +56,65 @@ export default function EventDetails() {
     const { user } = useUserStore();
     const [viewLocation, setViewLocation] = useState(0);
     const viewLocationAnimation = useAnimatedValue(0);
+    const [spec, setSpec] = useState<any[][]>([]);
+    const [specView, setSpecView] = useState<number[]>([0, 0, 0, 0]);
+
+    const cashSpecAnimation = useAnimatedValue(0);
+    const foodSpecAnimation = useAnimatedValue(0);
+    const merchSpecAnimation = useAnimatedValue(0);
+    const coolSpecAnimation = useAnimatedValue(0);
+
+    useEffect(() => {
+        cashSpecAnimation.setValue(1 - specView[0]);
+        Animated.timing(cashSpecAnimation, {
+            toValue: specView[0],
+            duration: 150,
+            useNativeDriver: false,
+        }).start();
+    }, [specView[0]])
+
+    useEffect(() => {
+        cashSpecAnimation.setValue(1 - specView[0]);
+        Animated.timing(cashSpecAnimation, {
+            toValue: specView[0],
+            duration: 150,
+            useNativeDriver: false,
+        }).start();
+    }, [specView[0]])
+
+    useEffect(() => {
+        foodSpecAnimation.setValue(1 - specView[1]);
+        Animated.timing(foodSpecAnimation, {
+            toValue: specView[1],
+            duration: 150,
+            useNativeDriver: false,
+        }).start();
+    }, [specView[1]])
+
+    useEffect(() => {
+        merchSpecAnimation.setValue(1 - specView[2]);
+        Animated.timing(merchSpecAnimation, {
+            toValue: specView[2],
+            duration: 150,
+            useNativeDriver: false,
+        }).start();
+    }, [specView[2]])
+
+    useEffect(() => {
+        coolSpecAnimation.setValue(1 - specView[3]);
+        Animated.timing(coolSpecAnimation, {
+            toValue: specView[3],
+            duration: 150,
+            useNativeDriver: false,
+        }).start();
+    }, [specView[3]])
+
+    const specCol = {
+        '💸 Cash prize': 'bg-yellow-200',
+        '🍕 Free food': 'bg-sky-200',
+        '👕 Free merch': 'bg-pink-200/90',
+        '🎟️ Cool prizes': 'bg-green-200/90'
+    }
 
     useEffect(() => {
         viewLocationAnimation.setValue(1 - viewLocation);
@@ -79,6 +139,19 @@ export default function EventDetails() {
 
         getEventDetail();
     }, [id]);
+
+    useEffect(() => {
+        const getSpecial = () => {
+            let specs = [
+                ['💸 Cash prize', event?.cash_prize],
+                ['🍕 Free food', event?.free_food],
+                ['👕 Free merch', event?.free_merch],
+                ['🎟️ Cool prizes', event?.cool_prize],
+            ].map(e => [e[0], e[1]]);
+            setSpec(specs);
+        }
+        getSpecial();
+    }, [event]);
 
     useEffect(() => {
         if (!event) return;
@@ -129,7 +202,7 @@ export default function EventDetails() {
         setStatus(d);
         if (curStatus !== 'Not RSVP') {
             const { error } = await supabase.from('guests')
-                .update({ 'decision': d }).eq('event_id', event?.id)
+                .update({ 'decision': d, 'created_at': new Date().toISOString() }).eq('event_id', event?.id)
                 .eq('user_id', user.id);
 
             if (error) {
@@ -156,6 +229,30 @@ export default function EventDetails() {
     const viewLocationRotate = viewLocationAnimation.interpolate({
         inputRange: [0, 0.25, 0.5, 0.75, 1],
         outputRange: ['0deg', '11.25deg', '45deg', '78.75deg', '90deg'],
+        extrapolate: 'clamp',
+    });
+
+    const coolRotate = coolSpecAnimation.interpolate({
+        inputRange: [0, 0.25, 0.5, 0.75, 1],
+        outputRange: ['0deg', '-11.25deg', '-45deg', '-78.75deg', '-90deg'],
+        extrapolate: 'clamp',
+    });
+
+    const cashRotate = cashSpecAnimation.interpolate({
+        inputRange: [0, 0.25, 0.5, 0.75, 1],
+        outputRange: ['0deg', '-11.25deg', '-45deg', '-78.75deg', '-90deg'],
+        extrapolate: 'clamp',
+    });
+
+    const foodRotate = foodSpecAnimation.interpolate({
+        inputRange: [0, 0.25, 0.5, 0.75, 1],
+        outputRange: ['0deg', '-11.25deg', '-45deg', '-78.75deg', '-90deg'],
+        extrapolate: 'clamp',
+    });
+
+    const merchRotate = merchSpecAnimation.interpolate({
+        inputRange: [0, 0.25, 0.5, 0.75, 1],
+        outputRange: ['0deg', '-11.25deg', '-45deg', '-78.75deg', '-90deg'],
         extrapolate: 'clamp',
     });
 
@@ -267,10 +364,10 @@ export default function EventDetails() {
                                         <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Eh...maybe </Text>
                                         <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>🤔</Text>
                                     </TouchableOpacity>
-                                    : <TouchableOpacity style={tw`bg-rose-600 flex-1 py-2.5 rounded-full items-center`}
+                                    : <TouchableOpacity style={tw`bg-rose-600 flex-1 flex-row py-2.5 rounded-full items-center justify-center gap-1.5`}
                                         onPress={() => setShowDecisionModal(true)}>
                                         <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>I can't </Text>
-                                        <Text style={[tw`text-white text-[14px] -mt-0.5`, { fontFamily: 'Nunito-ExtraBold' }]}>😭</Text>
+                                        <Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>😭</Text>
                                     </TouchableOpacity>
                     }
                     <TouchableOpacity style={tw`flex-row bg-[#23244A] gap-x-2 py-2.5 px-6 rounded-full items-center`}>
@@ -412,7 +509,53 @@ export default function EventDetails() {
                             }
                         })()}
                     </View>}
-                    <Text style={[tw`text-[16px]`, { fontFamily: 'Nunito-Bold' }]}>What's special?</Text>
+                    {spec.length !== 0 && <Text style={[tw`text-[18px] text-white mb-1.5`, { fontFamily: 'Nunito-Bold' }]}>What's special?</Text>}
+                    {spec.length !== 0 && <View style={tw`flex-row mb-1.5 items-center gap-2`}>
+                        {spec.map((s, ind) => {
+                            if (s[1] == null) return;
+                            // s[0] is a string, but specCol only allows certain keys
+                            // So we need to assert s[0] is a valid key of specCol
+                            const key = s[0] as keyof typeof specCol;
+                            return (
+                                <TouchableOpacity
+                                    key={ind}
+                                    style={tw`${specCol[key]} flex-row gap-1 px-2 py-1 rounded-full mr-1.5`}
+                                    onPress={() => {
+                                        setSpecView(prev => {
+                                            const newArr = [...prev];
+                                            newArr[ind] = prev[ind] === 1 ? 0 : 1;
+                                            console.log(newArr);
+                                            return newArr;
+                                        });
+                                    }}
+                                >
+                                    <Text style={[tw`text-xs text-black`, { fontFamily: 'Nunito-ExtraBold' }]}>{s[0]}</Text>
+                                    {s[1] !== '' &&
+                                        <Animated.View
+                                            style={{
+                                                transform: [
+                                                    {
+                                                        rotate:
+                                                            s[0] === '💸 Cash prize'
+                                                                ? cashRotate
+                                                                : s[0] === '🍕 Free food'
+                                                                    ? foodRotate
+                                                                    : s[0] === '👕 Free merch'
+                                                                        ? merchRotate
+                                                                        : coolRotate
+                                                    }
+                                                ]
+                                            }}>
+                                            <Ionicons
+                                                name="chevron-down"
+                                                size={16}
+                                                color="#000"
+                                            />
+                                        </Animated.View>}
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>}
                 </View>
                 {/* What's special */}
                 {/* <View style={tw`px-4 mt-2 mb-2`}>
@@ -456,6 +599,13 @@ export default function EventDetails() {
                     eventTitle={event?.title || ''}
                     maybe={!!event?.maybe}
                     onSelect={(dec) => { handleDecisionSelect(dec); }}
+                />
+                <SpecModal
+                    visible={specView.indexOf(1) >= 0}
+                    color={specView.indexOf(1) >= 0 ? Object.values(specCol)[specView.indexOf(1)] : '#000000'}
+                    title={specView.indexOf(1) >= 0 ? spec[specView.indexOf(1)][0] : ''}
+                    spec={specView.indexOf(1) >= 0 ? spec[specView.indexOf(1)][1] : ''}
+                    onClose={() => setSpecView([0, 0, 0, 0])}
                 />
             </ScrollView>
         </View>

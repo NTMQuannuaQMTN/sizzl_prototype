@@ -104,7 +104,7 @@ export default function EventCard(props: any) {
     setDecision(dec);
     if (decision !== 'Not RSVP') {
       const { error } = await supabase.from('guests')
-        .update({ 'decision': dec }).eq('event_id', props.event.id)
+        .update({ 'decision': dec, 'created_at': new Date().toISOString() }).eq('event_id', props.event.id)
         .eq('user_id', user.id);
 
       if (error) {
