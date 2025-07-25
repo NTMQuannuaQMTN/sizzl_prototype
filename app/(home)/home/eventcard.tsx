@@ -25,6 +25,7 @@ export default function EventCard(props: any) {
   const [spec, setSpec] = useState<string[][]>([]);
   const [decision, setDecision] = useState<string>('');
   const [selection, setSelection] = useState(false);
+  const [rsvp, setRSVP] = useState<any[]>([]);
 
   // State for EventActionModal
   const [actionModalVisible, setActionModalVisible] = useState(false);
@@ -86,6 +87,19 @@ export default function EventCard(props: any) {
     }
     getDecision();
   }, []);
+
+  useEffect(() => {
+    const getRSVP = async () => {
+      const { data, error } = await supabase
+        .from('guests')
+        .select('decision, users(profile_image)')
+        .eq('event_id', props.event.id)
+        .in('decision', ['Going', 'Maybe'])
+
+      if (!error && data) setRSVP(data);
+    }
+    getRSVP();
+  }, [props]);
 
   const handleDecision = async (dec: string) => {
     if (dec === 'Not RSVP') {
@@ -199,8 +213,8 @@ export default function EventCard(props: any) {
                   {/* Card Content */}
                   <View style={tw`pt-1.5`}>
                     <Text style={[
-                      (!('done' in props.event) || props.event.done) ? tw`text-white text-[22px] mb-1.5 leading-[1.25]` :
-                        (!props.event.title || props.event.title.trim() === '' ? tw`text-gray-400 text-[22px] mb-1.5` : tw`text-white text-[22px] mb-1.5`),
+                      (!('done' in props.event) || props.event.done) ? tw`text-white text-[22px] leading-[1.25]` :
+                        (!props.event.title || props.event.title.trim() === '' ? tw`text-gray-400 text-[22px] mb-1` : tw`text-white text-[22px] mb-1`),
                       { fontFamily: 'Nunito-ExtraBold' }
                     ]}>
                       {(!('done' in props.event) || props.event.done)
@@ -210,7 +224,7 @@ export default function EventCard(props: any) {
                           : props.event.title)
                       }
                     </Text>
-                    <View style={tw`flex-row items-center mb-1.5`}>
+                    <View style={tw`flex-row items-center mb-1`}>
                       <Host width={12} height={12} style={tw`mr-2`} />
                       <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>Hosted by </Text>
                       <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>{hostWC.host}</Text>
@@ -227,7 +241,7 @@ export default function EventCard(props: any) {
                         <Text style={[tw`text-white text-[10px] ml-1.5`, { fontFamily: 'Nunito-Medium' }]}>+{hostWC.count - 1}</Text>
                       )}
                     </View>
-                    <View style={tw`flex-row items-center mb-2`}>
+                    <View style={tw`flex-row items-center mb-1`}>
                       {/* Clock icon instead of dot */}
                       <ClockWhite width={12} height={12} style={tw`mr-1`} />
                       <Text style={[
@@ -303,7 +317,7 @@ export default function EventCard(props: any) {
                       </Text>
                     </View>
                     <View style={tw`flex-row items-center mb-1`}>
-                      <Text style={tw`text-white/80 text-xs mr-2`}>10k+ going</Text>
+                      <Text style={tw`text-white/80 text-xs mr-2`}>{rsvp.filter(e => e.decision === 'Going').length} going</Text>
                     </View>
                   </View>
                   <View style={tw`absolute bottom-3 right-4 flex-row gap-2.5 items-center`}>
