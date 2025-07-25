@@ -15,6 +15,7 @@ function getRelativeTime(dateString: string) {
   return `${diffMo}mo ago`;
 }
 import { supabase } from '@/utils/supabase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -75,9 +76,34 @@ const NotificationScreen: React.FC = () => {
   // Placeholder for event notifications
   const [eventNotifications, setEventNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('friend');
+  const [activeTab, setActiveTab] = useState('all');
   // Store read notification ids in local state
   const [readNotifs, setReadNotifs] = useState<string[]>([]);
+
+  // Key for AsyncStorage
+  const READ_NOTIFS_KEY = 'readNotifs';
+
+  // Load read notifications from AsyncStorage on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const stored = await AsyncStorage.getItem(READ_NOTIFS_KEY);
+        if (stored) setReadNotifs(JSON.parse(stored));
+      } catch (e) {
+        // ignore
+      }
+    })();
+  }, []);
+
+  // Helper to mark a notification as read and persist
+  const markAsRead = async (notifId: string) => {
+    setReadNotifs(prev => {
+      if (prev.includes(notifId)) return prev;
+      const updated = [...prev, notifId];
+      AsyncStorage.setItem(READ_NOTIFS_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  };
 
   // Fetch both friend and event notifications
   const fetchNotifications = async () => {
@@ -105,11 +131,11 @@ const NotificationScreen: React.FC = () => {
       const profileId = notif.user?.id || notif.user_id;
       const showActions = !notif.isFriend;
       return (
-        <View key={idx} style={tw`${isRead ? 'bg-white/10' : 'bg-[#7A5CFA]/70'} rounded-xl p-4 mb-3`}>
+        <View key={idx} style={tw`${isRead ? 'bg-white/5' : 'bg-[#7A5CFA]/70'} rounded-xl p-4 mb-3`}>
           <TouchableOpacity
             activeOpacity={0.5}
             onPress={() => {
-              if (!isRead) setReadNotifs(prev => [...prev, notifId]);
+              if (!isRead) markAsRead(notifId);
               if (showActions && profileId) {
                 router.push({ pathname: '/(profile)/profile', params: { user_id: profileId } });
               }
@@ -174,11 +200,11 @@ const NotificationScreen: React.FC = () => {
     else if (dec === 'nope' || dec === "can't go" || dec === 'cant go' || dec === "can't go") badgeColor = 'bg-rose-600';
 
     return (
-      <View key={idx} style={tw`${isRead ? 'bg-white/10' : 'bg-[#7A5CFA]/70'} rounded-xl p-4 mb-3`}>
+      <View key={idx} style={tw`${isRead ? 'bg-white/5' : 'bg-[#7A5CFA]/70'} rounded-xl p-4 mb-3`}>
         <TouchableOpacity
           activeOpacity={0.5}
           onPress={() => {
-            if (!isRead) setReadNotifs(prev => [...prev, notifId]);
+            if (!isRead) markAsRead(notifId);
             // Navigate to event page
             if (notif.event_id) {
               router.push({ pathname: '/(event)/event', params: { id: notif.event_id } });
