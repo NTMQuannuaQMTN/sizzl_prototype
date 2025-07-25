@@ -317,12 +317,14 @@ export default function EventCard(props: any) {
                       </Text>
                     </View>
                     <View style={tw`flex-row items-center mb-1 gap-1.5`}>
-                      {rsvp.filter(e => e.decision === "Going").slice(0, 5).map((g, ind) => {
+                      {rsvp.filter(e => e.decision === "Going").slice(0, 5).map((e, ind) => {
+                        console.log(e);
                         return <Image key={ind}
                         source={
-                          hostPfp
-                            ? { uri: hostPfp }
-                            : require('@/assets/images/pfp-default2.png')
+                          e.users.profile_image
+                            ? { uri: e.users.profile_image }
+                            : 
+                            require('@/assets/images/pfp-default2.png')
                         }
                         style={{ width: 24, height: 24, borderRadius: 12 }}
                       />
