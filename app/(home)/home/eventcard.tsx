@@ -316,6 +316,20 @@ export default function EventCard(props: any) {
                         }
                       </Text>
                     </View>
+                    <View style={tw`flex-row items-center mb-1 gap-1.5`}>
+                      {rsvp.filter(e => e.decision === "Going").slice(0, 5).map((e, ind) => {
+                        console.log(e);
+                        return <Image key={ind}
+                        source={
+                          e.users.profile_image
+                            ? { uri: e.users.profile_image }
+                            : 
+                            require('@/assets/images/pfp-default2.png')
+                        }
+                        style={{ width: 24, height: 24, borderRadius: 12 }}
+                      />
+                      })}
+                    </View>
                     <View style={tw`flex-row items-center mb-1`}>
                       <Text style={tw`text-white/80 text-xs mr-2`}>{rsvp.filter(e => e.decision === 'Going').length} going</Text>
                     </View>

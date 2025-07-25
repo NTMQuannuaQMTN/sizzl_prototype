@@ -58,6 +58,7 @@ export default function EventDetails() {
     const viewLocationAnimation = useAnimatedValue(0);
     const [spec, setSpec] = useState<any[][]>([]);
     const [specView, setSpecView] = useState<number[]>([0, 0, 0, 0]);
+    const [rsvp, setRSVP] = useState<any[]>([]);
 
     const cashSpecAnimation = useAnimatedValue(0);
     const foodSpecAnimation = useAnimatedValue(0);
@@ -151,6 +152,19 @@ export default function EventDetails() {
             setSpec(specs);
         }
         getSpecial();
+    }, [event]);
+
+    useEffect(() => {
+      const getRSVP = async () => {
+        const { data, error } = await supabase
+          .from('guests')
+          .select('decision, users(profile_image)')
+          .eq('event_id', id)
+          .in('decision', ['Going', 'Maybe'])
+  
+        if (!error && data) setRSVP(data);
+      }
+      getRSVP();
     }, [event]);
 
     useEffect(() => {
@@ -556,6 +570,20 @@ export default function EventDetails() {
                             );
                         })}
                     </View>}
+                    <View style={tw`flex-row items-center mb-1 gap-1.5`}>
+                      {rsvp.filter(e => e.decision === "Going").slice(0, 5).map((e, ind) => {
+                        console.log(e);
+                        return <Image key={ind}
+                        source={
+                          e.users.profile_image
+                            ? { uri: e.users.profile_image }
+                            : 
+                            require('@/assets/images/pfp-default2.png')
+                        }
+                        style={{ width: 24, height: 24, borderRadius: 12 }}
+                      />
+                      })}
+                    </View>
                 </View>
                 {/* What's special */}
                 {/* <View style={tw`px-4 mt-2 mb-2`}>
