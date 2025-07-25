@@ -603,7 +603,7 @@ export default function ProfilePage() {
           <Text style={[tw`text-gray-400 mx-1.5 text-[10px]`, { fontFamily: 'Nunito-Medium' }]}>•</Text>
           <TouchableOpacity
             activeOpacity={0.5}
-            onPress={() => router.replace({ pathname: '/(profile)/friendslist', params: { user_id: user_id, relation: (self ? 'Self' : friendStat === 'friend' ? 'Friend' : 'Stranger') } })}
+            onPress={() => router.push({ pathname: '/(profile)/friendslist', params: { user_id: user_id, relation: (self ? 'Self' : friendStat === 'friend' ? 'Friend' : 'Stranger') } })}
           >
             <Text style={[tw`text-gray-400 text-[14px]`, { fontFamily: 'Nunito-Medium' }]}>
               {userView?.friend_count} {userView?.friend_count === 1 || userView?.friend_count === 0 ? 'friend' : 'friends'}
