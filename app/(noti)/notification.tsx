@@ -75,6 +75,8 @@ const NotificationScreen: React.FC = () => {
   const [friendNotifications, setFriendNotifications] = useState<any[]>([]);
   // Placeholder for event notifications
   const [eventNotifications, setEventNotifications] = useState<any[]>([]);
+  // Placeholder for reminder notifications (generated client-side)
+  const [reminderNotifications, setReminderNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
   // Store read notification ids in local state
@@ -105,7 +107,7 @@ const NotificationScreen: React.FC = () => {
     });
   };
 
-  // Fetch both friend and event notifications
+  // Fetch friend, event, and generate reminder notifications
   const fetchNotifications = async () => {
     if (!user?.id) return;
     setLoading(true);
@@ -114,16 +116,76 @@ const NotificationScreen: React.FC = () => {
     // Fetch event RSVP notifications for events hosted by the user
     const eventNotifs = await fetchEventRSVPNotifications(user.id);
     setEventNotifications(eventNotifs);
+
+    // Dynamically generate reminders for events the user is attending as 'Going'
+    // 1. Fetch all guests for this user where decision is 'Going'
+    const { data: guestRows, error: guestError } = await supabase
+      .from('guests')
+      .select('event_id, decision, created_at')
+      .eq('user_id', user.id)
+      .eq('decision', 'Going');
+
+    if (!guestRows || guestRows.length === 0) {
+      setReminderNotifications([]);
+      setLoading(false);
+      return;
+    }
+
+    // 2. Fetch event info for these event_ids
+    const eventIds = guestRows.map(g => g.event_id);
+    const { data: events, error: eventsError } = await supabase
+      .from('events')
+      .select('id, title, start')
+      .in('id', eventIds);
+
+    if (!events || events.length === 0) {
+      setReminderNotifications([]);
+      setLoading(false);
+      return;
+    }
+
+    // 3. For each event, check if now is within 24h or 2h before start_time
+    const now = new Date();
+    const reminders = [];
+    for (const g of guestRows) {
+      const event = events.find(e => e.id === g.event_id);
+      if (!event || !event.start) continue;
+      const start = new Date(event.start);
+      const diffMs = start.getTime() - now.getTime();
+      const diffMins = diffMs / (1000 * 60);
+      console.log(`Diffmins for event ${event.id}:`, diffMins);
+      // 24h reminder: show only if event starts in exactly 24 hours (within ±15 minutes)
+      if (diffMins - 1440 <= 2.5) {
+        reminders.push({
+          type: 'reminder',
+          event_id: event.id,
+          event_title: event.title,
+          created_at: event.start, // or now.toISOString()
+          message: `Quick reminder: your "${event.title}" starts tomorrow!`,
+        });
+      }
+      // 2h reminder: between 1.5h and 2.5h before
+      else if (diffMins <= 120) {
+        reminders.push({
+          type: 'reminder',
+          event_id: event.id,
+          event_title: event.title,
+          created_at: event.start, // or now.toISOString()
+          message: `Your event "${event.title}" will start in two hours!`,
+        });
+      }
+    }
+    setReminderNotifications(reminders);
     setLoading(false);
   };
 
   useEffect(() => {
     fetchNotifications();
-  }, [user?.id]);
+  }, []);
 
-  // Helper to render a notification card (friend or event)
+  // Helper to render a notification card (friend, event, or reminder)
   const renderNotificationCard = (notif: any, idx: number) => {
-    console.log(notif);
+    // Unique id for read state
     const notifId = getNotifId(notif);
     const isRead = readNotifs.includes(notifId);
     // Friend request notification
@@ -188,6 +250,30 @@ const NotificationScreen: React.FC = () => {
               </TouchableOpacity>
             </View>
           )}
+        </View>
+      );
+    }
+    // Reminder notification for guests ("Going")
+    if (notif.type === 'reminder') {
+      const timeString = notif.created_at ? getRelativeTime(notif.created_at) : '';
+      return (
+        <View key={idx} style={tw`${isRead ? 'bg-white/5' : 'bg-[#7A5CFA]/70'} rounded-xl p-4 mb-3`}>
+          <TouchableOpacity
+            activeOpacity={0.5}
+            onPress={() => {
+              if (!isRead) markAsRead(notifId);
+              if (notif.event_id) {
+                router.push({ pathname: '/(event)/event', params: { id: notif.event_id } });
+              }
+            }}
+          >
+            <Text style={{ color: 'white', fontFamily: 'Nunito-ExtraBold', fontSize: 15 }}>
+              {notif.message || `Reminder: Your event${notif.event_title ? ` "${notif.event_title}"` : ''} is coming up!`}
+            </Text>
+            {timeString && (
+              <Text style={[tw`text-gray-400 text-xs mt-2`, { fontFamily: 'Nunito-Regular' }]}>{timeString}</Text>
+            )}
+          </TouchableOpacity>
         </View>
       );
     }
@@ -286,20 +372,28 @@ const NotificationScreen: React.FC = () => {
       </ScrollView>
     );
   } else if (activeTab === 'events') {
-    tabContent = eventNotifications.length === 0 ? (
+    // Show both event RSVP and reminder notifications in the Events tab
+    const allEventNotifs = [
+      ...eventNotifications.map(n => ({ ...n, type: 'event' })),
+      ...reminderNotifications.map(n => ({ ...n, type: 'reminder' })),
+    ];
+    allEventNotifs.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+    tabContent = allEventNotifs.length === 0 ? (
       <View style={tw`flex-1 items-center justify-center -mt-30`}>
         <Text style={[tw`text-white text-[17px]`, { fontFamily: 'Nunito-ExtraBold' }]}>No event notifications yet 🙄</Text>
         <Text style={[tw`text-white text-[15px] mt-0.5`, { fontFamily: 'Nunito-Medium' }]}>Stay tuned for updates!</Text>
       </View>
     ) : (
       <ScrollView contentContainerStyle={tw`px-4 pt-2 pb-8`}>
-        {eventNotifications.map((notif, idx) => renderNotificationCard({ ...notif, type: 'event' }, idx))}
+        {allEventNotifs.map((notif, idx) => renderNotificationCard(notif, idx))}
       </ScrollView>
     );
   } else if (activeTab === 'all') {
+    // Show all notifications (friend, event RSVP, reminders)
     const allNotifications = [
       ...friendNotifications.map(n => ({ ...n, type: 'friend' })),
       ...eventNotifications.map(n => ({ ...n, type: 'event' })),
+      ...reminderNotifications.map(n => ({ ...n, type: 'reminder' })),
     ];
     allNotifications.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
     tabContent = allNotifications.length === 0 ? (

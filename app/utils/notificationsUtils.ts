@@ -6,13 +6,13 @@ export async function fetchEventRSVPNotifications(hostId: string) {
     .select('id')
     .eq('host_id', hostId);
 
-  console.log('[RSVP DEBUG] hostEvents:', hostEvents, 'error:', hostEventsError);
+//   console.log('[RSVP DEBUG] hostEvents:', hostEvents, 'error:', hostEventsError);
   if (hostEventsError || !hostEvents || hostEvents.length === 0) {
     return [];
   }
 
   const eventIds = hostEvents.map(e => e.id);
-  console.log('[RSVP DEBUG] eventIds:', eventIds);
+//   console.log('[RSVP DEBUG] eventIds:', eventIds);
   if (eventIds.length === 0) return [];
 
   // 2. Fetch all guests for these events (excluding the host themselves)
@@ -22,7 +22,7 @@ export async function fetchEventRSVPNotifications(hostId: string) {
     .in('event_id', eventIds)
     .neq('user_id', hostId);
 
-  console.log('[RSVP DEBUG] guests:', guests, 'error:', guestsError);
+//   console.log('[RSVP DEBUG] guests:', guests, 'error:', guestsError);
   if (guestsError || !guests) {
     return [];
   }
@@ -32,7 +32,7 @@ export async function fetchEventRSVPNotifications(hostId: string) {
     .from('events')
     .select('id, title')
     .in('id', eventIds);
-  console.log('[RSVP DEBUG] events:', events, 'error:', eventsError);
+//   console.log('[RSVP DEBUG] events:', events, 'error:', eventsError);
   if (eventsError || !events) {
     return [];
   }
@@ -43,7 +43,7 @@ export async function fetchEventRSVPNotifications(hostId: string) {
     .from('users')
     .select('id, username, profile_image')
     .in('id', guestUserIds);
-  console.log('[RSVP DEBUG] users:', users, 'error:', usersError);
+//   console.log('[RSVP DEBUG] users:', users, 'error:', usersError);
   if (usersError || !users) {
     return [];
   }
@@ -70,12 +70,13 @@ export async function fetchEventRSVPNotifications(hostId: string) {
       message: `@${user?.username || 'Someone'} chooses ${action} to your "${event?.title || ''}" event.`
     };
   });
-  console.log('[RSVP DEBUG] notifications:', notifications);
+//   console.log('[RSVP DEBUG] notifications:', notifications);
   // Sort by created_at desc
   notifications.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   return notifications;
 }
 import { supabase } from '@/utils/supabase';
+
 
 export async function fetchFriendRequestNotifications(userId: string) {
   // Fetch friend requests, include created_at and profile_image
