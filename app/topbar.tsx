@@ -1,9 +1,10 @@
 
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import tw from 'twrnc';
 import FriendsIcon from '../assets/icons/friends-icon.svg';
+import NewNoti from '../assets/icons/newnoti.svg';
 import NotiIcon from '../assets/icons/noti_icon.svg';
 
 export default function TopBar() {
