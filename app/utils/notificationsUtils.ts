@@ -55,7 +55,7 @@ export async function fetchEventRSVPNotifications(hostId: string) {
     let action = '';
     if (g.decision === 'Going') action = 'Going 🥳';
     else if (g.decision === 'Maybe') action = 'Maybe 🤔';
-    else if (g.decision === "Can't go" || g.decision === 'Cant go' || g.decision === "Can't Go") action = "Can't go 😭";
+    else if (g.decision === "Nope" || g.decision === "Can't go" || g.decision === 'Cant go' || g.decision === "Can't Go") action = "Can't go 😭";
     else action = g.decision;
     return {
       type: 'event',

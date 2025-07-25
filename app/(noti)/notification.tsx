@@ -123,6 +123,7 @@ const NotificationScreen: React.FC = () => {
 
   // Helper to render a notification card (friend or event)
   const renderNotificationCard = (notif: any, idx: number) => {
+    console.log(notif);
     const notifId = getNotifId(notif);
     const isRead = readNotifs.includes(notifId);
     // Friend request notification
