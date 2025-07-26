@@ -54,8 +54,9 @@ async function handleCancelRequest(myId: string, friendId: string, refresh: () =
 
 
 const TABS = [
-  { key: 'all', label: 'All notifications' },
+  { key: 'all', label: 'All' },
   { key: 'events', label: 'Events' },
+  { key: 'reminder', label: 'Reminders' },
   { key: 'friend', label: 'Friend requests' },
 ];
 
@@ -64,6 +65,13 @@ const TABS = [
 function getNotifId(notif: any) {
   if (notif.type === 'friend' || notif.user) {
     return `friend_${notif.user_id}_${notif.created_at}`;
+  }
+  if (notif.type === 'reminder') {
+    // Use event_id and reminder window (24h/2h) for stable id
+    let window = 'reminder';
+    if (notif.message && notif.message.toLowerCase().includes('tomorrow')) window = '24h';
+    else if (notif.message && notif.message.toLowerCase().includes('two hours')) window = '2h';
+    return `reminder_${notif.event_id}_${window}`;
   }
   // For event notifications, use event id or created_at
   return `event_${notif.id || ''}_${notif.created_at || ''}`;
@@ -98,11 +106,14 @@ const NotificationScreen: React.FC = () => {
   }, []);
 
   // Helper to mark a notification as read and persist
-  const markAsRead = async (notifId: string) => {
+  const markAsRead = (notifId: string) => {
     setReadNotifs(prev => {
       if (prev.includes(notifId)) return prev;
       const updated = [...prev, notifId];
-      AsyncStorage.setItem(READ_NOTIFS_KEY, JSON.stringify(updated));
+      // Persist after state is set
+      setTimeout(() => {
+        AsyncStorage.setItem(READ_NOTIFS_KEY, JSON.stringify(updated));
+      }, 0);
       return updated;
     });
   };
@@ -156,21 +167,27 @@ const NotificationScreen: React.FC = () => {
       console.log(`Diffmins for event ${event.id}:`, diffMins);
       // 24h reminder: show only if event starts in exactly 24 hours (within ±15 minutes)
       if (diffMins - 1440 <= 2.5) {
+        // Format event start time as e.g. '3:00 PM'
+        const startTime = start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        // Set created_at to event start minus 24h
+        const reminderTime = new Date(start.getTime() - 24 * 60 * 60 * 1000);
         reminders.push({
           type: 'reminder',
           event_id: event.id,
           event_title: event.title,
-          created_at: event.start, // or now.toISOString()
-          message: `Quick reminder: your "${event.title}" starts tomorrow!`,
+          created_at: reminderTime.toISOString(),
+          message: `Quick reminder: your "${event.title}" starts tomorrow at ${startTime}!`,
         });
       }
       // 2h reminder: between 1.5h and 2.5h before
       else if (diffMins <= 120  ) {
+        // Set created_at to event start minus 2h
+        const reminderTime = new Date(start.getTime() - 2 * 60 * 60 * 1000);
         reminders.push({
           type: 'reminder',
           event_id: event.id,
           event_title: event.title,
-          created_at: event.start, // or now.toISOString()
+          created_at: reminderTime.toISOString(),
           message: `Your event "${event.title}" will start in two hours!`,
         });
       }
@@ -256,6 +273,14 @@ const NotificationScreen: React.FC = () => {
     // Reminder notification for guests ("Going")
     if (notif.type === 'reminder') {
       const timeString = notif.created_at ? getRelativeTime(notif.created_at) : '';
+      // Parse message for tomorrow/time
+      let eventTitle = notif.event_title || '';
+      let timeStr = '';
+      if (notif.message && notif.message.includes('at')) {
+        // Extract time from message
+        const match = notif.message.match(/at (.+)!$/);
+        if (match) timeStr = match[1];
+      }
       return (
         <View key={idx} style={tw`${isRead ? 'bg-white/5' : 'bg-[#7A5CFA]/70'} rounded-xl p-4 mb-3`}>
           <TouchableOpacity
@@ -267,8 +292,16 @@ const NotificationScreen: React.FC = () => {
               }
             }}
           >
+            {/* 1st line: Quick reminder */}
             <Text style={{ color: 'white', fontFamily: 'Nunito-ExtraBold', fontSize: 15 }}>
-              {notif.message || `Reminder: Your event${notif.event_title ? ` "${notif.event_title}"` : ''} is coming up!`}
+              Quick reminder
+            </Text>
+            {/* 2nd line: Your {event title} starts tomorrow at {time} */}
+            <Text style={{ color: 'white', fontSize: 15, marginTop: 2 }}>
+              <Text style={{ fontFamily: 'Nunito-Medium' }}>Your </Text>
+              <Text style={{ fontFamily: 'Nunito-ExtraBold' }}>"{eventTitle}"</Text>
+              <Text style={{ fontFamily: 'Nunito-Medium' }}> event starts tomorrow{timeStr ? ' at ' : ''}</Text>
+              {timeStr ? <Text style={{ fontFamily: 'Nunito-ExtraBold' }}>{timeStr}</Text> : null}
             </Text>
             {timeString && (
               <Text style={[tw`text-gray-400 text-xs mt-2`, { fontFamily: 'Nunito-Regular' }]}>{timeString}</Text>
@@ -316,7 +349,7 @@ const NotificationScreen: React.FC = () => {
             <View style={{ flex: 1 }}>
               <Text style={{ color: 'white', fontFamily: 'Nunito-ExtraBold', fontSize: 15 }}>
                 @{notif.guest_username || 'Someone'}{' '}
-                <Text style={{ fontFamily: 'Nunito-Medium' }}>has responded to </Text>
+                <Text style={{ fontFamily: 'Nunito-Medium' }}>has responded to your </Text>
                 <Text style={{ fontFamily: 'Nunito-ExtraBold' }}>
                   {notif.event_title ? `"${notif.event_title}"` : 'an event'}
                 </Text>
@@ -372,20 +405,31 @@ const NotificationScreen: React.FC = () => {
       </ScrollView>
     );
   } else if (activeTab === 'events') {
-    // Show both event RSVP and reminder notifications in the Events tab
-    const allEventNotifs = [
-      ...eventNotifications.map(n => ({ ...n, type: 'event' })),
-      ...reminderNotifications.map(n => ({ ...n, type: 'reminder' })),
-    ];
-    allEventNotifs.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
-    tabContent = allEventNotifs.length === 0 ? (
+    // Show only event RSVP notifications in the Events tab
+    const onlyEventNotifs = eventNotifications.map(n => ({ ...n, type: 'event' }));
+    onlyEventNotifs.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+    tabContent = onlyEventNotifs.length === 0 ? (
       <View style={tw`flex-1 items-center justify-center -mt-30`}>
         <Text style={[tw`text-white text-[17px]`, { fontFamily: 'Nunito-ExtraBold' }]}>No event notifications yet 🙄</Text>
         <Text style={[tw`text-white text-[15px] mt-0.5`, { fontFamily: 'Nunito-Medium' }]}>Stay tuned for updates!</Text>
       </View>
     ) : (
       <ScrollView contentContainerStyle={tw`px-4 pt-2 pb-8`}>
-        {allEventNotifs.map((notif, idx) => renderNotificationCard(notif, idx))}
+        {onlyEventNotifs.map((notif, idx) => renderNotificationCard(notif, idx))}
+      </ScrollView>
+    );
+  } else if (activeTab === 'reminder') {
+    // Show only reminder notifications in the Reminder tab
+    const onlyReminders = reminderNotifications.map(n => ({ ...n, type: 'reminder' }));
+    onlyReminders.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+    tabContent = onlyReminders.length === 0 ? (
+      <View style={tw`flex-1 items-center justify-center -mt-30`}>
+        <Text style={[tw`text-white text-[17px]`, { fontFamily: 'Nunito-ExtraBold' }]}>No reminders yet ⏰</Text>
+        <Text style={[tw`text-white text-[15px] mt-0.5`, { fontFamily: 'Nunito-Medium' }]}>Reminders will show up here before your events!</Text>
+      </View>
+    ) : (
+      <ScrollView contentContainerStyle={tw`px-4 pt-2 pb-8`}>
+        {onlyReminders.map((notif, idx) => renderNotificationCard(notif, idx))}
       </ScrollView>
     );
   } else if (activeTab === 'all') {
