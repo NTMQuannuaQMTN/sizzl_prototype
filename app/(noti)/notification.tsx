@@ -165,7 +165,7 @@ const NotificationScreen: React.FC = () => {
         });
       }
       // 2h reminder: between 1.5h and 2.5h before
-      else if (diffMins <= 120) {
+      else if (diffMins <= 120  ) {
         reminders.push({
           type: 'reminder',
           event_id: event.id,
