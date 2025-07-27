@@ -572,7 +572,8 @@ export default function EventDetails() {
                     </View>}
                     <View style={tw`flex-row w-full justify-between`}>
                         <Text style={[tw`text-[18px] text-white mb-1.5`, { fontFamily: 'Nunito-Bold' }]}>Who's going?</Text>
-                        <TouchableOpacity style={tw`px-2 py-0.5 -mt-0.5 rounded-full border border-white flex justify-center items-center`}>
+                        <TouchableOpacity style={tw`px-2 py-0.5 -mt-0.5 rounded-full border border-white flex justify-center items-center`}
+                        onPress={() => {router.push({pathname: '/(event)/event_guest', params: {id: id}})}}>
                             <Text style={[tw`text-[12px] text-white`, { fontFamily: 'Nunito-Bold' }]}>View</Text>
                         </TouchableOpacity>
                     </View>
@@ -594,41 +595,7 @@ export default function EventDetails() {
                         <Text style={tw`text-white/80 text-xs mr-2`}>{rsvp.filter(e => e.decision === 'Going').length} going - {rsvp.filter(e => e.decision === 'Maybe').length} maybe</Text>
                     </View>
                 </View>
-                {/* What's special */}
-                {/* <View style={tw`px-4 mt-2 mb-2`}>
-                <Text style={[tw`text-white text-base  mb-2`, { fontFamily: 'Nunito-Bold' }]}>What’s special?</Text>
-                <View style={tw`flex-row flex-wrap gap-2`}>
-                    {event.specials.map((s, i) => (
-                        <View key={i} style={tw`${s.color} px-2 py-1 rounded-full mr-2 mb-2`}>
-                            <Text style={[tw`${s.text} text-xs `, { fontFamily: 'Nunito-Bold' }]}>{s.label}</Text>
-                        </View>
-                    ))}
-                </View>
-            </View> */}
-                {/* Who's going */}
-                {/* <View style={tw`px-4 mt-2`}>
-                <View style={tw`flex-row items-center justify-between mb-1`}>
-                    <Text style={[tw`text-white text-base `, { fontFamily: 'Nunito-Bold' }]}>Who’s going?</Text>
-                    <TouchableOpacity>
-                        <Text style={[tw`text-[#7A5CFA] text-sm`, { fontFamily: 'Nunito-Bold' }]}>View</Text>
-                    </TouchableOpacity>
-                </View>
-                <View style={tw`flex-row items-center mt-1`}>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ maxHeight: 40 }}>
-                        {event.attendees.map((a, i) => (
-                            <Image
-                                key={i}
-                                source={a.avatar}
-                                style={{ width: 36, height: 36, borderRadius: 18, marginRight: -10, borderWidth: 2, borderColor: '#181A3A' }}
-                            />
-                        ))}
-                        <View style={tw`w-9 h-9 rounded-full bg-[#23244A] items-center justify-center ml-2`}>
-                            <Text style={[tw`text-white text-xs`, { fontFamily: 'Nunito-Bold' }]}>+{event.going + event.interested - event.attendees.length}</Text>
-                        </View>
-                    </ScrollView>
-                    <Text style={[tw`text-gray-300 text-xs ml-3`, { fontFamily: 'Nunito-Medium' }]}>{event.going} going • {event.interested} interested</Text>
-                </View>
-            </View> */}
+                
                 {/* Decision Modal */}
                 <DecisionModal
                     visible={showDecisionModal}
