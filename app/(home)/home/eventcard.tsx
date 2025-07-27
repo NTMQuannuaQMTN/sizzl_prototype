@@ -331,7 +331,7 @@ export default function EventCard(props: any) {
                       })}
                     </View>
                     <View style={tw`flex-row items-center mb-1`}>
-                      <Text style={tw`text-white/80 text-xs mr-2`}>{rsvp.filter(e => e.decision === 'Going').length} going</Text>
+                      <Text style={tw`text-white/80 text-xs mr-2`}>{rsvp.filter(e => e.decision === 'Going').length} going - {rsvp.filter(e => e.decision === 'Maybe').length} maybe</Text>
                     </View>
                   </View>
                   <View style={tw`absolute bottom-3 right-4 flex-row gap-2.5 items-center`}>

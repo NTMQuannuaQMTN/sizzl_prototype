@@ -155,16 +155,16 @@ export default function EventDetails() {
     }, [event]);
 
     useEffect(() => {
-      const getRSVP = async () => {
-        const { data, error } = await supabase
-          .from('guests')
-          .select('decision, users(profile_image)')
-          .eq('event_id', id)
-          .in('decision', ['Going', 'Maybe'])
-  
-        if (!error && data) setRSVP(data);
-      }
-      getRSVP();
+        const getRSVP = async () => {
+            const { data, error } = await supabase
+                .from('guests')
+                .select('decision, users(profile_image)')
+                .eq('event_id', id)
+                .in('decision', ['Going', 'Maybe'])
+
+            if (!error && data) setRSVP(data);
+        }
+        getRSVP();
     }, [event]);
 
     useEffect(() => {
@@ -570,19 +570,28 @@ export default function EventDetails() {
                             );
                         })}
                     </View>}
+                    <View style={tw`flex-row w-full justify-between`}>
+                        <Text style={[tw`text-[18px] text-white mb-1.5`, { fontFamily: 'Nunito-Bold' }]}>Who's going?</Text>
+                        <TouchableOpacity style={tw`px-2 py-0.5 -mt-0.5 rounded-full border border-white flex justify-center items-center`}>
+                            <Text style={[tw`text-[12px] text-white`, { fontFamily: 'Nunito-Bold' }]}>View</Text>
+                        </TouchableOpacity>
+                    </View>
                     <View style={tw`flex-row items-center mb-1 gap-1.5`}>
-                      {rsvp.filter(e => e.decision === "Going").slice(0, 5).map((e, ind) => {
-                        console.log(e);
-                        return <Image key={ind}
-                        source={
-                          e.users.profile_image
-                            ? { uri: e.users.profile_image }
-                            : 
-                            require('@/assets/images/pfp-default2.png')
-                        }
-                        style={{ width: 24, height: 24, borderRadius: 12 }}
-                      />
-                      })}
+                        {rsvp.filter(e => e.decision === "Going").slice(0, 5).map((e, ind) => {
+                            console.log(e);
+                            return <Image key={ind}
+                                source={
+                                    e.users.profile_image
+                                        ? { uri: e.users.profile_image }
+                                        :
+                                        require('@/assets/images/pfp-default2.png')
+                                }
+                                style={{ width: 24, height: 24, borderRadius: 12 }}
+                            />
+                        })}
+                    </View>
+                    <View style={tw`flex-row items-center mb-1`}>
+                        <Text style={tw`text-white/80 text-xs mr-2`}>{rsvp.filter(e => e.decision === 'Going').length} going - {rsvp.filter(e => e.decision === 'Maybe').length} maybe</Text>
                     </View>
                 </View>
                 {/* What's special */}
