@@ -581,7 +581,7 @@ export default function EventDetails() {
                         })()}
                     </View>}
                     <Text style={[tw`text-[16px] text-white mb-1.5 mt-2`, { fontFamily: 'Nunito-ExtraBold' }]}>What's special?</Text>
-                    {spec.filter(s => s[1] != null && s[1] !== '').length === 0 ? (
+                    {spec.filter(s => s[1] != null).length === 0 ? (
                       <Text style={[tw`text-white text-[14px] mb-4 -mt-0.5`, { fontFamily: 'Nunito-Medium', textAlign: 'left' }]}>Oops, no free food, free merch or prize :(</Text>
                     ) : (
                       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tw`flex-row mb-4 items-center gap-2`}>
