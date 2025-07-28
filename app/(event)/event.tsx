@@ -59,6 +59,7 @@ export default function EventDetails() {
     const [spec, setSpec] = useState<any[][]>([]);
     const [specView, setSpecView] = useState<number[]>([0, 0, 0, 0]);
     const [rsvp, setRSVP] = useState<any[]>([]);
+    const [view, setView] = useState<number>(0);
 
     const cashSpecAnimation = useAnimatedValue(0);
     const foodSpecAnimation = useAnimatedValue(0);
@@ -165,6 +166,18 @@ export default function EventDetails() {
             if (!error && data) setRSVP(data);
         }
         getRSVP();
+    }, [event]);
+
+    useEffect(() => {
+        const getView = async () => {
+            const { data, error } = await supabase
+                .from('eventviews')
+                .select('user_id')
+                .eq('event_id', id)
+
+            if (!error && data) setView(data.length);
+        }
+        getView();
     }, [event]);
 
     useEffect(() => {
@@ -604,15 +617,14 @@ export default function EventDetails() {
                         })}
                       </ScrollView>
                     )}
-                    {(event?.public_list || curStatus === 'Going' || curStatus === 'Host' || curStatus === 'Cohost') && (
-                      <View style={tw`flex-row w-full items-center justify-between`}>
-                        <Text style={[tw`text-[16px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Guest list</Text>
-                        <TouchableOpacity style={tw`px-2 py-0.5 rounded-full border border-white flex justify-center items-center`}
-                          onPress={() => { router.push({ pathname: '/(event)/event_guest', params: { id: id } }) }}>
-                          <Text style={[tw`text-[12px] text-white`, { fontFamily: 'Nunito-Bold' }]}>View</Text>
+                    {(event?.public_list || curStatus === 'Going' || curStatus === 'Host' || curStatus === 'Cohost') && <View style={tw`flex-row w-full justify-between`}>
+                        <Text style={[tw`text-[18px] text-white mb-1.5`, { fontFamily: 'Nunito-Bold' }]}>Who's going?</Text>
+                        <TouchableOpacity style={tw`px-2 py-0.5 -mt-0.5 rounded-full border border-white flex justify-center items-center`}
+                            onPress={() => { router.push({ pathname: '/(event)/event_guest', params: { id: id, hosting: status === 'Cohost' || status === 'Host' ? 'Hosting' : '' } }) }}>
+                            <Text style={[tw`text-[12px] text-white`, { fontFamily: 'Nunito-Bold' }]}>View</Text>
                         </TouchableOpacity>
                       </View>
-                    )}
+                    }
                     {(event?.public_list || curStatus === 'Going' || curStatus === 'Host' || curStatus === 'Cohost') && <View style={tw`flex-row items-center mt-0.5 gap-1.5`}>
                         {rsvp.filter(e => e.decision === "Going").slice(0, 5).map((e, ind) => {
                             console.log(e);
@@ -628,7 +640,7 @@ export default function EventDetails() {
                         })}
                     </View>}
                     {(event?.public_list || curStatus === 'Going' || curStatus === 'Host' || curStatus === 'Cohost') && <View style={tw`flex-row items-center mb-15`}>
-                        <Text style={[tw`text-white text-xs`, { fontFamily: 'Nunito-Medium'}]}>{rsvp.filter(e => e.decision === 'Going').length} going • {rsvp.filter(e => e.decision === 'Maybe').length} maybe</Text>
+                    <Text style={[tw`text-white text-xs mr-2`, { fontFamily: 'Nunito-Medium' }]}>{rsvp.filter(e => e.decision === 'Going').length} going • {(user.id === event?.host_id || cohosts.indexOf(user.id) >= 0) ? `${rsvp.filter(e => e.decision === 'Maybe').length} maybe` : `${rsvp.length + view} interested`}</Text>
                     </View>}
                 </View>
 

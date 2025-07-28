@@ -33,7 +33,7 @@ type EventView = {
 }
 
 export default function EventGuests() {
-    const { id } = useLocalSearchParams();
+    const { id, hosting } = useLocalSearchParams();
     const [event, setEvent] = useState<EventView | null>(null);
     const [rsvp, setRSVP] = useState<any[]>([]);
 
@@ -58,7 +58,7 @@ export default function EventGuests() {
                 .from('guests')
                 .select('decision, user_id, users(profile_image, firstname, lastname, username)')
                 .eq('event_id', id)
-                .in('decision', ['Going', 'Maybe'])
+                .in('decision', (hosting === 'Hosting' ? ['Going', 'Maybe', 'Nope'] : ['Going', 'Maybe']))
 
             if (!error && data) setRSVP(data);
         }
@@ -118,14 +118,44 @@ export default function EventGuests() {
                     <ScrollView style={tw`mt-2 w-full h-full gap-2`}>
                         {rsvp.filter(e => e.decision === 'Going').map((e, ind) => {
                             return <TouchableOpacity key={ind} style={[tw`flex-row px-3 py-1.5 bg-white bg-opacity-30 rounded-lg items-center gap-x-2 border border-white`]}
-                            onPress={() => router.push({pathname: '/(profile)/profile', params: {user_id: e.user_id}})}>
+                                onPress={() => router.push({ pathname: '/(profile)/profile', params: { user_id: e.user_id } })}>
                                 <Image source={{ uri: e.users.profile_image }} width={30} height={30} style={tw`rounded-full`} />
                                 <View>
                                     <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>{e.users.firstname} {e.users.lastname}</Text>
                                     <Text style={[tw`text-white text-[12px]`, { fontFamily: 'Nunito-Bold' }]}>@{e.users.username}</Text>
                                 </View>
                                 <View style={tw`flex-1`} />
-                                <View style={tw`rounded-full px-2 py-1 ${e.decision === 'Going' ? 'bg-green-600' : 'bg-yellow-600'}`}>
+                                <View style={tw`rounded-full px-2 py-1 bg-green-600`}>
+                                    <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>{e.decision.toUpperCase()}</Text>
+                                </View>
+                            </TouchableOpacity>
+                        })}
+
+                        {rsvp.filter(e => e.decision === 'Maybe').map((e, ind) => {
+                            return <TouchableOpacity key={ind} style={[tw`flex-row px-3 py-1.5 bg-white bg-opacity-30 rounded-lg items-center gap-x-2 border border-white`]}
+                                onPress={() => router.push({ pathname: '/(profile)/profile', params: { user_id: e.user_id } })}>
+                                <Image source={{ uri: e.users.profile_image }} width={30} height={30} style={tw`rounded-full`} />
+                                <View>
+                                    <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>{e.users.firstname} {e.users.lastname}</Text>
+                                    <Text style={[tw`text-white text-[12px]`, { fontFamily: 'Nunito-Bold' }]}>@{e.users.username}</Text>
+                                </View>
+                                <View style={tw`flex-1`} />
+                                <View style={tw`rounded-full px-2 py-1 bg-yellow-600`}>
+                                    <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>{e.decision.toUpperCase()}</Text>
+                                </View>
+                            </TouchableOpacity>
+                        })}
+
+                        {rsvp.filter(e => e.decision === 'Nope').map((e, ind) => {
+                            return <TouchableOpacity key={ind} style={[tw`flex-row px-3 py-1.5 bg-white bg-opacity-30 rounded-lg items-center gap-x-2 border border-white`]}
+                                onPress={() => router.push({ pathname: '/(profile)/profile', params: { user_id: e.user_id } })}>
+                                <Image source={{ uri: e.users.profile_image }} width={30} height={30} style={tw`rounded-full`} />
+                                <View>
+                                    <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>{e.users.firstname} {e.users.lastname}</Text>
+                                    <Text style={[tw`text-white text-[12px]`, { fontFamily: 'Nunito-Bold' }]}>@{e.users.username}</Text>
+                                </View>
+                                <View style={tw`flex-1`} />
+                                <View style={tw`rounded-full px-2 py-1 bg-rose-600`}>
                                     <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>{e.decision.toUpperCase()}</Text>
                                 </View>
                             </TouchableOpacity>
