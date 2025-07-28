@@ -617,14 +617,15 @@ export default function EventDetails() {
                         })}
                       </ScrollView>
                     )}
-                    {(event?.public_list || curStatus === 'Going' || curStatus === 'Host' || curStatus === 'Cohost') && <View style={tw`flex-row w-full justify-between`}>
-                        <Text style={[tw`text-[18px] text-white mb-1.5`, { fontFamily: 'Nunito-Bold' }]}>Who's going?</Text>
-                        <TouchableOpacity style={tw`px-2 py-0.5 -mt-0.5 rounded-full border border-white flex justify-center items-center`}
-                            onPress={() => { router.push({ pathname: '/(event)/event_guest', params: { id: id, hosting: status === 'Cohost' || status === 'Host' ? 'Hosting' : '' } }) }}>
-                            <Text style={[tw`text-[12px] text-white`, { fontFamily: 'Nunito-Bold' }]}>View</Text>
+                    {(event?.public_list || curStatus === 'Going' || curStatus === 'Host' || curStatus === 'Cohost') && (
+                      <View style={tw`flex-row w-full items-center justify-between`}>
+                        <Text style={[tw`text-[16px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Who's going?</Text>
+                        <TouchableOpacity style={tw`px-2 py-0.5 rounded-full border border-white flex justify-center items-center`}
+                          onPress={() => { router.push({ pathname: '/(event)/event_guest', params: { id: id, hosting: status === 'Cohost' || status === 'Host' ? 'Hosting' : '' } }) }}>
+                          <Text style={[tw`text-[12px] text-white`, { fontFamily: 'Nunito-Bold' }]}>View guests</Text>
                         </TouchableOpacity>
                       </View>
-                    }
+                    )}
                     {(event?.public_list || curStatus === 'Going' || curStatus === 'Host' || curStatus === 'Cohost') && <View style={tw`flex-row items-center mt-0.5 gap-1.5`}>
                         {rsvp.filter(e => e.decision === "Going").slice(0, 5).map((e, ind) => {
                             console.log(e);
