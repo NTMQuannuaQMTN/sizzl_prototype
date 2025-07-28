@@ -16,8 +16,8 @@ import Public from '../../assets/icons/public.svg';
 import ThreeDots from '../../assets/icons/threedots.svg';
 
 import { Ionicons } from '@expo/vector-icons';
-import SpecModal from '../(home)/home/specModal';
 import { useUserStore } from '../store/userStore';
+import DraggableSpecModal from './DraggableSpecModal';
 
 type EventView = {
     id: string;
@@ -441,16 +441,16 @@ export default function EventDetails() {
                     })()}
                 </View>
                 {/* Host and Description */}
-                <View style={tw`px-4 mt-1 mb-2`}>
-                    <View style={tw`flex-row items-center mb-1.5`}>
+                <View style={tw`px-4 mt-0.5 mb-2`}>
+                    <View style={tw`flex-row items-center mb-1`}>
                         <Host width={12} height={12} style={tw`mr-2`} />
-                        <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>Hosted by </Text>
+                        <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Hosted by </Text>
                         <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>{hostWC.host}</Text>
                     </View>
                     <ScrollView
                         horizontal
                         showsHorizontalScrollIndicator={false}
-                        contentContainerStyle={tw`flex-row items-center mb-1.5 gap-1.5`}
+                        contentContainerStyle={tw`flex-row items-center mb-3 gap-1.5`}
                     >
                         {cohosts.map((cohost, idx) => {
                             return (
@@ -472,25 +472,48 @@ export default function EventDetails() {
                     <View style={tw`flex-row mb-1.5 items-center gap-2`}>
                         <Location width={12} height={12} style={tw``} />
                         {event?.rsvpfirst && curStatus === 'Not RSVP' ?
-                            <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>RSVP to see details</Text>
+                            <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>RSVP to see details</Text>
                             : <TouchableOpacity style={tw`flex-row items-center justify-center`} onPress={() => setViewLocation(1 - viewLocation)}>
-                                <Text style={[tw`text-white text-[15px] max-w-72`, { fontFamily: 'Nunito-Bold' }]}>{event?.location_name}</Text>
-                                {(event?.location_add !== event?.location_name || event?.location_more || event?.location_note) && <Animated.View style={{ transform: [{ rotate: viewLocationRotate }] }}>
-                                    <Ionicons name="chevron-forward" size={16} color="#fff" style={tw`ml-1 mt-0.5`} />
-                                </Animated.View>}
-                            </TouchableOpacity>}
+                                <Text style={[tw`text-white text-[15px] max-w-72`, { fontFamily: 'Nunito-ExtraBold' }]}>{event?.location_name}</Text>
+                                {(event?.location_add !== event?.location_name || event?.location_more || event?.location_note) && (
+                                  <Animated.View style={{ marginLeft: 8, transform: [{ rotate: viewLocationAnimation.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '90deg'] }) }] }}>
+                                    <Ionicons
+                                      name="chevron-forward"
+                                      size={14}
+                                      color="#fff"
+                                    />
+                                  </Animated.View>
+                                )}
+                              </TouchableOpacity>}
                     </View>
-                    {viewLocation === 1 && <Animated.View style={[tw`h-fit w-fit overflow-hidden`]}>
-                        <View style={[tw`w-80 px-4 gap-1 py-2 bg-white rounded-md`]}>
-                            {event?.location_add && event?.location_add !== event?.location_name && <Text style={[tw`text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>Address: {event.location_add}</Text>}
-                            {event?.location_more && <Text style={[tw`text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>Address: {event.location_more}</Text>}
-                            {event?.location_note && <Text style={[tw`text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>Note: {event.location_note}</Text>}
+                    {viewLocation === 1 && <Animated.View style={[tw`h-fit overflow-hidden`]}>
+                        <View style={[tw`px-4 ml-4 gap-1.5 mb-2 py-2 bg-white/10 rounded-lg border border-white/20`]}>
+                          {event?.location_add && event?.location_add !== event?.location_name && (
+                            <View style={tw`mb-1`}>
+                              <Text style={[tw`text-[15px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Address</Text>
+                              <Text style={[tw`text-[14px] text-white`, { fontFamily: 'Nunito-Medium' }]}>{event.location_add}</Text>
+                            </View>
+                          )}
+                          {event?.location_more && (
+                            <View style={tw`mb-1`}>
+                              <Text style={[tw`text-[15px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Apt / Suite / Floor</Text>
+                              <Text style={[tw`text-[14px] text-white`, { fontFamily: 'Nunito-Medium' }]}>{event.location_more}</Text>
+                            </View>
+                          )}
+                          {event?.location_note && (
+                            <View style={tw`mb-1`}>
+                              <Text style={[tw`text-[15px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Further notes</Text>
+                              <Text style={[tw`text-[14px] text-white`, { fontFamily: 'Nunito-Medium' }]}>{event.location_note}</Text>
+                            </View>
+                          )}
                         </View>
                     </Animated.View>}
-                    <View style={tw`flex-row mb-1.5 items-center gap-2`}>
-                        {event?.bio && <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>{event.bio}</Text>}
-                    </View>
-                    {event?.rsvp_deadline && <View style={tw`flex-row mb-1.5 items-center gap-2`}>
+                    {event?.bio ? (
+                      <View style={tw`flex-row mt-2.5 mb-2 items-center gap-2`}>
+                        <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Medium' }]}>{event.bio}</Text>
+                      </View>
+                    ) : null}
+                    {event?.rsvp_deadline && <View style={tw`flex-row mt-2 mb-3 items-center gap-2`}>
                         <Deadline width={12} height={12}></Deadline>
                         {event?.rsvp_deadline && (() => {
                             const deadline = new Date(event.rsvp_deadline);
@@ -504,72 +527,60 @@ export default function EventDetails() {
                             );
                             if (daysLeft > 0) {
                                 return (
-                                    <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>
+                                    <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>
                                         {daysLeft} day{daysLeft !== 1 ? 's' : ''} left to RSVP
                                     </Text>
                                 );
                             } else if (daysLeft === 0) {
                                 return (
-                                    <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>
+                                    <Text style={[tw`text-rose-500 text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>
                                         RSVP closes today
                                     </Text>
                                 );
                             } else {
                                 return (
-                                    <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>
+                                    <Text style={[tw`text-gray-400 text-[15px]`, { fontFamily: 'Nunito-Bold' }]}>
                                         RSVP has closed :(
                                     </Text>
                                 );
                             }
                         })()}
                     </View>}
-                    {spec.length !== 0 && <Text style={[tw`text-[18px] text-white mb-1.5`, { fontFamily: 'Nunito-Bold' }]}>What's special?</Text>}
-                    {spec.length !== 0 && <View style={tw`flex-row mb-1.5 items-center gap-2`}>
+                    {spec.length !== 0 && <Text style={[tw`text-[16px] text-white mb-1.5 mt-2`, { fontFamily: 'Nunito-ExtraBold' }]}>What's special?</Text>}
+                    {spec.length !== 0 && 
+                      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tw`flex-row mb-1.5 items-center gap-2`}>
                         {spec.map((s, ind) => {
-                            if (s[1] == null) return;
-                            // s[0] is a string, but specCol only allows certain keys
-                            // So we need to assert s[0] is a valid key of specCol
-                            const key = s[0] as keyof typeof specCol;
-                            return (
-                                <TouchableOpacity
-                                    key={ind}
-                                    style={tw`${specCol[key]} flex-row gap-1 px-2 py-1 rounded-full mr-1.5`}
-                                    onPress={() => {
-                                        setSpecView(prev => {
-                                            const newArr = [...prev];
-                                            newArr[ind] = prev[ind] === 1 ? 0 : 1;
-                                            console.log(newArr);
-                                            return newArr;
-                                        });
-                                    }}
-                                >
-                                    <Text style={[tw`text-xs text-black`, { fontFamily: 'Nunito-ExtraBold' }]}>{s[0]}</Text>
-                                    {s[1] !== '' &&
-                                        <Animated.View
-                                            style={{
-                                                transform: [
-                                                    {
-                                                        rotate:
-                                                            s[0] === '💸 Cash prize'
-                                                                ? cashRotate
-                                                                : s[0] === '🍕 Free food'
-                                                                    ? foodRotate
-                                                                    : s[0] === '👕 Free merch'
-                                                                        ? merchRotate
-                                                                        : coolRotate
-                                                    }
-                                                ]
-                                            }}>
-                                            <Ionicons
-                                                name="chevron-down"
-                                                size={16}
-                                                color="#000"
-                                            />
-                                        </Animated.View>}
-                                </TouchableOpacity>
-                            );
+                          if (s[1] == null) return null;
+                          const key = s[0] as keyof typeof specCol;
+                          return (
+                            <TouchableOpacity
+                              key={ind}
+                              style={tw`${specCol[key]} flex-row gap-1 px-2 py-1 rounded-full`}
+                              onPress={() => {
+                                setSpecView(prev => {
+                                  const newArr = [...prev];
+                                  newArr[ind] = prev[ind] === 1 ? 0 : 1;
+                                  console.log(newArr);
+                                  return newArr;
+                                });
+                              }}
+                            >
+                              <View style={tw`flex-row items-center`}>
+                                <Text style={[tw`text-[13px] text-black -mt-0.5`, { fontFamily: 'Nunito-ExtraBold' }]}>{s[0]}</Text>
+                                {s[1] !== '' &&
+                                  <Ionicons
+                                    name="chevron-down"
+                                    size={12}
+                                    color="#000"
+                                    style={tw`ml-1 self-center mt-0.5`}
+                                  />
+                                }
+                              </View>
+                            </TouchableOpacity>
+                          );
                         })}
-                    </View>}
+                      </ScrollView>
+                    }
                     <View style={tw`flex-row w-full justify-between`}>
                         <Text style={[tw`text-[18px] text-white mb-1.5`, { fontFamily: 'Nunito-Bold' }]}>Who's going?</Text>
                         <TouchableOpacity style={tw`px-2 py-0.5 -mt-0.5 rounded-full border border-white flex justify-center items-center`}
@@ -604,7 +615,7 @@ export default function EventDetails() {
                     maybe={!!event?.maybe}
                     onSelect={(dec) => { handleDecisionSelect(dec); }}
                 />
-                <SpecModal
+                <DraggableSpecModal
                     visible={specView.indexOf(1) >= 0}
                     color={specView.indexOf(1) >= 0 ? Object.values(specCol)[specView.indexOf(1)] : '#000000'}
                     title={specView.indexOf(1) >= 0 ? spec[specView.indexOf(1)][0] : ''}
