@@ -221,12 +221,10 @@ export default function EventDetails() {
             if (status !== '') {
                 return;
             }
-            console.log('www');
-            const {data, error} = await supabase.from('guests')
-            .select('decision').eq('event_id', id).eq('user_id', user.id).single();
-            if (error) {setStatus('Not RSVP')}
-            else {setStatus(data.decision);}
-            console.log(data?.decision);
+            const { data, error } = await supabase.from('guests')
+                .select('decision').eq('event_id', id).eq('user_id', user.id).single();
+            if (error) { setStatus('Not RSVP') }
+            else { setStatus(data.decision); }
         }
         getDecision();
     }, [event])
@@ -261,8 +259,6 @@ export default function EventDetails() {
             if (error) {
                 console.log('Add error');
                 return;
-            } else {
-                console.log('okay');
             }
         }
         setShowDecisionModal(false);
@@ -504,42 +500,42 @@ export default function EventDetails() {
                             : <TouchableOpacity style={tw`flex-row items-center justify-center`} onPress={() => setViewLocation(1 - viewLocation)}>
                                 <Text style={[tw`text-white text-[15px] max-w-72`, { fontFamily: 'Nunito-ExtraBold' }]}>{event?.location_name}</Text>
                                 {(event?.location_add !== event?.location_name || event?.location_more || event?.location_note) && (
-                                  <Animated.View style={{ marginLeft: 8, transform: [{ rotate: viewLocationAnimation.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '90deg'] }) }] }}>
-                                    <Ionicons
-                                      name="chevron-forward"
-                                      size={14}
-                                      color="#fff"
-                                    />
-                                  </Animated.View>
+                                    <Animated.View style={{ marginLeft: 8, transform: [{ rotate: viewLocationAnimation.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '90deg'] }) }] }}>
+                                        <Ionicons
+                                            name="chevron-forward"
+                                            size={14}
+                                            color="#fff"
+                                        />
+                                    </Animated.View>
                                 )}
-                              </TouchableOpacity>}
+                            </TouchableOpacity>}
                     </View>
                     {viewLocation === 1 && <Animated.View style={[tw`h-fit overflow-hidden`]}>
                         <View style={[tw`px-4 ml-4 gap-1.5 mb-2 py-2 bg-white/10 rounded-lg border border-white/20`]}>
-                          {event?.location_add && event?.location_add !== event?.location_name && (
-                            <View style={tw`mb-1`}>
-                              <Text style={[tw`text-[15px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Address</Text>
-                              <Text style={[tw`text-[14px] text-white`, { fontFamily: 'Nunito-Medium' }]}>{event.location_add}</Text>
-                            </View>
-                          )}
-                          {event?.location_more && (
-                            <View style={tw`mb-1`}>
-                              <Text style={[tw`text-[15px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Apt / Suite / Floor</Text>
-                              <Text style={[tw`text-[14px] text-white`, { fontFamily: 'Nunito-Medium' }]}>{event.location_more}</Text>
-                            </View>
-                          )}
-                          {event?.location_note && (
-                            <View style={tw`mb-1`}>
-                              <Text style={[tw`text-[15px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Further notes</Text>
-                              <Text style={[tw`text-[14px] text-white`, { fontFamily: 'Nunito-Medium' }]}>{event.location_note}</Text>
-                            </View>
-                          )}
+                            {event?.location_add && event?.location_add !== event?.location_name && (
+                                <View style={tw`mb-1`}>
+                                    <Text style={[tw`text-[15px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Address</Text>
+                                    <Text style={[tw`text-[14px] text-white`, { fontFamily: 'Nunito-Medium' }]}>{event.location_add}</Text>
+                                </View>
+                            )}
+                            {event?.location_more && (
+                                <View style={tw`mb-1`}>
+                                    <Text style={[tw`text-[15px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Apt / Suite / Floor</Text>
+                                    <Text style={[tw`text-[14px] text-white`, { fontFamily: 'Nunito-Medium' }]}>{event.location_more}</Text>
+                                </View>
+                            )}
+                            {event?.location_note && (
+                                <View style={tw`mb-1`}>
+                                    <Text style={[tw`text-[15px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Further notes</Text>
+                                    <Text style={[tw`text-[14px] text-white`, { fontFamily: 'Nunito-Medium' }]}>{event.location_note}</Text>
+                                </View>
+                            )}
                         </View>
                     </Animated.View>}
                     {event?.bio ? (
-                      <View style={tw`flex-row mt-2.5 mb-2 items-center gap-2`}>
-                        <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Medium' }]}>{event.bio}</Text>
-                      </View>
+                        <View style={tw`flex-row mt-2.5 mb-2 items-center gap-2`}>
+                            <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Medium' }]}>{event.bio}</Text>
+                        </View>
                     ) : null}
                     {event?.rsvp_deadline && <View style={tw`flex-row mt-2 mb-3 items-center gap-2`}>
                         <Deadline width={12} height={12}></Deadline>
@@ -575,39 +571,38 @@ export default function EventDetails() {
                         })()}
                     </View>}
                     {spec.length !== 0 && <Text style={[tw`text-[16px] text-white mb-1.5 mt-2`, { fontFamily: 'Nunito-ExtraBold' }]}>What's special?</Text>}
-                    {spec.length !== 0 && 
-                      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tw`flex-row mb-1.5 items-center gap-2`}>
-                        {spec.map((s, ind) => {
-                          if (s[1] == null) return null;
-                          const key = s[0] as keyof typeof specCol;
-                          return (
-                            <TouchableOpacity
-                              key={ind}
-                              style={tw`${specCol[key]} flex-row gap-1 px-2 py-1 rounded-full`}
-                              onPress={() => {
-                                setSpecView(prev => {
-                                  const newArr = [...prev];
-                                  newArr[ind] = prev[ind] === 1 ? 0 : 1;
-                                  console.log(newArr);
-                                  return newArr;
-                                });
-                              }}
-                            >
-                              <View style={tw`flex-row items-center`}>
-                                <Text style={[tw`text-[13px] text-black -mt-0.5`, { fontFamily: 'Nunito-ExtraBold' }]}>{s[0]}</Text>
-                                {s[1] !== '' &&
-                                  <Ionicons
-                                    name="chevron-down"
-                                    size={12}
-                                    color="#000"
-                                    style={tw`ml-1 self-center mt-0.5`}
-                                  />
-                                }
-                              </View>
-                            </TouchableOpacity>
-                          );
-                        })}
-                      </ScrollView>
+                    {spec.length !== 0 &&
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tw`flex-row mb-1.5 items-center gap-2`}>
+                            {spec.map((s, ind) => {
+                                if (s[1] == null) return null;
+                                const key = s[0] as keyof typeof specCol;
+                                return (
+                                    <TouchableOpacity
+                                        key={ind}
+                                        style={tw`${specCol[key]} flex-row gap-1 px-2 py-1 rounded-full`}
+                                        onPress={() => {
+                                            setSpecView(prev => {
+                                                const newArr = [...prev];
+                                                newArr[ind] = prev[ind] === 1 ? 0 : 1;
+                                                return newArr;
+                                            });
+                                        }}
+                                    >
+                                        <View style={tw`flex-row items-center`}>
+                                            <Text style={[tw`text-[13px] text-black -mt-0.5`, { fontFamily: 'Nunito-ExtraBold' }]}>{s[0]}</Text>
+                                            {s[1] !== '' &&
+                                                <Ionicons
+                                                    name="chevron-down"
+                                                    size={12}
+                                                    color="#000"
+                                                    style={tw`ml-1 self-center mt-0.5`}
+                                                />
+                                            }
+                                        </View>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </ScrollView>
                     }
                     {(event?.public_list || curStatus === 'Going' || curStatus === 'Host' || curStatus === 'Cohost') && <View style={tw`flex-row w-full justify-between`}>
                         <Text style={[tw`text-[18px] text-white mb-1.5`, { fontFamily: 'Nunito-Bold' }]}>Who's going?</Text>
@@ -618,7 +613,6 @@ export default function EventDetails() {
                     </View>}
                     {(event?.public_list || curStatus === 'Going' || curStatus === 'Host' || curStatus === 'Cohost') && <View style={tw`flex-row items-center mb-1 gap-1.5`}>
                         {rsvp.filter(e => e.decision === "Going").slice(0, 5).map((e, ind) => {
-                            console.log(e);
                             return <Image key={ind}
                                 source={
                                     e.users.profile_image
@@ -631,7 +625,7 @@ export default function EventDetails() {
                         })}
                     </View>}
                     {(event?.public_list || curStatus === 'Going' || curStatus === 'Host' || curStatus === 'Cohost') && <View style={tw`flex-row items-center mb-1`}>
-                    <Text style={[tw`text-white text-xs mr-2`, { fontFamily: 'Nunito-Medium' }]}>{rsvp.filter(e => e.decision === 'Going').length} going • {(user.id === event?.host_id || cohosts.indexOf(user.id) >= 0) ? `${rsvp.filter(e => e.decision === 'Maybe').length} maybe` : `${rsvp.length + view} interested`}</Text>
+                        <Text style={[tw`text-white text-xs mr-2`, { fontFamily: 'Nunito-Medium' }]}>{rsvp.filter(e => e.decision === 'Going').length} going • {(user.id === event?.host_id || cohosts.indexOf(user.id) >= 0) ? `${rsvp.filter(e => e.decision === 'Maybe').length} maybe` : `${rsvp.length + view} interested`}</Text>
                     </View>}
                 </View>
 
