@@ -59,6 +59,7 @@ export default function EventDetails() {
     const [spec, setSpec] = useState<any[][]>([]);
     const [specView, setSpecView] = useState<number[]>([0, 0, 0, 0]);
     const [rsvp, setRSVP] = useState<any[]>([]);
+    const [view, setView] = useState<number>(0);
 
     const cashSpecAnimation = useAnimatedValue(0);
     const foodSpecAnimation = useAnimatedValue(0);
@@ -165,6 +166,18 @@ export default function EventDetails() {
             if (!error && data) setRSVP(data);
         }
         getRSVP();
+    }, [event]);
+
+    useEffect(() => {
+        const getView = async () => {
+            const { data, error } = await supabase
+                .from('eventviews')
+                .select('user_id')
+                .eq('event_id', id)
+
+            if (!error && data) setView(data.length);
+        }
+        getView();
     }, [event]);
 
     useEffect(() => {
@@ -618,7 +631,7 @@ export default function EventDetails() {
                         })}
                     </View>}
                     {(event?.public_list || curStatus === 'Going' || curStatus === 'Host' || curStatus === 'Cohost') && <View style={tw`flex-row items-center mb-1`}>
-                        <Text style={tw`text-white/80 text-xs mr-2`}>{rsvp.filter(e => e.decision === 'Going').length} going - {rsvp.filter(e => e.decision === 'Maybe').length} maybe</Text>
+                    <Text style={[tw`text-white text-xs mr-2`, { fontFamily: 'Nunito-Medium' }]}>{rsvp.filter(e => e.decision === 'Going').length} going • {(user.id === event?.host_id || cohosts.indexOf(user.id) >= 0) ? `${rsvp.filter(e => e.decision === 'Maybe').length} maybe` : `${rsvp.length + view} interested`}</Text>
                     </View>}
                 </View>
 

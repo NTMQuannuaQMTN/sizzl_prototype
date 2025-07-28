@@ -134,10 +134,10 @@ export default function CreatePage() {
             coolPrize: data.cool_prize || '',
           });
           setSpecialBox({
-            cash: !!data.cash_prize,
-            food: !!data.free_food,
-            merch: !!data.free_merch,
-            coolPrize: !!data.cool_prize,
+            cash: data.cash_prize != null ? true : false,
+            food: data.free_food != null ? true : false,
+            merch: data.free_merch != null ? true : false,
+            coolPrize: data.cool_prize != null ? true : false,
           });
           setDate(prev => ({
             ...prev,
