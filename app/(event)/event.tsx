@@ -612,7 +612,7 @@ export default function EventDetails() {
                     {(event?.public_list || curStatus === 'Going' || curStatus === 'Host' || curStatus === 'Cohost') && <View style={tw`flex-row w-full justify-between`}>
                         <Text style={[tw`text-[18px] text-white mb-1.5`, { fontFamily: 'Nunito-Bold' }]}>Who's going?</Text>
                         <TouchableOpacity style={tw`px-2 py-0.5 -mt-0.5 rounded-full border border-white flex justify-center items-center`}
-                            onPress={() => { router.push({ pathname: '/(event)/event_guest', params: { id: id } }) }}>
+                            onPress={() => { router.push({ pathname: '/(event)/event_guest', params: { id: id, hosting: status === 'Cohost' || status === 'Host' ? 'Hosting' : '' } }) }}>
                             <Text style={[tw`text-[12px] text-white`, { fontFamily: 'Nunito-Bold' }]}>View</Text>
                         </TouchableOpacity>
                     </View>}
