@@ -203,6 +203,21 @@ export default function EventDetails() {
         getHost();
     }, [event]);
 
+    useEffect(() => {
+        const getDecision = async () => {
+            if (status !== '') {
+                return;
+            }
+            console.log('www');
+            const {data, error} = await supabase.from('guests')
+            .select('decision').eq('event_id', id).eq('user_id', user.id).single();
+            if (error) {setStatus('Not RSVP')}
+            else {setStatus(data.decision);}
+            console.log(data?.decision);
+        }
+        getDecision();
+    }, [event])
+
     const handleDecisionSelect = async (d: string) => {
         if (d === 'Not RSVP') {
             setStatus('Not RSVP');
@@ -581,14 +596,14 @@ export default function EventDetails() {
                         })}
                       </ScrollView>
                     }
-                    <View style={tw`flex-row w-full justify-between`}>
+                    {(event?.public_list || curStatus === 'Going' || curStatus === 'Host' || curStatus === 'Cohost') && <View style={tw`flex-row w-full justify-between`}>
                         <Text style={[tw`text-[18px] text-white mb-1.5`, { fontFamily: 'Nunito-Bold' }]}>Who's going?</Text>
                         <TouchableOpacity style={tw`px-2 py-0.5 -mt-0.5 rounded-full border border-white flex justify-center items-center`}
-                        onPress={() => {router.push({pathname: '/(event)/event_guest', params: {id: id}})}}>
+                            onPress={() => { router.push({ pathname: '/(event)/event_guest', params: { id: id } }) }}>
                             <Text style={[tw`text-[12px] text-white`, { fontFamily: 'Nunito-Bold' }]}>View</Text>
                         </TouchableOpacity>
-                    </View>
-                    <View style={tw`flex-row items-center mb-1 gap-1.5`}>
+                    </View>}
+                    {(event?.public_list || curStatus === 'Going' || curStatus === 'Host' || curStatus === 'Cohost') && <View style={tw`flex-row items-center mb-1 gap-1.5`}>
                         {rsvp.filter(e => e.decision === "Going").slice(0, 5).map((e, ind) => {
                             console.log(e);
                             return <Image key={ind}
@@ -601,12 +616,12 @@ export default function EventDetails() {
                                 style={{ width: 24, height: 24, borderRadius: 12 }}
                             />
                         })}
-                    </View>
-                    <View style={tw`flex-row items-center mb-1`}>
+                    </View>}
+                    {(event?.public_list || curStatus === 'Going' || curStatus === 'Host' || curStatus === 'Cohost') && <View style={tw`flex-row items-center mb-1`}>
                         <Text style={tw`text-white/80 text-xs mr-2`}>{rsvp.filter(e => e.decision === 'Going').length} going - {rsvp.filter(e => e.decision === 'Maybe').length} maybe</Text>
-                    </View>
+                    </View>}
                 </View>
-                
+
                 {/* Decision Modal */}
                 <DecisionModal
                     visible={showDecisionModal}
