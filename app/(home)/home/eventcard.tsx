@@ -213,8 +213,8 @@ export default function EventCard(props: any) {
                   {/* Card Content */}
                   <View style={tw`pt-1.5`}>
                     <Text style={[
-                      (!('done' in props.event) || props.event.done) ? tw`text-white text-[22px] leading-[1.25]` :
-                        (!props.event.title || props.event.title.trim() === '' ? tw`text-gray-400 text-[22px] mb-1` : tw`text-white text-[22px] mb-1`),
+                      (!('done' in props.event) || props.event.done) ? tw`text-white text-[22px] leading-[1.25] mb-0.5` :
+                        (!props.event.title || props.event.title.trim() === '' ? tw`text-gray-400 text-[22px]` : tw`text-white text-[22px]`),
                       { fontFamily: 'Nunito-ExtraBold' }
                     ]}>
                       {(!('done' in props.event) || props.event.done)
@@ -241,7 +241,7 @@ export default function EventCard(props: any) {
                         <Text style={[tw`text-white text-[10px] ml-1.5`, { fontFamily: 'Nunito-Medium' }]}>+{hostWC.count - 1}</Text>
                       )}
                     </View>
-                    <View style={tw`flex-row items-center mb-1`}>
+                    <View style={tw`flex-row items-center mb-1.5`}>
                       {/* Clock icon instead of dot */}
                       <ClockWhite width={12} height={12} style={tw`mr-1`} />
                       <Text style={[
@@ -301,10 +301,10 @@ export default function EventCard(props: any) {
                         })()}
                       </Text>
                     </View>
-                    <View style={tw`flex-row items-center mb-1.5 pr-4`}>
+                    <View style={tw`flex-row items-center mb-2`}>
                       <LocationWhite width={14} height={14} style={tw`-ml-0.25 mr-1.7`} />
                       <Text
-                        style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-Bold' }]}
+                        style={[tw`text-white text-[14px] ml-0.2`, { fontFamily: 'Nunito-Bold' }]}
                         numberOfLines={1}
                         ellipsizeMode="tail"
                       >
@@ -326,12 +326,12 @@ export default function EventCard(props: any) {
                             : 
                             require('@/assets/images/pfp-default2.png')
                         }
-                        style={{ width: 24, height: 24, borderRadius: 12 }}
+                        style={{ width: 22, height: 22, borderRadius: 12 }}
                       />
                       })}
                     </View>
                     <View style={tw`flex-row items-center mb-1`}>
-                      <Text style={tw`text-white/80 text-xs mr-2`}>{rsvp.filter(e => e.decision === 'Going').length} going - {rsvp.filter(e => e.decision === 'Maybe').length} maybe</Text>
+                      <Text style={[tw`text-white text-xs mr-2`, { fontFamily: 'Nunito-Medium' }]}>{rsvp.filter(e => e.decision === 'Going').length} going • {rsvp.filter(e => e.decision === 'Maybe').length} maybe</Text>
                     </View>
                   </View>
                   <View style={tw`absolute bottom-3 right-4 flex-row gap-2.5 items-center`}>
