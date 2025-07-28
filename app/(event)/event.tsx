@@ -330,7 +330,7 @@ export default function EventDetails() {
                 }}
             />
             {/* Header */}
-            <ScrollView style={tw`bg-black absolute top-0 left-0 bg-opacity-60 w-full h-full pt-10`}>
+            <ScrollView style={tw`bg-black absolute top-0 left-0 bg-opacity-60 w-full h-full pt-10`} showsVerticalScrollIndicator={false}>
                 <View style={tw`px-4 pt-3 pb-1`}>
                     {/* Top bar with back and threedots icons */}
                     <View style={tw`flex-row items-center justify-between mb-1.5`}>
@@ -620,7 +620,7 @@ export default function EventDetails() {
                     {(event?.public_list || curStatus === 'Going' || curStatus === 'Host' || curStatus === 'Cohost') && (
                       <View style={tw`flex-row w-full items-center justify-between`}>
                         <Text style={[tw`text-[16px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Who's going?</Text>
-                        <TouchableOpacity style={tw`px-2 py-0.5 rounded-full border border-white flex justify-center items-center`}
+                        <TouchableOpacity style={tw`px-2.5 py-0.5 rounded-full border border-white flex justify-center items-center`}
                           onPress={() => { router.push({ pathname: '/(event)/event_guest', params: { id: id, hosting: status === 'Cohost' || status === 'Host' ? 'Hosting' : '' } }) }}>
                           <Text style={[tw`text-[12px] text-white`, { fontFamily: 'Nunito-Bold' }]}>View guests</Text>
                         </TouchableOpacity>
