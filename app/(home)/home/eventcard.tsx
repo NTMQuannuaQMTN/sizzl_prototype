@@ -329,10 +329,10 @@ export default function EventCard(props: any) {
                         })()}
                       </Text>
                     </View>
-                    <View style={tw`flex-row items-center mb-2`}>
+                    <View style={tw`flex-row items-center mt-0.2 mb-2`}>
                       <LocationWhite width={14} height={14} style={tw`-ml-0.25 mr-1.7`} />
                       <Text
-                        style={[tw`text-white text-[14px] ml-0.2`, { fontFamily: 'Nunito-Bold' }]}
+                        style={[tw`text-white text-[14px] ml-0.2 mr-4`, { fontFamily: 'Nunito-Bold' }]}
                         numberOfLines={1}
                         ellipsizeMode="tail"
                       >
