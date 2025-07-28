@@ -26,6 +26,7 @@ export default function EventCard(props: any) {
   const [decision, setDecision] = useState<string>('');
   const [selection, setSelection] = useState(false);
   const [rsvp, setRSVP] = useState<any[]>([]);
+  const [view, setView] = useState<number>(0);
 
   // State for EventActionModal
   const [actionModalVisible, setActionModalVisible] = useState(false);
@@ -141,6 +142,21 @@ export default function EventCard(props: any) {
     }
   }
 
+  const handleView = async () => {
+    const {error} = await supabase.from('eventviews').select('*')
+    .eq('event_id', props.event.id).eq('user_id', user.id).single();
+
+    if (!error) {
+      return;
+    }
+    const {data} = await supabase.from('eventviews')
+    .insert([{user_id: user.id, event_id: props.event.id}]).select();
+
+    if (!data) {
+      console.log('Err');
+    }
+  }
+
   useEffect(() => {
     const getSpecial = () => {
       let specs = [
@@ -154,12 +170,24 @@ export default function EventCard(props: any) {
     getSpecial();
   }, []);
 
+  useEffect(() => {
+    const getView = async () => {
+      const {data} = await supabase.from('eventviews')
+      .select('user_id').eq('event_id', props.event.id);
+
+      if (!data) {console.log('..');return;}
+      setView(data.length);
+    }
+    getView();
+  }, []);
+
   return (
     <>
       <TouchableOpacity
         style={tw`mb-5`}
         onPress={() => {
           if ((user.id !== props.event.host_id && cohosts.indexOf(user.id) < 0) || props.event.done) {
+            handleView();
             router.push({ pathname: '/event', params: { id: props.event.id, status: user.id === props.event.host_id ? 'Host' : cohosts.indexOf(user.id) >= 0 ? 'Cohost' : '' } })
           }
         }}
@@ -331,7 +359,7 @@ export default function EventCard(props: any) {
                       })}
                     </View>
                     <View style={tw`flex-row items-center mb-1`}>
-                      <Text style={[tw`text-white text-xs mr-2`, { fontFamily: 'Nunito-Medium' }]}>{rsvp.filter(e => e.decision === 'Going').length} going • {rsvp.filter(e => e.decision === 'Maybe').length} maybe</Text>
+                      <Text style={[tw`text-white text-xs mr-2`, { fontFamily: 'Nunito-Medium' }]}>{rsvp.filter(e => e.decision === 'Going').length} going • {(user.id === props.event.host_id || cohosts.indexOf(user.id) >= 0) ? `${rsvp.filter(e => e.decision === 'Maybe').length} maybe` : `${rsvp.length + view} interested`}</Text>
                     </View>
                   </View>
                   <View style={tw`absolute bottom-3 right-4 flex-row gap-2.5 items-center`}>
@@ -373,7 +401,7 @@ export default function EventCard(props: any) {
                         </View>
                       ) : (
                         <TouchableOpacity style={tw`px-3 py-1.5 gap-1.5 bg-[#CAE6DF] z-99 rounded-full flex-row items-center`}
-                          onPress={() => router.push({ pathname: '/(create)/create', params: { id: props.event.id } })}>
+                          onPress={() => {router.push({ pathname: '/(create)/create', params: { id: props.event.id } })}}>
                           <Text style={[tw`text-black text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Continue editing</Text>
                         </TouchableOpacity>
                       ))
