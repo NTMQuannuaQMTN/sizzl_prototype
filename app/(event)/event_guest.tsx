@@ -117,7 +117,7 @@ export default function EventGuests() {
                     <Text style={[tw`text-white text-[18px]`, { fontFamily: 'Nunito-Bold' }]}>All guests</Text>
                     <ScrollView style={tw`mt-2 w-full h-full gap-2`}>
                         {rsvp.filter(e => e.decision === 'Going').map((e, ind) => {
-                            return <TouchableOpacity key={ind} style={tw`flex-row px-3 py-1.5 bg-white bg-opacity-40 rounded-lg items-center gap-x-2`}
+                            return <TouchableOpacity key={ind} style={[tw`flex-row px-3 py-1.5 bg-white bg-opacity-30 rounded-lg items-center gap-x-2 border border-white`]}
                             onPress={() => router.push({pathname: '/(profile)/profile', params: {user_id: e.user_id}})}>
                                 <Image source={{ uri: e.users.profile_image }} width={30} height={30} style={tw`rounded-full`} />
                                 <View>
