@@ -10,7 +10,7 @@ interface DraggableSpecModalProps {
   color: string;
 }
 
-const MODAL_HEIGHT = 400;
+const MODAL_HEIGHT = 200;
 
 const badgeColors: Record<string, { bg: string; text: string }> = {
   'bg-yellow-200': { bg: '#FEF08A', text: '#000' },
@@ -121,15 +121,11 @@ export default function DraggableSpecModal({ visible, onClose, title, spec, colo
           ]}
           {...panResponder.panHandlers}
         >
-          <View style={tw`w-12 h-1.5 bg-black/10 rounded-full self-center mb-3`} />
-          <Text style={[{ color: badgeColors[modalColor]?.text || '#000' }, tw`text-[18px] mb-2 text-center`, { fontFamily: 'Nunito-ExtraBold' }]}>{modalTitle}</Text>
-          <Text style={[{ color: badgeColors[modalColor]?.text || '#000' }, tw`text-[15px] px-6 text-center`, { fontFamily: 'Nunito-Medium' }]}>{modalSpec}</Text>
-          <TouchableOpacity
-            style={tw`absolute right-4 top-4 px-3 py-1 rounded-full`}
-            onPress={onClose}
-          >
-            <Text style={[{ color: badgeColors[modalColor]?.text || '#000' }, tw`text-[13px]`]}>Close</Text>
-          </TouchableOpacity>
+          <View style={tw`w-12 h-1.5 bg-black/10 rounded-full self-center mb-2`} />
+          <Text style={[{ color: badgeColors[modalColor]?.text || '#000' }, tw`text-[17px] mb-1.5 px-6 text-left`, { fontFamily: 'Nunito-ExtraBold' }]}>{modalTitle}</Text>
+          <Text style={[{ color: badgeColors[modalColor]?.text || '#000' }, tw`text-[15px] px-6 text-left`, { fontFamily: 'Nunito-Medium' }]}>
+            {modalSpec && modalSpec.trim() !== '' ? modalSpec : <Text style={[tw`text-gray-500 leading-[1.2]`, { fontFamily: 'Nunito-Medium' }]}>Well, the host wants to leave this as a secret 😌</Text>}
+          </Text>
         </Animated.View>
       </View>
     </Modal>
