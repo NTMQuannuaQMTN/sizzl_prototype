@@ -194,6 +194,35 @@ export default function ProfilePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user_id]);
 
+  // Ensure friend count is accurate when profile loads
+  useEffect(() => {
+    if (userView?.id && !loading) {
+      // Update friend count for the viewed user
+      const updateViewedUserCount = async () => {
+        try {
+          const { count } = await supabase
+            .from('friends')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userView.id);
+
+          if (count !== userView.friend_count) {
+            await supabase
+              .from('users')
+              .update({ friend_count: count || 0 })
+              .eq('id', userView.id);
+            
+            // Refresh the user data to show correct count
+            fetchUser(true);
+          }
+        } catch (error) {
+          console.error('Error updating friend count on load:', error);
+        }
+      };
+
+      updateViewedUserCount();
+    }
+  }, [userView?.id, loading]);
+
   const handleAddRequest = async (id: string | string[] | undefined) => {
     const { error } = await supabase.from('requests')
       .insert({ user_id: user.id, requestee: id });
@@ -304,27 +333,38 @@ export default function ProfilePage() {
   }
 
   const updateCount = async (id: string | string[]) => {
-    await supabase
-      .from('users')
-      .update({
-        friend_count: (await supabase
-          .from('friends')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-        ).count
-      })
-      .eq('id', user.id);
+    try {
+      // Get friend count for current user
+      const { count: currentUserCount } = await supabase
+        .from('friends')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
 
-    await supabase
-      .from('users')
-      .update({
-        friend_count: (await supabase
-          .from('friends')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', id)
-        ).count
-      })
-      .eq('id', id);
+      // Update current user's friend count
+      await supabase
+        .from('users')
+        .update({ friend_count: currentUserCount || 0 })
+        .eq('id', user.id);
+
+      // Get friend count for the other user
+      const { count: otherUserCount } = await supabase
+        .from('friends')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', id);
+
+      // Update other user's friend count
+      await supabase
+        .from('users')
+        .update({ friend_count: otherUserCount || 0 })
+        .eq('id', id);
+
+      // Refresh the userView to show updated friend count
+      if (userView?.id === user.id || userView?.id === id) {
+        fetchUser(true);
+      }
+    } catch (error) {
+      console.error('Error updating friend count:', error);
+    }
   }
 
   const checkRequest = async (id: string | string[]) => {
