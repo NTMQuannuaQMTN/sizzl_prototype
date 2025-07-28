@@ -179,8 +179,8 @@ const NotificationScreen: React.FC = () => {
           message: `Quick reminder: your "${event.title}" starts tomorrow at ${startTime}!`,
         });
       }
-      // 2h reminder: between 1.5h and 2.5h before
-      else if (diffMins <= 120  ) {
+      // 2h reminder: show only if event starts in exactly 2 hours (within ±10 minutes)
+      else if (Math.abs(diffMins - 120) <= 10) {
         // Set created_at to event start minus 2h
         const reminderTime = new Date(start.getTime() - 2 * 60 * 60 * 1000);
         reminders.push({
@@ -294,7 +294,7 @@ const NotificationScreen: React.FC = () => {
           >
             {/* 1st line: Quick reminder */}
             <Text style={{ color: 'white', fontFamily: 'Nunito-ExtraBold', fontSize: 15 }}>
-              Quick reminder
+              🔔 Quick reminder
             </Text>
             {/* 2nd line: Your {event title} starts tomorrow at {time} */}
             <Text style={{ color: 'white', fontSize: 15, marginTop: 2 }}>
@@ -302,6 +302,7 @@ const NotificationScreen: React.FC = () => {
               <Text style={{ fontFamily: 'Nunito-ExtraBold' }}>"{eventTitle}"</Text>
               <Text style={{ fontFamily: 'Nunito-Medium' }}> event starts tomorrow{timeStr ? ' at ' : ''}</Text>
               {timeStr ? <Text style={{ fontFamily: 'Nunito-ExtraBold' }}>{timeStr}</Text> : null}
+              <Text style={{ fontFamily: 'Nunito-Medium' }}>. Don't forget :) </Text>
             </Text>
             {timeString && (
               <Text style={[tw`text-gray-400 text-xs mt-2`, { fontFamily: 'Nunito-Regular' }]}>{timeString}</Text>
