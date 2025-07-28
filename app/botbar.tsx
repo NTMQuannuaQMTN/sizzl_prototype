@@ -21,7 +21,6 @@ export default function BotBar({ currentTab = 'home', selfView = false }: { curr
 
   // Only update avatarUri from Supabase in the background, but show local immediately
   useEffect(() => {
-    console.log(selfView);
     let isMounted = true;
     // Show local user image immediately, then update in background
     setAvatarUri(user?.profile_image || '');

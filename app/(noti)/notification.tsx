@@ -328,7 +328,7 @@ const NotificationScreen: React.FC = () => {
             if (!isRead) markAsRead(notifId);
             // Navigate to event page
             if (notif.event_id) {
-              router.push({ pathname: '/(event)/event', params: { id: notif.event_id } });
+              router.push({ pathname: '/(event)/event', params: { id: notif.event_id, status: 'Host' } });
             }
           }}
         >
