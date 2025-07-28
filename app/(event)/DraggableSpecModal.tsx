@@ -23,6 +23,8 @@ export default function DraggableSpecModal({ visible, onClose, title, spec, colo
   const slideAnim = useRef(new Animated.Value(MODAL_HEIGHT)).current;
   const pan = useRef(new Animated.ValueXY()).current;
   const [isModalMounted, setIsModalMounted] = useState(false);
+  // Persist props during closing animation
+  const [persisted, setPersisted] = useState({ color, title, spec });
 
   const panResponder = useRef(
     PanResponder.create({
@@ -68,6 +70,7 @@ export default function DraggableSpecModal({ visible, onClose, title, spec, colo
 
   useEffect(() => {
     if (visible) {
+      setPersisted({ color, title, spec });
       setIsModalMounted(true);
       Animated.timing(slideAnim, {
         toValue: 0,
@@ -86,10 +89,15 @@ export default function DraggableSpecModal({ visible, onClose, title, spec, colo
         pan.setValue({ x: 0, y: 0 });
       });
     }
-  }, [visible]);
+  }, [visible, color, title, spec]);
 
   if (!isModalMounted) return null;
   const combinedTranslateY = Animated.add(slideAnim, pan.y);
+
+  // Use persisted props during closing animation
+  const modalColor = persisted.color;
+  const modalTitle = persisted.title;
+  const modalSpec = persisted.spec;
 
   return (
     <Modal
@@ -108,19 +116,19 @@ export default function DraggableSpecModal({ visible, onClose, title, spec, colo
         <Animated.View
           style={[
             tw`w-full px-0 pt-6 pb-0 rounded-t-2xl`,
-            { backgroundColor: badgeColors[color]?.bg || color || '#fff', height: MODAL_HEIGHT },
+            { backgroundColor: badgeColors[modalColor]?.bg || modalColor || '#fff', height: MODAL_HEIGHT },
             { transform: [{ translateY: combinedTranslateY }] },
           ]}
           {...panResponder.panHandlers}
         >
-          <View style={tw`w-12 h-1.5 bg-gray-500 rounded-full self-center mb-3`} />
-          <Text style={[{ color: badgeColors[color]?.text || '#000' }, tw`text-[18px] mb-2 text-center`, { fontFamily: 'Nunito-ExtraBold' }]}>{title}</Text>
-          <Text style={[{ color: badgeColors[color]?.text || '#000' }, tw`text-[15px] px-6 text-center`, { fontFamily: 'Nunito-Medium' }]}>{spec}</Text>
+          <View style={tw`w-12 h-1.5 bg-black/10 rounded-full self-center mb-3`} />
+          <Text style={[{ color: badgeColors[modalColor]?.text || '#000' }, tw`text-[18px] mb-2 text-center`, { fontFamily: 'Nunito-ExtraBold' }]}>{modalTitle}</Text>
+          <Text style={[{ color: badgeColors[modalColor]?.text || '#000' }, tw`text-[15px] px-6 text-center`, { fontFamily: 'Nunito-Medium' }]}>{modalSpec}</Text>
           <TouchableOpacity
             style={tw`absolute right-4 top-4 px-3 py-1 rounded-full`}
             onPress={onClose}
           >
-            <Text style={[{ color: badgeColors[color]?.text || '#000' }, tw`text-[13px]`]}>Close</Text>
+            <Text style={[{ color: badgeColors[modalColor]?.text || '#000' }, tw`text-[13px]`]}>Close</Text>
           </TouchableOpacity>
         </Animated.View>
       </View>

@@ -521,21 +521,21 @@ export default function EventDetails() {
                         </View>
                     </View>
                     {viewLocation === 1 && <Animated.View style={[tw`h-fit overflow-hidden`]}>
-                        <View style={[tw`px-4 ml-4 gap-1.5 mb-2 py-2 bg-white/10 rounded-lg border border-white/20`]}>
+                        <View style={[tw`px-4 ml-4 gap-2.5 mb-2 py-2 bg-white/10 rounded-lg border border-white/20`]}>
                           {event?.location_add && event?.location_add !== event?.location_name && (
-                            <View style={tw`mb-1`}>
+                            <View style={tw``}>
                               <Text style={[tw`text-[15px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Address</Text>
                               <Text style={[tw`text-[14px] text-white`, { fontFamily: 'Nunito-Medium' }]}>{event.location_add}</Text>
                             </View>
                           )}
                           {event?.location_more && (
-                            <View style={tw`mb-1`}>
+                            <View style={tw``}>
                               <Text style={[tw`text-[15px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Apt / Suite / Floor</Text>
                               <Text style={[tw`text-[14px] text-white`, { fontFamily: 'Nunito-Medium' }]}>{event.location_more}</Text>
                             </View>
                           )}
                           {event?.location_note && (
-                            <View style={tw`mb-1`}>
+                            <View style={tw``}>
                               <Text style={[tw`text-[15px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Further notes</Text>
                               <Text style={[tw`text-[14px] text-white`, { fontFamily: 'Nunito-Medium' }]}>{event.location_note}</Text>
                             </View>
@@ -586,7 +586,7 @@ export default function EventDetails() {
                     ) : (
                       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tw`flex-row mb-4 items-center gap-2`}>
                         {spec.map((s, ind) => {
-                          if (s[1] == null || s[1] === '') return null;
+                          if (s[1] == null) return null;
                           const key = s[0] as keyof typeof specCol;
                           return (
                             <TouchableOpacity
