@@ -208,9 +208,12 @@ export default function EventDetails() {
             if (status !== '') {
                 return;
             }
+            console.log('www');
             const {data, error} = await supabase.from('guests')
             .select('decision').eq('event_id', id).eq('user_id', user.id).single();
-            if (!error && data) {setStatus(data.decision);}
+            if (error) {setStatus('Not RSVP')}
+            else {setStatus(data.decision);}
+            console.log(data?.decision);
         }
         getDecision();
     }, [event])
