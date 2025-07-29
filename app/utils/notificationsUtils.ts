@@ -1,3 +1,43 @@
+// Fetch RSVP notifications for events where the user is a guest (not host)
+export async function fetchGuestRSVPNotifications(userId: string) {
+  // 1. Find all guests where user is a guest (not host)
+  const { data: guestRows, error: guestError } = await supabase
+    .from('guests')
+    .select('event_id, decision, created_at')
+    .eq('user_id', userId);
+
+  if (guestError || !guestRows || guestRows.length === 0) {
+    return [];
+  }
+
+  // 2. Fetch event info for these event_ids
+  const eventIds = guestRows.map(g => g.event_id);
+  const { data: events, error: eventsError } = await supabase
+    .from('events')
+    .select('id, title, start, host_id')
+    .in('id', eventIds);
+
+  if (eventsError || !events || events.length === 0) {
+    return [];
+  }
+
+  // 3. Build notifications for each RSVP
+  const notifications = guestRows.map(g => {
+    const event = events.find(e => e.id === g.event_id);
+    return {
+      type: 'guest_rsvp',
+      event_id: g.event_id,
+      event_title: event?.title || '',
+      event_start: event?.start || '',
+      host_id: event?.host_id || '',
+      decision: g.decision,
+      created_at: g.created_at,
+    };
+  });
+  // Sort by event start desc
+  notifications.sort((a, b) => new Date(b.event_start).getTime() - new Date(a.event_start).getTime());
+  return notifications;
+}
 // Fetch RSVP notifications for events hosted by the user
 export async function fetchEventRSVPNotifications(hostId: string) {
   // 1. Find all events where user is a host (events table)

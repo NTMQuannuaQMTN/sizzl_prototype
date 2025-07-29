@@ -165,7 +165,7 @@ export default function EventGuests() {
                                         <View>
                                             <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>{e.users.firstname} {e.users.lastname}</Text>
                                             <Text style={[tw`text-white text-[13px] -mt-0.5`, { fontFamily: 'Nunito-Medium' }]}>@{e.users.username}</Text>
-                                            <Text style={[tw`text-white text-[11px] mt-2`, { fontFamily: 'Nunito-Medium' }]}>Registered {new Date(e.created_at).toLocaleString()}</Text>
+                                            <Text style={[tw`text-white text-[11px] mt-2`, { fontFamily: 'Nunito-Medium' }]}>RSVP'ed {new Date(e.created_at).toLocaleString()}</Text>
                                         </View>
                                         <View style={tw`flex-1`} />
                                         <View style={tw`rounded-full mt-4 px-2.5 py-1 ${badgeColor}`}>

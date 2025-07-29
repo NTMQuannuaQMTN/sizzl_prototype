@@ -1,3 +1,102 @@
+// Separate component for Maybe reminder notification card
+const MaybeReminderCard = ({ notif, isRead, notifId, markAsRead, router, eventTitle, timeString }: any) => {
+  const [showDecisionModal, setShowDecisionModal] = React.useState(false);
+  const [decision, setDecision] = React.useState('Maybe');
+  const [badgeColor, setBadgeColor] = React.useState('bg-yellow-600');
+  const [userId, setUserId] = React.useState(notif.user_id || null);
+
+  React.useEffect(() => {
+    // If user_id is not present, fetch it from guests table (for guest RSVP reminders)
+    if (!userId && notif.event_id) {
+      (async () => {
+        const { data } = await supabase
+          .from('guests')
+          .select('user_id')
+          .eq('event_id', notif.event_id)
+          .single();
+        if (data && data.user_id) setUserId(data.user_id);
+      })();
+    }
+  }, [notif.event_id, userId]);
+
+  // Update badge color and emoji based on decision
+  React.useEffect(() => {
+    if (decision === 'Going') setBadgeColor('bg-green-500');
+    else if (decision === 'Maybe') setBadgeColor('bg-yellow-600');
+    else if (decision === 'Nope' || decision === "Can't go" || decision === 'Cant go') setBadgeColor('bg-rose-600');
+    else setBadgeColor('bg-gray-500');
+  }, [decision]);
+
+  // Badge label and emoji
+  const getBadge = () => {
+    if (decision === 'Going') return (<><Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>I’m going </Text><Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>🥳</Text></>);
+    if (decision === 'Maybe') return (<><Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Eh...maybe </Text><Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>🤔</Text></>);
+    if (decision === 'Nope' || decision === "Can't go" || decision === 'Cant go') return (<><Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>I can't </Text><Text style={[tw`text-white text-[14px] -mt-0.5`, { fontFamily: 'Nunito-ExtraBold' }]}>😭</Text></>);
+    return (<Text style={[tw`text-white text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>{decision}</Text>);
+  };
+
+  // Message above badge
+  const getMessage = () => {
+    if (decision === 'Going') return (<Text style={{ color: 'white', fontSize: 15, marginTop: 2 }}><Text style={{ fontFamily: 'Nunito-Medium' }}>You’re going to </Text><Text style={{ fontFamily: 'Nunito-ExtraBold' }}>{eventTitle ? `"${eventTitle}"` : ''}</Text><Text style={{ fontFamily: 'Nunito-Medium' }}>! See you there 🎉</Text></Text>);
+    if (decision === 'Maybe') return (<Text style={{ color: 'white', fontSize: 15, marginTop: 2 }}><Text style={{ fontFamily: 'Nunito-Medium' }}>Event </Text><Text style={{ fontFamily: 'Nunito-ExtraBold' }}>{eventTitle ? `"${eventTitle}"` : ''}</Text><Text style={{ fontFamily: 'Nunito-Medium' }}> starts in 24 hours! Want to change your mind?</Text></Text>);
+    if (decision === 'Nope' || decision === "Can't go" || decision === 'Cant go') return (<Text style={{ color: 'white', fontSize: 15, marginTop: 2 }}><Text style={{ fontFamily: 'Nunito-Medium' }}>You can’t make it to </Text><Text style={{ fontFamily: 'Nunito-ExtraBold' }}>{eventTitle ? `"${eventTitle}"` : ''}</Text><Text style={{ fontFamily: 'Nunito-Medium' }}> 😭</Text></Text>);
+    return null;
+  };
+
+  // Handle RSVP change
+  const handleDecisionChange = async (newDecision: string) => {
+    setDecision(newDecision);
+    // Update RSVP in DB
+    if (notif.event_id && userId) {
+      const { error } = await supabase.from('guests')
+        .update({ decision: newDecision, created_at: new Date().toISOString() })
+        .eq('event_id', notif.event_id)
+        .eq('user_id', userId);
+      if (error) {
+        console.error('[RSVP DEBUG] Error updating RSVP:', error);
+      }
+    }
+    setShowDecisionModal(false);
+  };
+
+  return (
+    <View style={tw`${isRead ? 'bg-white/5' : 'bg-yellow-600/80'} rounded-xl p-4 mb-3`}>
+      <TouchableOpacity
+        activeOpacity={0.5}
+        onPress={() => {
+          if (!isRead) markAsRead(notifId);
+          if (notif.event_id) {
+            router.push({ pathname: '/(event)/event', params: { id: notif.event_id, status: '' } });
+          }
+        }}
+      >
+        <Text style={{ color: 'white', fontFamily: 'Nunito-ExtraBold', fontSize: 15 }}>
+          {decision === 'Maybe' ? '🤔 Still thinking?' : decision === 'Going' ? '🥳 RSVP updated!' : decision === 'Nope' || decision === "Can't go" || decision === 'Cant go' ? '😭 RSVP updated!' : ''}
+        </Text>
+        {getMessage()}
+        {/* Decision badge */}
+        <TouchableOpacity
+          style={tw`self-start mt-3 px-3 py-1.5 ${badgeColor} z-99 rounded-full flex-row items-center`}
+          onPress={() => setShowDecisionModal(true)}
+          activeOpacity={0.8}
+        >
+          {getBadge()}
+        </TouchableOpacity>
+        {timeString && (
+          <Text style={[tw`text-gray-400 text-xs mt-2`, { fontFamily: 'Nunito-Regular' }]}>{timeString}</Text>
+        )}
+      </TouchableOpacity>
+      {/* Decision modal (reusing from (home)/home/eventDecision.tsx) */}
+      <DecisionModal
+        visible={showDecisionModal}
+        onClose={() => setShowDecisionModal(false)}
+        eventTitle={eventTitle}
+        maybe={true}
+        onSelect={(d) => {handleDecisionChange(d)}}
+      />
+    </View>
+  );
+};
 function getRelativeTime(dateString: string) {
   if (!dateString) return '';
   const now = new Date();
@@ -25,6 +124,7 @@ import tw from 'twrnc';
 import BackIcon from '../../assets/icons/back.svg';
 import PfpDefault from '../../assets/icons/pfpdefault.svg';
 
+import DecisionModal from '../(home)/home/eventDecision';
 import BotBar from '../botbar';
 import { useUserStore } from '../store/userStore';
 import { fetchEventRSVPNotifications, fetchFriendRequestNotifications } from '../utils/notificationsUtils';
@@ -128,13 +228,13 @@ const NotificationScreen: React.FC = () => {
     const eventNotifs = await fetchEventRSVPNotifications(user.id);
     setEventNotifications(eventNotifs);
 
-    // Dynamically generate reminders for events the user is attending as 'Going'
-    // 1. Fetch all guests for this user where decision is 'Going'
+    // Dynamically generate reminders for events the user is attending as 'Going' or 'Maybe'
+    // 1. Fetch all guests for this user where decision is 'Going' or 'Maybe'
     const { data: guestRows, error: guestError } = await supabase
       .from('guests')
       .select('event_id, decision, created_at')
       .eq('user_id', user.id)
-      .eq('decision', 'Going');
+      .in('decision', ['Going', 'Maybe']);
 
     if (!guestRows || guestRows.length === 0) {
       setReminderNotifications([]);
@@ -164,9 +264,8 @@ const NotificationScreen: React.FC = () => {
       const start = new Date(event.start);
       const diffMs = start.getTime() - now.getTime();
       const diffMins = diffMs / (1000 * 60);
-      console.log(`Diffmins for event ${event.id}:`, diffMins);
-      // 24h reminder: show only if event starts in exactly 24 hours (within ±15 minutes)
-      if (diffMins - 1440 <= 2.5) {
+      // 24h reminder for 'Going': show only if event starts in exactly 24 hours (within ±15 minutes)
+      if (g.decision === 'Going' && diffMins - 1440 <= 2.5) {
         // Format event start time as e.g. '3:00 PM'
         const startTime = start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         // Set created_at to event start minus 24h
@@ -179,8 +278,19 @@ const NotificationScreen: React.FC = () => {
           message: `Quick reminder: your "${event.title}" starts tomorrow at ${startTime}!`,
         });
       }
-      // 2h reminder: show only if event starts in exactly 2 hours (within ±10 minutes)
-      else if (Math.abs(diffMins - 120) <= 10) {
+      // 24h reminder for 'Maybe': show only if event starts in exactly 24 hours (within ±15 minutes)
+      else if (g.decision === 'Maybe' && diffMins - 1440 <= 2.5) {
+        const reminderTime = new Date(start.getTime() - 24 * 60 * 60 * 1000);
+        reminders.push({
+          type: 'reminder',
+          event_id: event.id,
+          event_title: event.title,
+          created_at: reminderTime.toISOString(),
+          message: `Hey yo, the ${event.title} will start in 24 hours! Want to change your decision?`,
+        });
+      }
+      // 2h reminder for 'Going': show only if event starts in exactly 2 hours (within ±10 minutes)
+      else if (g.decision === 'Going' && Math.abs(diffMins - 120) <= 10) {
         // Set created_at to event start minus 2h
         const reminderTime = new Date(start.getTime() - 2 * 60 * 60 * 1000);
         reminders.push({
@@ -270,46 +380,67 @@ const NotificationScreen: React.FC = () => {
         </View>
       );
     }
-    // Reminder notification for guests ("Going")
+    // Reminder notification for guests ("Going" or "Maybe")
     if (notif.type === 'reminder') {
       const timeString = notif.created_at ? getRelativeTime(notif.created_at) : '';
-      // Parse message for tomorrow/time
       let eventTitle = notif.event_title || '';
-      let timeStr = '';
-      if (notif.message && notif.message.includes('at')) {
-        // Extract time from message
-        const match = notif.message.match(/at (.+)!$/);
-        if (match) timeStr = match[1];
+      // Detect if this is a 'Maybe' reminder by message content
+      const isMaybe = notif.message && notif.message.startsWith('Hey yo, the');
+      if (isMaybe) {
+        // UI for 'Maybe' reminder
+        console.log(notif);
+        return (
+          <MaybeReminderCard
+            notif={notif}
+            isRead={isRead}
+            notifId={notifId}
+            markAsRead={markAsRead}
+            router={router}
+            eventTitle={eventTitle}
+            timeString={timeString}
+            key={idx}
+          />
+        );
+      } else {
+        // UI for 'Going' reminder (original)
+        let timeStr = '';
+        if (notif.message && notif.message.includes('at')) {
+          // Extract time from message
+          const match = notif.message.match(/at (.+)!$/);
+          if (match) timeStr = match[1];
+        }
+        return (
+          <View key={idx} style={tw`${isRead ? 'bg-white/5' : 'bg-[#7A5CFA]/70'} rounded-xl p-4 mb-3`}>
+            <TouchableOpacity
+              activeOpacity={0.5}
+              onPress={() => {
+                if (!isRead) markAsRead(notifId);
+                if (notif.event_id) {
+                  router.push({ pathname: '/(event)/event', params: { id: notif.event_id, status: '' } });
+                }
+              }}
+            >
+              {/* 1st line: Quick reminder */}
+              <Text style={{ color: 'white', fontFamily: 'Nunito-ExtraBold', fontSize: 15 }}>
+                🔔 Quick reminder
+              </Text>
+              {/* 2nd line: Your {event title} starts tomorrow at {time} */}
+              <Text style={{ color: 'white', fontSize: 15, marginTop: 2 }}>
+                <Text style={{ fontFamily: 'Nunito-Medium' }}>Your </Text>
+                <Text style={{ fontFamily: 'Nunito-ExtraBold' }}>
+                  "{eventTitle}"
+                </Text>
+                <Text style={{ fontFamily: 'Nunito-Medium' }}> event starts tomorrow{timeStr ? ' at ' : ''}</Text>
+                {timeStr ? <Text style={{ fontFamily: 'Nunito-ExtraBold' }}>{timeStr}</Text> : null}
+                <Text style={{ fontFamily: 'Nunito-Medium' }}>. Don't forget :) </Text>
+              </Text>
+              {timeString && (
+                <Text style={[tw`text-gray-400 text-xs mt-2`, { fontFamily: 'Nunito-Regular' }]}>{timeString}</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        );
       }
-      return (
-        <View key={idx} style={tw`${isRead ? 'bg-white/5' : 'bg-[#7A5CFA]/70'} rounded-xl p-4 mb-3`}>
-          <TouchableOpacity
-            activeOpacity={0.5}
-            onPress={() => {
-              if (!isRead) markAsRead(notifId);
-              if (notif.event_id) {
-                router.push({ pathname: '/(event)/event', params: { id: notif.event_id } });
-              }
-            }}
-          >
-            {/* 1st line: Quick reminder */}
-            <Text style={{ color: 'white', fontFamily: 'Nunito-ExtraBold', fontSize: 15 }}>
-              🔔 Quick reminder
-            </Text>
-            {/* 2nd line: Your {event title} starts tomorrow at {time} */}
-            <Text style={{ color: 'white', fontSize: 15, marginTop: 2 }}>
-              <Text style={{ fontFamily: 'Nunito-Medium' }}>Your </Text>
-              <Text style={{ fontFamily: 'Nunito-ExtraBold' }}>"{eventTitle}"</Text>
-              <Text style={{ fontFamily: 'Nunito-Medium' }}> event starts tomorrow{timeStr ? ' at ' : ''}</Text>
-              {timeStr ? <Text style={{ fontFamily: 'Nunito-ExtraBold' }}>{timeStr}</Text> : null}
-              <Text style={{ fontFamily: 'Nunito-Medium' }}>. Don't forget :) </Text>
-            </Text>
-            {timeString && (
-              <Text style={[tw`text-gray-400 text-xs mt-2`, { fontFamily: 'Nunito-Regular' }]}>{timeString}</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      );
     }
     // Event RSVP notification
     const timeString = notif.created_at ? getRelativeTime(notif.created_at) : '';
