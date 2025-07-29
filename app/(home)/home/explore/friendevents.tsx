@@ -82,7 +82,7 @@ export default function FriendEvents() {
     useFocusEffect(useCallback(() => {fetchEvents()}, []));
 
     return (
-        <ScrollView style={tw`flex-1 pb-24`}>
+        <ScrollView style={tw`flex-1 pb-24`} showsVerticalScrollIndicator={false}>
             {loading ? <Loader /> :
                 (events.map((e, index) => {
                     // console.log(e);
