@@ -61,7 +61,8 @@ export default function Attended() {
     useFocusEffect(useCallback(() => {fetchEvents()}, []));
 
     return (
-        <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}>
+        <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 32 }}>
             {/* Event Card 1 */}
             {attendedEvents.map((e, index) => {
                 return <EventCard key={index} event={e} />

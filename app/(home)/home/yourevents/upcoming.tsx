@@ -61,7 +61,8 @@ export default function Upcoming() {
     useFocusEffect(useCallback(() => {fetchEvents()}, []));
 
     return (
-        <ScrollView style={tw`flex-1 pb-24`} showsVerticalScrollIndicator={false}>
+        <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 32 }}>
             {/* Event Card 1 */}
             {upcomingEvents.map((e, index) => {
                 return <EventCard key={index} event={e} fromUpcoming />
