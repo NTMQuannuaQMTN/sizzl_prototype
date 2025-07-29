@@ -12,8 +12,8 @@ interface DecisionProps {
 
 
 export default function DecisionModal({ visible, onClose, eventTitle, maybe, onSelect }: DecisionProps) {
-    const MODAL_HEIGHT = 300;
-    const slideAnim = React.useRef(new Animated.Value(MODAL_HEIGHT)).current;
+    const [contentHeight, setContentHeight] = React.useState(0);
+    const slideAnim = React.useRef(new Animated.Value(0)).current;
     const pan = React.useRef(new Animated.ValueXY()).current;
     const [isModalMounted, setIsModalMounted] = React.useState(false);
 
@@ -40,11 +40,11 @@ export default function DecisionModal({ visible, onClose, eventTitle, maybe, onS
             onPanResponderRelease: (evt, gestureState) => {
                 pan.flattenOffset();
                 const currentPosition = (pan.y as any).__getValue ? (pan.y as any).__getValue() : 0;
-                const slideDownThreshold = MODAL_HEIGHT * 0.3;
+                const slideDownThreshold = contentHeight * 0.3;
                 const velocityThreshold = 0.5;
                 if (currentPosition > slideDownThreshold || gestureState.vy > velocityThreshold) {
                     Animated.timing(slideAnim, {
-                        toValue: MODAL_HEIGHT,
+                        toValue: contentHeight,
                         duration: 250,
                         easing: Easing.in(Easing.cubic),
                         useNativeDriver: true,
@@ -67,17 +67,18 @@ export default function DecisionModal({ visible, onClose, eventTitle, maybe, onS
     );
 
     React.useEffect(() => {
-        if (visible) {
+        if (visible && contentHeight > 0) {
             setIsModalMounted(true);
+            slideAnim.setValue(contentHeight);
             Animated.timing(slideAnim, {
                 toValue: 0,
                 duration: 300,
                 easing: Easing.out(Easing.cubic),
                 useNativeDriver: true,
             }).start();
-        } else {
+        } else if (!visible && contentHeight > 0) {
             Animated.timing(slideAnim, {
-                toValue: MODAL_HEIGHT,
+                toValue: contentHeight,
                 duration: 250,
                 easing: Easing.in(Easing.cubic),
                 useNativeDriver: true,
@@ -86,9 +87,10 @@ export default function DecisionModal({ visible, onClose, eventTitle, maybe, onS
                 pan.setValue({ x: 0, y: 0 });
             });
         }
-    }, [visible]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [visible, contentHeight]);
 
-    if (!isModalMounted) return null;
+    if (!isModalMounted && !visible) return null;
 
     const combinedTranslateY = Animated.add(slideAnim, pan.y);
 
@@ -110,16 +112,22 @@ export default function DecisionModal({ visible, onClose, eventTitle, maybe, onS
                 <Animated.View
                     style={[
                         tw`w-full px-0 pt-6 pb-0 rounded-t-2xl`,
-                        { backgroundColor: '#080B32', height: MODAL_HEIGHT },
+                        { backgroundColor: '#080B32' },
                         { transform: [{ translateY: combinedTranslateY }] },
                     ]}
                     {...panResponder.current.panHandlers}
                 >
                     <TouchableWithoutFeedback>
-                        <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
+                        <View
+                            style={{ flexDirection: 'column', justifyContent: 'space-between' }}
+                            onLayout={e => {
+                                const h = e.nativeEvent.layout.height;
+                                if (h !== contentHeight) setContentHeight(h);
+                            }}
+                        >
                             {/* Draggable handle bar */}
                             <View style={tw`w-12 h-1.5 bg-gray-500 rounded-full self-center mb-3`} />
-                            <View style={tw`pb-16 pt-1 px-4 gap-y-3`}>
+                            <View style={tw`pb-10 pt-1 px-4 gap-y-3`}>
                                 {/* Header row: Clear button (left) + Centered title */}
                                 <View style={[tw`mb-2`, { position: 'relative', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 28 }]}> 
                                     {/* Absolute Clear button on the left */}
@@ -132,9 +140,7 @@ export default function DecisionModal({ visible, onClose, eventTitle, maybe, onS
                                     </TouchableOpacity>
                                     {/* Centered title */}
                                     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                                        <Text style={[tw`text-white text-[15px] mx-12`, { fontFamily: 'Nunito-Medium', textAlign: 'center' }]}>
-                                            Going to <Text style={{ fontFamily: 'Nunito-ExtraBold' }}>{eventTitle}</Text>?
-                                        </Text>
+                                        <Text style={[tw`text-white text-[15px] mx-12`, { fontFamily: 'Nunito-Medium', textAlign: 'center' }]}>Going to <Text style={{ fontFamily: 'Nunito-ExtraBold' }}>{eventTitle}</Text>?</Text>
                                     </View>
                                 </View>
                                 <TouchableOpacity
