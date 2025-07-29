@@ -618,11 +618,11 @@ export default function EventDetails() {
                       </ScrollView>
                     )}
                     {(event?.public_list || curStatus === 'Going' || curStatus === 'Host' || curStatus === 'Cohost') && (
-                      <View style={tw`flex-row w-full items-center justify-between`}>
+                      <View style={tw`flex-row w-full items-center gap-2 mb-1`}>
                         <Text style={[tw`text-[16px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Who's going?</Text>
-                        <TouchableOpacity style={tw`px-2.5 py-0.5 rounded-full border border-white flex justify-center items-center`}
+                        <TouchableOpacity style={tw`mx-1 mt-0.5 border-b border-gray-400 flex justify-center items-center`}
                           onPress={() => { router.push({ pathname: '/(event)/event_guest', params: { id: id, hosting: status === 'Cohost' || status === 'Host' ? 'Hosting' : '' } }) }}>
-                          <Text style={[tw`text-[12px] text-white`, { fontFamily: 'Nunito-Bold' }]}>View guests</Text>
+                          <Text style={[tw`text-[12px] text-gray-400`, { fontFamily: 'Nunito-Medium' }]}>View guests</Text>
                         </TouchableOpacity>
                       </View>
                     )}
@@ -641,7 +641,7 @@ export default function EventDetails() {
                         })}
                     </View>}
                     {(event?.public_list || curStatus === 'Going' || curStatus === 'Host' || curStatus === 'Cohost') && <View style={tw`flex-row items-center mb-15`}>
-                    <Text style={[tw`text-white text-xs mr-2`, { fontFamily: 'Nunito-Medium' }]}>{rsvp.filter(e => e.decision === 'Going').length} going • {(user.id === event?.host_id || cohosts.indexOf(user.id) >= 0) ? `${rsvp.filter(e => e.decision === 'Maybe').length} maybe` : `${rsvp.length + view} interested`}</Text>
+                    <Text style={[tw`text-white text-[14px] mr-2`, { fontFamily: 'Nunito-Medium' }]}>{rsvp.filter(e => e.decision === 'Going').length} going • {(user.id === event?.host_id || cohosts.indexOf(user.id) >= 0) ? `${rsvp.filter(e => e.decision === 'Maybe').length} maybe` : `${rsvp.length + view} interested`}</Text>
                     </View>}
                 </View>
 

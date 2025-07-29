@@ -244,7 +244,10 @@ export default function EventCard(props: any) {
                       (!('done' in props.event) || props.event.done) ? tw`text-white text-[22px] leading-[1.25] mb-0.5` :
                         (!props.event.title || props.event.title.trim() === '' ? tw`text-gray-400 text-[22px]` : tw`text-white text-[22px]`),
                       { fontFamily: 'Nunito-ExtraBold' }
-                    ]}>
+                    ]}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
                       {(!('done' in props.event) || props.event.done)
                         ? props.event.title
                         : (!props.event.title || props.event.title.trim() === ''
