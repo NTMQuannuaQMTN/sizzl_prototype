@@ -37,7 +37,7 @@ export default function AllEvents() {
     useFocusEffect(useCallback(() => { fetchEvents() }, []));
 
     return (
-        <ScrollView style={tw`flex-1 pb-24`}>
+        <ScrollView style={tw`flex-1`} contentContainerStyle={{ paddingBottom: 96 }}>
             {/* Upcoming hit event */}
             <View style={tw`flex-row items-center mb-2`}>
                 <Text style={[tw`text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>🔥 Upcoming hit event</Text>
@@ -52,6 +52,7 @@ export default function AllEvents() {
                         // You can show a modal, send to API, etc.
                     }} />
             })}
+
         </ScrollView>
     );
 }

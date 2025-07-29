@@ -36,7 +36,7 @@ export default function Planning() {
     fetchDrafts();
   }, [user.id]);
 
-  useFocusEffect(useCallback(() => {fetchDrafts()}, []));
+  useFocusEffect(useCallback(() => { fetchDrafts() }, []));
 
   if (!drafts.length) return (
     <View style={tw`flex-1 justify-center items-center -mt-30`}>
@@ -53,8 +53,8 @@ export default function Planning() {
   );
 
   return (
-    <View style={tw`flex-1 pb-24`}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+    <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 32 }}>
         {drafts.map(item => (
           <TouchableOpacity key={item.id} activeOpacity={0.85} onPress={() => router.replace({ pathname: '/(create)/create', params: { id: item.id } })}>
             <EventCard
@@ -67,6 +67,5 @@ export default function Planning() {
           </TouchableOpacity>
         ))}
       </ScrollView>
-    </View>
   );
 }
