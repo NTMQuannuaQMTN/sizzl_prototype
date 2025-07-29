@@ -96,10 +96,6 @@ export default function EditProfile() {
     return `${monthToWord[month]} ${day}, ${year}`;
   };
 
-  useEffect(() => {
-    console.log(input);
-  }, [input]);
-
   const pickAvatar = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: 'images',

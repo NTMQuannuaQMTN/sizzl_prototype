@@ -143,14 +143,14 @@ export default function EventCard(props: any) {
   }
 
   const handleView = async () => {
-    const {error} = await supabase.from('eventviews').select('*')
-    .eq('event_id', props.event.id).eq('user_id', user.id).single();
+    const { error } = await supabase.from('eventviews').select('*')
+      .eq('event_id', props.event.id).eq('user_id', user.id).single();
 
     if (!error) {
       return;
     }
-    const {data} = await supabase.from('eventviews')
-    .insert([{user_id: user.id, event_id: props.event.id}]).select();
+    const { data } = await supabase.from('eventviews')
+      .insert([{ user_id: user.id, event_id: props.event.id }]).select();
 
     if (!data) {
       console.log('Err');
@@ -172,10 +172,10 @@ export default function EventCard(props: any) {
 
   useEffect(() => {
     const getView = async () => {
-      const {data} = await supabase.from('eventviews')
-      .select('user_id').eq('event_id', props.event.id);
+      const { data } = await supabase.from('eventviews')
+        .select('user_id').eq('event_id', props.event.id);
 
-      if (!data) {console.log('..');return;}
+      if (!data) { console.log('..'); return; }
       setView(data.length);
     }
     getView();
@@ -188,7 +188,15 @@ export default function EventCard(props: any) {
         onPress={() => {
           if ((user.id !== props.event.host_id && cohosts.indexOf(user.id) < 0) || props.event.done) {
             handleView();
-            router.push({ pathname: '/event', params: { id: props.event.id, status: user.id === props.event.host_id ? 'Host' : cohosts.indexOf(user.id) >= 0 ? 'Cohost' : '' } })
+            router.push({
+              pathname: '/event', params: {
+                id: props.event.id,
+                status: user.id === props.event.host_id ? 'Host' : cohosts.indexOf(user.id) >= 0 ? 'Cohost' : '',
+                fromUpcoming: props.fromUpcoming ? '1' : '0',
+                fromExplore: props.fromExplore ?  '1' : '0',
+                fromFriendsEvents: props.fromFriendsEvents ?  '1' : '0'
+              }
+            })
           }
         }}
       >
@@ -351,14 +359,14 @@ export default function EventCard(props: any) {
                       {rsvp.filter(e => e.decision === "Going").slice(0, 5).map((e, ind) => {
                         console.log(e);
                         return <Image key={ind}
-                        source={
-                          e.users.profile_image
-                            ? { uri: e.users.profile_image }
-                            : 
-                            require('@/assets/images/pfp-default2.png')
-                        }
-                        style={{ width: 22, height: 22, borderRadius: 12 }}
-                      />
+                          source={
+                            e.users.profile_image
+                              ? { uri: e.users.profile_image }
+                              :
+                              require('@/assets/images/pfp-default2.png')
+                          }
+                          style={{ width: 22, height: 22, borderRadius: 12 }}
+                        />
                       })}
                     </View>
                     <View style={tw`flex-row items-center mb-1`}>
@@ -404,7 +412,7 @@ export default function EventCard(props: any) {
                         </View>
                       ) : (
                         <TouchableOpacity style={tw`px-3 py-1.5 gap-1.5 bg-[#CAE6DF] z-99 rounded-full flex-row items-center`}
-                          onPress={() => {router.push({ pathname: '/(create)/create', params: { id: props.event.id } })}}>
+                          onPress={() => { router.push({ pathname: '/(create)/create', params: { id: props.event.id } }) }}>
                           <Text style={[tw`text-black text-[14px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Continue editing</Text>
                         </TouchableOpacity>
                       ))

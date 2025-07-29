@@ -1,7 +1,7 @@
 import { supabase } from '@/utils/supabase';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Animated, Image, ScrollView, Text, TouchableOpacity, useAnimatedValue, View } from 'react-native';
+import { Alert, Animated, Image, ScrollView, Text, TouchableOpacity, useAnimatedValue, View } from 'react-native';
 import tw from 'twrnc';
 
 import Host from '@/assets/icons/hostwhite-icon.svg';
@@ -16,6 +16,7 @@ import Public from '../../assets/icons/public.svg';
 import ThreeDots from '../../assets/icons/threedots.svg';
 
 import { Ionicons } from '@expo/vector-icons';
+import EventActionModal, { getEventActions } from '../(home)/home/eventAction';
 import { useUserStore } from '../store/userStore';
 import DraggableSpecModal from './DraggableSpecModal';
 
@@ -44,7 +45,7 @@ type EventView = {
 }
 
 export default function EventDetails() {
-    const { id, status } = useLocalSearchParams();
+    const { id, status, fromUpcoming, fromExplore, fromFriendsEvents } = useLocalSearchParams();
     const [event, setEvent] = useState<EventView | null>(null);
     const [showDecisionModal, setShowDecisionModal] = useState(false);
     const [curStatus, setStatus] = useState(status);
@@ -61,6 +62,7 @@ export default function EventDetails() {
     const [rsvp, setRSVP] = useState<any[]>([]);
     const [view, setView] = useState<number>(0);
 
+    const [actionModalVisible, setActionModalVisible] = useState(false);
     const cashSpecAnimation = useAnimatedValue(0);
     const foodSpecAnimation = useAnimatedValue(0);
     const merchSpecAnimation = useAnimatedValue(0);
@@ -222,10 +224,10 @@ export default function EventDetails() {
                 return;
             }
             console.log('www');
-            const {data, error} = await supabase.from('guests')
-            .select('decision').eq('event_id', id).eq('user_id', user.id).single();
-            if (error) {setStatus('Not RSVP')}
-            else {setStatus(data.decision);}
+            const { data, error } = await supabase.from('guests')
+                .select('decision').eq('event_id', id).eq('user_id', user.id).single();
+            if (error) { setStatus('Not RSVP') }
+            else { setStatus(data.decision); }
             console.log(data?.decision);
         }
         getDecision();
@@ -267,36 +269,11 @@ export default function EventDetails() {
         }
         setShowDecisionModal(false);
     }
-
-    const viewLocationRotate = viewLocationAnimation.interpolate({
-        inputRange: [0, 0.25, 0.5, 0.75, 1],
-        outputRange: ['0deg', '11.25deg', '45deg', '78.75deg', '90deg'],
-        extrapolate: 'clamp',
-    });
-
-    const coolRotate = coolSpecAnimation.interpolate({
-        inputRange: [0, 0.25, 0.5, 0.75, 1],
-        outputRange: ['0deg', '-11.25deg', '-45deg', '-78.75deg', '-90deg'],
-        extrapolate: 'clamp',
-    });
-
-    const cashRotate = cashSpecAnimation.interpolate({
-        inputRange: [0, 0.25, 0.5, 0.75, 1],
-        outputRange: ['0deg', '-11.25deg', '-45deg', '-78.75deg', '-90deg'],
-        extrapolate: 'clamp',
-    });
-
-    const foodRotate = foodSpecAnimation.interpolate({
-        inputRange: [0, 0.25, 0.5, 0.75, 1],
-        outputRange: ['0deg', '-11.25deg', '-45deg', '-78.75deg', '-90deg'],
-        extrapolate: 'clamp',
-    });
-
-    const merchRotate = merchSpecAnimation.interpolate({
-        inputRange: [0, 0.25, 0.5, 0.75, 1],
-        outputRange: ['0deg', '-11.25deg', '-45deg', '-78.75deg', '-90deg'],
-        extrapolate: 'clamp',
-    });
+    
+    const onDelete = (id: string) => {
+        Alert.alert('Deleted');
+        router.back();
+    };
 
     return (
         <View style={tw`w-full h-full`}>
@@ -338,7 +315,9 @@ export default function EventDetails() {
                             <Back width={24} height={24} />
                         </TouchableOpacity>
                         <View style={tw`flex-1`} />
-                        <TouchableOpacity onPress={() => {/* TODO: add menu logic */ }} style={tw`p-1`}>
+                        <TouchableOpacity
+                            onPress={() => setActionModalVisible(true)}
+                            style={tw`p-1`}>
                             <ThreeDots width={22} height={22} />
                         </TouchableOpacity>
                     </View>
@@ -500,52 +479,52 @@ export default function EventDetails() {
                     <View style={tw`flex-row mb-1.5 gap-2 items-start`}>
                         <Location width={12} height={12} style={tw`mt-1`} />
                         <View style={tw`flex-1`}>
-                          {event?.rsvpfirst && curStatus === 'Not RSVP' ? (
-                            <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>RSVP to see details</Text>
-                          ) : (
-                            (event?.location_add !== event?.location_name || event?.location_more || event?.location_note) ? (
-                              <TouchableOpacity style={tw`flex-row items-center`} onPress={() => setViewLocation(1 - viewLocation)}>
-                                <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>{event?.location_name}</Text>
-                                <Animated.View style={{ marginLeft: 8, transform: [{ rotate: viewLocationAnimation.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '90deg'] }) }] }}>
-                                  <Ionicons
-                                    name="chevron-forward"
-                                    size={14}
-                                    color="#fff"
-                                  />
-                                </Animated.View>
-                              </TouchableOpacity>
+                            {event?.rsvpfirst && curStatus === 'Not RSVP' ? (
+                                <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>RSVP to see details</Text>
                             ) : (
-                              <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>{event?.location_name}</Text>
-                            )
-                          )}
+                                (event?.location_add !== event?.location_name || event?.location_more || event?.location_note) ? (
+                                    <TouchableOpacity style={tw`flex-row items-center`} onPress={() => setViewLocation(1 - viewLocation)}>
+                                        <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>{event?.location_name}</Text>
+                                        <Animated.View style={{ marginLeft: 8, transform: [{ rotate: viewLocationAnimation.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '90deg'] }) }] }}>
+                                            <Ionicons
+                                                name="chevron-forward"
+                                                size={14}
+                                                color="#fff"
+                                            />
+                                        </Animated.View>
+                                    </TouchableOpacity>
+                                ) : (
+                                    <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>{event?.location_name}</Text>
+                                )
+                            )}
                         </View>
                     </View>
                     {viewLocation === 1 && <Animated.View style={[tw`h-fit overflow-hidden`]}>
                         <View style={[tw`px-4 ml-4 gap-2.5 mb-2 py-2 bg-white/10 rounded-lg border border-white/20`]}>
-                          {event?.location_add && event?.location_add !== event?.location_name && (
-                            <View style={tw``}>
-                              <Text style={[tw`text-[15px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Address</Text>
-                              <Text style={[tw`text-[14px] text-white`, { fontFamily: 'Nunito-Medium' }]}>{event.location_add}</Text>
-                            </View>
-                          )}
-                          {event?.location_more && (
-                            <View style={tw``}>
-                              <Text style={[tw`text-[15px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Apt / Suite / Floor</Text>
-                              <Text style={[tw`text-[14px] text-white`, { fontFamily: 'Nunito-Medium' }]}>{event.location_more}</Text>
-                            </View>
-                          )}
-                          {event?.location_note && (
-                            <View style={tw``}>
-                              <Text style={[tw`text-[15px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Further notes</Text>
-                              <Text style={[tw`text-[14px] text-white`, { fontFamily: 'Nunito-Medium' }]}>{event.location_note}</Text>
-                            </View>
-                          )}
+                            {event?.location_add && event?.location_add !== event?.location_name && (
+                                <View style={tw``}>
+                                    <Text style={[tw`text-[15px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Address</Text>
+                                    <Text style={[tw`text-[14px] text-white`, { fontFamily: 'Nunito-Medium' }]}>{event.location_add}</Text>
+                                </View>
+                            )}
+                            {event?.location_more && (
+                                <View style={tw``}>
+                                    <Text style={[tw`text-[15px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Apt / Suite / Floor</Text>
+                                    <Text style={[tw`text-[14px] text-white`, { fontFamily: 'Nunito-Medium' }]}>{event.location_more}</Text>
+                                </View>
+                            )}
+                            {event?.location_note && (
+                                <View style={tw``}>
+                                    <Text style={[tw`text-[15px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Further notes</Text>
+                                    <Text style={[tw`text-[14px] text-white`, { fontFamily: 'Nunito-Medium' }]}>{event.location_note}</Text>
+                                </View>
+                            )}
                         </View>
                     </Animated.View>}
                     {event?.bio ? (
-                      <View style={tw`flex-row mt-2.5 mb-2 items-center gap-2`}>
-                        <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Medium' }]}>{event.bio}</Text>
-                      </View>
+                        <View style={tw`flex-row mt-2.5 mb-2 items-center gap-2`}>
+                            <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-Medium' }]}>{event.bio}</Text>
+                        </View>
                     ) : null}
                     {event?.rsvp_deadline && <View style={tw`flex-row mt-2 mb-3 items-center gap-2`}>
                         <Deadline width={12} height={12}></Deadline>
@@ -582,49 +561,49 @@ export default function EventDetails() {
                     </View>}
                     <Text style={[tw`text-[16px] text-white mb-1.5 mt-2`, { fontFamily: 'Nunito-ExtraBold' }]}>What's special?</Text>
                     {spec.filter(s => s[1] != null).length === 0 ? (
-                      <Text style={[tw`text-white text-[14px] mb-4 -mt-0.5`, { fontFamily: 'Nunito-Medium', textAlign: 'left' }]}>Oops, no free food, free merch or prize :(</Text>
+                        <Text style={[tw`text-white text-[14px] mb-4 -mt-0.5`, { fontFamily: 'Nunito-Medium', textAlign: 'left' }]}>Oops, no free food, free merch or prize :(</Text>
                     ) : (
-                      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tw`flex-row mb-4 items-center gap-2`}>
-                        {spec.map((s, ind) => {
-                          if (s[1] == null) return null;
-                          const key = s[0] as keyof typeof specCol;
-                          return (
-                            <TouchableOpacity
-                              key={ind}
-                              style={tw`${specCol[key]} flex-row gap-1 px-2 py-1 rounded-full`}
-                              onPress={() => {
-                                setSpecView(prev => {
-                                  const newArr = [...prev];
-                                  newArr[ind] = prev[ind] === 1 ? 0 : 1;
-                                  console.log(newArr);
-                                  return newArr;
-                                });
-                              }}
-                            >
-                              <View style={tw`flex-row items-center`}>
-                                <Text style={[tw`text-[13px] text-black -mt-0.5`, { fontFamily: 'Nunito-ExtraBold' }]}>{s[0]}</Text>
-                                {s[1] !== '' &&
-                                  <Ionicons
-                                    name="chevron-down"
-                                    size={12}
-                                    color="#000"
-                                    style={tw`ml-1 self-center mt-0.5`}
-                                  />
-                                }
-                              </View>
-                            </TouchableOpacity>
-                          );
-                        })}
-                      </ScrollView>
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tw`flex-row mb-4 items-center gap-2`}>
+                            {spec.map((s, ind) => {
+                                if (s[1] == null) return null;
+                                const key = s[0] as keyof typeof specCol;
+                                return (
+                                    <TouchableOpacity
+                                        key={ind}
+                                        style={tw`${specCol[key]} flex-row gap-1 px-2 py-1 rounded-full`}
+                                        onPress={() => {
+                                            setSpecView(prev => {
+                                                const newArr = [...prev];
+                                                newArr[ind] = prev[ind] === 1 ? 0 : 1;
+                                                console.log(newArr);
+                                                return newArr;
+                                            });
+                                        }}
+                                    >
+                                        <View style={tw`flex-row items-center`}>
+                                            <Text style={[tw`text-[13px] text-black -mt-0.5`, { fontFamily: 'Nunito-ExtraBold' }]}>{s[0]}</Text>
+                                            {s[1] !== '' &&
+                                                <Ionicons
+                                                    name="chevron-down"
+                                                    size={12}
+                                                    color="#000"
+                                                    style={tw`ml-1 self-center mt-0.5`}
+                                                />
+                                            }
+                                        </View>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </ScrollView>
                     )}
                     {(event?.public_list || curStatus === 'Going' || curStatus === 'Host' || curStatus === 'Cohost') && (
-                      <View style={tw`flex-row w-full items-center gap-2 mb-1`}>
-                        <Text style={[tw`text-[16px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Who's going?</Text>
-                        <TouchableOpacity style={tw`mx-1 mt-0.5 border-b border-gray-400 flex justify-center items-center`}
-                          onPress={() => { router.push({ pathname: '/(event)/event_guest', params: { id: id, hosting: status === 'Cohost' || status === 'Host' ? 'Hosting' : '' } }) }}>
-                          <Text style={[tw`text-[12px] text-gray-400`, { fontFamily: 'Nunito-Medium' }]}>View guests</Text>
-                        </TouchableOpacity>
-                      </View>
+                        <View style={tw`flex-row w-full items-center gap-2 mb-1`}>
+                            <Text style={[tw`text-[16px] text-white`, { fontFamily: 'Nunito-ExtraBold' }]}>Who's going?</Text>
+                            <TouchableOpacity style={tw`mx-1 mt-0.5 border-b border-gray-400 flex justify-center items-center`}
+                                onPress={() => { router.push({ pathname: '/(event)/event_guest', params: { id: id, hosting: status === 'Cohost' || status === 'Host' ? 'Hosting' : '' } }) }}>
+                                <Text style={[tw`text-[12px] text-gray-400`, { fontFamily: 'Nunito-Medium' }]}>View guests</Text>
+                            </TouchableOpacity>
+                        </View>
                     )}
                     {(event?.public_list || curStatus === 'Going' || curStatus === 'Host' || curStatus === 'Cohost') && <View style={tw`flex-row items-center mt-0.5 gap-1.5`}>
                         {rsvp.filter(e => e.decision === "Going").slice(0, 5).map((e, ind) => {
@@ -641,7 +620,7 @@ export default function EventDetails() {
                         })}
                     </View>}
                     {(event?.public_list || curStatus === 'Going' || curStatus === 'Host' || curStatus === 'Cohost') && <View style={tw`flex-row items-center mb-15`}>
-                    <Text style={[tw`text-white text-[14px] mr-2`, { fontFamily: 'Nunito-Medium' }]}>{rsvp.filter(e => e.decision === 'Going').length} going • {(user.id === event?.host_id || cohosts.indexOf(user.id) >= 0) ? `${rsvp.filter(e => e.decision === 'Maybe').length} maybe` : `${rsvp.length + view} interested`}</Text>
+                        <Text style={[tw`text-white text-[14px] mr-2`, { fontFamily: 'Nunito-Medium' }]}>{rsvp.filter(e => e.decision === 'Going').length} going • {(user.id === event?.host_id || cohosts.indexOf(user.id) >= 0) ? `${rsvp.filter(e => e.decision === 'Maybe').length} maybe` : `${rsvp.length + view} interested`}</Text>
                     </View>}
                 </View>
 
@@ -659,6 +638,23 @@ export default function EventDetails() {
                     title={specView.indexOf(1) >= 0 ? spec[specView.indexOf(1)][0] : ''}
                     spec={specView.indexOf(1) >= 0 ? spec[specView.indexOf(1)][1] : ''}
                     onClose={() => setSpecView([0, 0, 0, 0])}
+                />
+
+                <EventActionModal
+                    visible={actionModalVisible}
+                    onClose={() => setActionModalVisible(false)}
+                    title={"What's up with this event?"}
+                    actions={getEventActions({
+                        event: { ...event, isDraft: false }, // flatten event object, as in EventCard
+                        user,
+                        cohosts,
+                        push: router.push, // use router.push as push
+                        setActionModalVisible,
+                        onDelete,
+                        fromExplore: (fromExplore === '1'),
+                        fromUpcoming: (fromUpcoming === '1'),
+                        fromFriendsEvents: (fromFriendsEvents === '1'),
+                    })}
                 />
             </ScrollView>
         </View>

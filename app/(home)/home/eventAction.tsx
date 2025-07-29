@@ -64,6 +64,7 @@ export function getEventActions({
           setActionModalVisible(false);
           try {
             await supabase.from('events').delete().eq('id', event.id);
+            
             if (onDelete) {
               onDelete(event.id);
             }
