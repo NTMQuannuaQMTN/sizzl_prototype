@@ -45,7 +45,7 @@ type EventView = {
 }
 
 export default function EventDetails() {
-    const { id, status, fromUpcoming, fromExplore, fromFriendsEvents } = useLocalSearchParams();
+    const { id, status, fromUpcoming, fromExplore, fromFriendsEvents, fromAllEvents } = useLocalSearchParams();
     const [event, setEvent] = useState<EventView | null>(null);
     const [showDecisionModal, setShowDecisionModal] = useState(false);
     const [curStatus, setStatus] = useState(status);
@@ -654,6 +654,7 @@ export default function EventDetails() {
                         fromExplore: (fromExplore === '1'),
                         fromUpcoming: (fromUpcoming === '1'),
                         fromFriendsEvents: (fromFriendsEvents === '1'),
+                        fromAllEvents: (fromAllEvents === '1'),
                     })}
                 />
             </ScrollView>

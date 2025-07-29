@@ -14,7 +14,8 @@ export function getEventActions({
   onReportEvent,
   fromUpcoming,
   fromExplore,
-  fromFriendsEvents
+  fromFriendsEvents,
+  fromAllEvents,
 }: {
   event: any;
   user: any;
@@ -27,6 +28,7 @@ export function getEventActions({
   fromUpcoming?: boolean;
   fromExplore?: boolean;
   fromFriendsEvents?: boolean;
+  fromAllEvents?: boolean;
 }) {
   if (event.isDraft) {
     return getDraftActions(
@@ -85,7 +87,7 @@ export function getEventActions({
       }
     ];
   }
-  if (fromUpcoming || fromExplore || fromFriendsEvents) {
+  if (fromUpcoming || fromExplore || fromFriendsEvents || fromAllEvents) {
     return [
       {
         label: 'Report event',

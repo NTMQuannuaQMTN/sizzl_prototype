@@ -9,7 +9,7 @@ import EventCard from '../eventcard';
 export default function AllEvents() {
     const [events, setEvents] = useState<any[]>([]);
     const { user } = useUserStore();
-    
+
     const fetchEvents = async () => {
         let query = supabase
             .from('events')
@@ -34,7 +34,7 @@ export default function AllEvents() {
         fetchEvents();
     }, [user]);
 
-    useFocusEffect(useCallback(() => {fetchEvents()}, []));
+    useFocusEffect(useCallback(() => { fetchEvents() }, []));
 
     return (
         <ScrollView style={tw`flex-1 pb-24`}>
@@ -44,7 +44,13 @@ export default function AllEvents() {
             </View>
             {/* Event Card 1 */}
             {events.map((e, index) => {
-                return <EventCard key={index} event={e} />
+                return <EventCard key={index} event={e}
+                    fromFriendsEvents={true}
+                    onReportEvent={(eventId: string) => {
+                        // TODO: Implement report event logic/modal here
+                        console.log('Report event:', eventId);
+                        // You can show a modal, send to API, etc.
+                    }} />
             })}
         </ScrollView>
     );

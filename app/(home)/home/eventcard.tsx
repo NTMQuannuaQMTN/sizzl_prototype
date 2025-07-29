@@ -194,7 +194,8 @@ export default function EventCard(props: any) {
                 status: user.id === props.event.host_id ? 'Host' : cohosts.indexOf(user.id) >= 0 ? 'Cohost' : '',
                 fromUpcoming: props.fromUpcoming ? '1' : '0',
                 fromExplore: props.fromExplore ?  '1' : '0',
-                fromFriendsEvents: props.fromFriendsEvents ?  '1' : '0'
+                fromFriendsEvents: props.fromFriendsEvents ?  '1' : '0',
+                fromAllEvents: props.fromAllEvents ?  '1' : '0',
               }
             })
           }
@@ -476,7 +477,8 @@ export default function EventCard(props: any) {
             onReportEvent: props.onReportEvent,
             fromUpcoming: props.fromUpcoming,
             fromExplore: props.fromExplore,
-            fromFriendsEvents: props.fromFriendsEvents
+            fromFriendsEvents: props.fromFriendsEvents,
+            fromAllEvents: props.fromAllEvents,
           })}
         />
       </TouchableOpacity>
