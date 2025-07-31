@@ -279,6 +279,8 @@ export default function CreatePage() {
       0
     );
 
+    console.log(startDateTime, endDateTime);
+
     let draftErr;
     let dataEvent;
 
