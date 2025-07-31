@@ -65,7 +65,20 @@ export function getEventActions({
         onPress: async () => {
           setActionModalVisible(false);
           try {
+            // Delete the event from the database
             await supabase.from('events').delete().eq('id', event.id);
+            // Also attempt to remove any images with the name as the event id from storage
+            try {
+              // Try removing both possible extensions (jpg and png)
+              await supabase.storage.from('sizzl-profileimg').remove([
+                `event_cover/${event.id}.jpg`,
+                `event_cover/${event.id}.jpeg`,
+                `event_cover/${event.id}.png`,
+                `event_cover/${event.id}`
+              ]);
+            } catch (err) {
+              // Ignore errors for missing files
+            }
             
             if (onDelete) {
               onDelete(event.id);
