@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
+import * as Location from 'expo-location';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Easing, FlatList, Keyboard, Modal, PanResponder, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { Alert, Animated, Easing, FlatList, Keyboard, Modal, PanResponder, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import tw from 'twrnc';
 import LocationIcon from '../../assets/icons/location.svg';
 
@@ -30,6 +31,28 @@ interface NominatimLocationSuggestion {
 
 
 function LocationModal({ visible, onClose, location, setLocation, locations }: LocationModalProps) {
+  const [currentLon, setCurLon] = useState(0);
+  const [currentLat, setCurLat] = useState(0);
+
+  const getUserLocation = async () => {
+    let {status} = await Location.requestForegroundPermissionsAsync();
+
+    if (status !== 'granted') {
+      Alert.alert('We have to get your location');
+      return;
+    }
+
+    let {coords} = await Location.getCurrentPositionAsync();
+    
+    if (coords) {
+      const { longitude, latitude } = coords;
+      setCurLon(longitude);
+      setCurLat(latitude);
+    }
+  }
+
+  useEffect(() => {getUserLocation()}, [])
+
   const safeLocations = Array.isArray(locations) ? locations : [];
 
   // --- Local state for modal fields ---
@@ -47,6 +70,17 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
 
   // Disable pan responder when FlatList is being scrolled
   const [disablePan, setDisablePan] = useState(false);
+
+  // Save: update parent state and close
+  const handleSave = () => {
+    setLocation(localLocation);
+    onClose();
+  };
+  // Cancel: just close, don't update parent
+  const handleCancel = () => {
+    onClose();
+  };
+
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => !disablePan,
@@ -78,7 +112,6 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
             easing: Easing.in(Easing.cubic),
             useNativeDriver: true,
           }).start(() => {
-            handleCancel();
             pan.setValue({ x: 0, y: 0 });
           });
         } else {
@@ -123,11 +156,34 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
 
   // --- Debounced API call for location search using Nominatim ---
   const fetchNominatimSuggestions = useCallback(async (query: string) => {
+    // To get locations within 1.5km of the current location, you need to know the user's current latitude and longitude.
+    // We'll assume you have access to `currentLat` and `currentLon` variables (numbers).
+    // Nominatim supports a "viewbox" and "bounded" parameter to restrict results to a bounding box.
+    // We'll calculate a bounding box of ~1.5km around the current location.
+
     if (query.length < 3) {
       setNominatimSuggestions([]);
       return;
     }
-    const endpoint = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5`;
+
+    // Haversine approximation for 1.5km in degrees
+    const R = 6371; // Earth radius in km
+    const distance = 1.5; // 1.5km
+    // 1 degree latitude ~= 111km
+    const latDiff = distance / 111;
+    // 1 degree longitude ~= 111km * cos(latitude)
+    // We'll use Math.abs in case of negative latitudes
+    const lonDiff = distance / (111 * Math.cos((currentLat * Math.PI) / 180));
+
+    const minLat = currentLat - latDiff;
+    const maxLat = currentLat + latDiff;
+    const minLon = currentLon - lonDiff;
+    const maxLon = currentLon + lonDiff;
+
+    // Nominatim viewbox: left,top,right,bottom (lon,lat,lon,lat)
+    // bounded=1 restricts results to the box
+    const endpoint = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=20&viewbox=${minLon},${maxLat},${maxLon},${minLat}&bounded=1`;
+
     try {
       const response = await fetch(endpoint, {
         headers: {
@@ -135,6 +191,7 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
         },
       });
       const data: any[] = await response.json();
+      console.log(data);
       const suggestions: NominatimLocationSuggestion[] = data.map((item: any) => ({
         address: item.display_name,
         city: item.address?.city || item.address?.town || item.address?.village || item.address?.county || '',
@@ -144,7 +201,7 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
       console.error("Error fetching Nominatim suggestions:", error);
       setNominatimSuggestions([]);
     }
-  }, []);
+  }, [currentLat, currentLon]);
 
   useEffect(() => {
     if (searchTimeoutRef.current) {
@@ -168,22 +225,12 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
 
   const combinedTranslateY = Animated.add(slideAnim, pan.y);
 
-  // Save: update parent state and close
-  const handleSave = () => {
-    setLocation(localLocation);
-    onClose();
-  };
-  // Cancel: just close, don't update parent
-  const handleCancel = () => {
-    onClose();
-  };
-
   return (
     <Modal
       visible={visible || isModalMounted}
       animationType="none"
       transparent
-      onRequestClose={handleCancel}
+      onRequestClose={onClose}
       statusBarTranslucent
     >
       <View style={tw`flex-1 justify-end items-center`}>
@@ -212,7 +259,7 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
                 <View>
                   {/* Gray drag handle */}
                   <View style={tw`w-12 h-1.5 bg-gray-500 rounded-full self-center mb-3`} />
-                  <View style={[tw`flex-row items-center mb-4`, { justifyContent: 'space-between', position: 'relative' }]}> 
+                  <View style={[tw`flex-row items-center mb-4`, { justifyContent: 'space-between', position: 'relative' }]}>
                     <View style={{ width: 70, alignItems: 'flex-start' }}>
                       <TouchableOpacity
                         onPress={() => {
@@ -331,7 +378,7 @@ function LocationModal({ visible, onClose, location, setLocation, locations }: L
                         <Ionicons name="add-circle-outline" size={18} color="#7A5CFA" style={tw`mr-2`} />
                         <Text style={[tw`text-[#7A5CFA] text-[14px]`, { fontFamily: 'Nunito-Bold' }]}>Use "{localLocation.search}" as your location</Text>
                       </TouchableOpacity>
-                  )}
+                    )}
 
                   {/* Existing Location list (if you want to keep predefined locations, these would typically be hidden if search results are showing) */}
                   {safeLocations.length > 0 && nominatimSuggestions.length === 0 && (
