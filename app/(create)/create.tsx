@@ -78,6 +78,13 @@ export default function CreatePage() {
   const [imageURL, setImageURL] = useState('');
 
   const { user } = useUserStore();
+  const [host, setHost] = useState<Friend>({
+    id: '',
+    firstname: '',
+    lastname: '',
+    username: '',
+    profile_image: '',
+  });
   const [cohosts, setCohosts] = useState<(Friend | string)[]>([]);
   const [bio, setBio] = useState('');
   const [special, setSpecial] = useState({
@@ -164,6 +171,35 @@ export default function CreatePage() {
               setImage(imageOptions[0]);
             }
           }
+
+          // Fetch all cohosts (hosts table) for this event, by user id or username
+          if (data.id) {
+            // Get all hosts for this event
+            const { data: cohostRows, error: cohostError } = await supabase
+              .from('hosts')
+              .select('user_id, name')
+              .eq('event_id', data.id);
+
+            if (!cohostError && cohostRows) {
+              // cohosts can be selected by user_id or username
+              // Store as array of user_ids and usernames
+              const cohostIds = cohostRows.map(row => row.user_id).filter(Boolean);
+              const { data: cohostUsers, error: cohUsErr } = await supabase.from('users')
+                .select('*').in('id', cohostIds);
+              const { data: hostUsers, error: hosUsErr } = await supabase.from('users')
+                .select('id, firstname, lastname, username, profile_image').eq('id', data.host_id).single();
+              const cohostUsernames = cohostRows.map(row => row.name).filter(Boolean);
+              if (cohostUsers) {
+                setCohosts([...cohostUsers, ...cohostUsernames]);
+              } else {
+                setCohosts([...cohostUsernames]);
+              }
+              if (hostUsers) {
+                setHost(hostUsers);
+              }
+            }
+          }
+
           setDraftLoaded(true);
         }
       }
@@ -284,7 +320,7 @@ export default function CreatePage() {
           free_food: specialBox.food ? special.food : null,
           free_merch: specialBox.merch ? special.merch : null,
           cool_prize: specialBox.coolPrize ? special.coolPrize : null,
-          host_id: user.id, public_list: list.public, maybe: list.maybe,
+          host_id: host.id === '' ? user.id : host.id, public_list: list.public, maybe: list.maybe,
           done: !(title === '' || !date.dateChosen || !rsvpDL || !(location.name || location.selected)),
         })
         .eq('id', id));
@@ -467,7 +503,7 @@ export default function CreatePage() {
             ]}
           >
             <View style={[tw`absolute w-full h-full left-0 top-0`, { backgroundColor: 'rgba(0,0,0,0.5)' }]} />
-            <View style={[tw`bg-[#22C55E] px-0 pb-4 pt-6 rounded-2xl shadow-lg shadow-black/30 items-center`, { width: 320, maxWidth: '90%' }]}> 
+            <View style={[tw`bg-[#22C55E] px-0 pb-4 pt-6 rounded-2xl shadow-lg shadow-black/30 items-center`, { width: 320, maxWidth: '90%' }]}>
               <ExpoImage
                 source={require('../../assets/gifs/happycat.gif')}
                 style={{ width: 120, height: 120, borderRadius: 10, marginBottom: 20, resizeMode: 'cover' }}
@@ -491,7 +527,7 @@ export default function CreatePage() {
           ]}
         >
           <View style={[tw`absolute w-full h-full left-0 top-0`, { backgroundColor: 'rgba(0,0,0,0.5)' }]} />
-          <View style={[tw`bg-yellow-600 py-2.5 px-4 rounded-full shadow-lg shadow-black/30 items-center`]}> 
+          <View style={[tw`bg-yellow-600 py-2.5 px-4 rounded-full shadow-lg shadow-black/30 items-center`]}>
             <Text style={[tw`text-white text-[15px] text-center`, { fontFamily: 'Nunito-ExtraBold' }]}>Draft saved!</Text>
           </View>
         </Animated.View>
@@ -719,7 +755,21 @@ export default function CreatePage() {
               </View>
               <View style={tw`flex-row items-center gap-1.5`}>
                 {/* Host avatar */}
-                <View style={tw`flex-row items-center gap-1.5 bg-white/10 border border-white/20 px-2 py-2 rounded-xl`}>
+                {host.id !== '' ? <View style={tw`flex-row items-center gap-1.5 bg-white/10 border border-white/20 px-2 py-2 rounded-xl`}>
+                  <View style={[tw`rounded-full border border-white/20 items-center justify-center bg-white/10`, { width: 30, height: 30, overflow: 'hidden' }]}>
+                    {host?.profile_image !== '' ? (
+                      <Image
+                        source={{ uri: host.profile_image }}
+                        style={{ width: 30, height: 30, borderRadius: 60 }}
+                        defaultSource={require('../../assets/icons/pfpdefault.svg')}
+                        onError={() => { }}
+                      />
+                    ) : (
+                      <PfpDefault width={30} height={30} />
+                    )}
+                  </View>
+                  <Text style={[tw`text-white`, { fontFamily: 'Nunito-Bold' }]}>{host.firstname}</Text>
+                </View> : <View style={tw`flex-row items-center gap-1.5 bg-white/10 border border-white/20 px-2 py-2 rounded-xl`}>
                   <View style={[tw`rounded-full border border-white/20 items-center justify-center bg-white/10`, { width: 30, height: 30, overflow: 'hidden' }]}>
                     {user?.profile_image ? (
                       <Image
@@ -733,9 +783,10 @@ export default function CreatePage() {
                     )}
                   </View>
                   <Text style={[tw`text-white`, { fontFamily: 'Nunito-Bold' }]}>{user.firstname}</Text>
-                </View>
+                </View>}
 
                 {cohosts.filter(c => typeof c === 'object').slice(0, 2).map((cohost, idx) => {
+                  console.log(cohost);
                   return (
                     <View key={cohost.id} style={tw`flex-row items-center gap-1.5 bg-white/10 border border-white/20 px-2 py-2 rounded-xl`}>
                       <View style={[tw`rounded-full border border-white/20 items-center justify-center bg-white/10`, { width: 30, height: 30, overflow: 'hidden' }]}>
@@ -1093,10 +1144,10 @@ export default function CreatePage() {
                 if (!draftErr && dataEvent && dataEvent[0]?.id) {
                   setID(dataEvent[0].id);
                   setShowDraftSavedModal(true);
-                setTimeout(() => {
+                  setTimeout(() => {
                     setShowDraftSavedModal(false);
                     router.replace('/home/homepage');
-                }, 500);
+                  }, 500);
                 } else {
                   Alert.alert('Failed to update draft');
                 }
@@ -1275,7 +1326,7 @@ export default function CreatePage() {
               if (newId) {
                 await updateImage(newId);
                 await addCohost(newId);
-                
+
                 setTimeout(() => {
                   router.replace('/home/homepage');
                 }, 500);

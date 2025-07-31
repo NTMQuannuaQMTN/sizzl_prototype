@@ -560,7 +560,7 @@ const NotificationScreen: React.FC = () => {
         <Text style={[tw`text-white text-[15px] mt-0.5`, { fontFamily: 'Nunito-Medium' }]}>Reminders will show up here before your events!</Text>
       </View>
     ) : (
-      <ScrollView contentContainerStyle={tw`px-4 pt-2 pb-8`}>
+      <ScrollView contentContainerStyle={tw`px-4 pt-2 pb-24`}>
         {onlyReminders.map((notif, idx) => renderNotificationCard(notif, idx))}
       </ScrollView>
     );
