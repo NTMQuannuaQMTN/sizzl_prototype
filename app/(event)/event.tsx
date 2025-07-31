@@ -391,7 +391,10 @@ export default function EventDetails() {
                                         <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>😭</Text>
                                     </TouchableOpacity>
                     }
-                    <TouchableOpacity style={tw`flex-row bg-[#23244A] gap-x-2 py-2.5 px-6 rounded-full items-center`}>
+                    <TouchableOpacity
+                        style={tw`flex-row bg-[#23244A] gap-x-2 py-2.5 px-6 rounded-full items-center`}
+                        onPress={() => router.push({ pathname: '/(event)/invite', params: { id: event?.id } })}
+                    >
                         <Invite width={18} height={18} />
                         <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>Invite</Text>
                     </TouchableOpacity>

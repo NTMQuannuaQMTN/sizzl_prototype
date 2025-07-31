@@ -380,6 +380,30 @@ const NotificationScreen: React.FC = () => {
         </View>
       );
     }
+    // Invite notification
+    if (notif.type === 'invite' || (notif.message && notif.message.includes('invites you to'))) {
+      const timeString = notif.created_at ? getRelativeTime(notif.created_at) : '';
+      return (
+        <View key={idx} style={tw`${isRead ? 'bg-white/5' : 'bg-[#7A5CFA]/70'} rounded-xl p-4 mb-3`}>
+          <TouchableOpacity
+            activeOpacity={0.5}
+            onPress={() => {
+              if (!isRead) markAsRead(notifId);
+              if (notif.event_id) {
+                router.push({ pathname: '/(event)/event', params: { id: notif.event_id, status: '' } });
+              }
+            }}
+          >
+            <Text style={{ color: 'white', fontFamily: 'Nunito-ExtraBold', fontSize: 15 }}>
+              {notif.message}
+            </Text>
+            {timeString && (
+              <Text style={[tw`text-gray-400 text-xs mt-2`, { fontFamily: 'Nunito-Regular' }]}>{timeString}</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      );
+    }
     // Reminder notification for guests ("Going" or "Maybe")
     if (notif.type === 'reminder') {
       const timeString = notif.created_at ? getRelativeTime(notif.created_at) : '';
