@@ -183,7 +183,7 @@ export default function Invite() {
                         style={{ width: 40, height: 40, borderRadius: 20, marginRight: 12 }}
                       />
                       <View style={tw`flex-1`}>
-                        <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>{friend.firstname || ''} {friend.lastname || ''} </Text>
+                        <Text style={[tw`text-white text-[15px]`, { fontFamily: 'Nunito-ExtraBold' }]}>{friend.firstname || ''} {friend.lastname || ''}</Text>
                         <Text style={[tw`text-white text-[13px] -mt-0.5`, { fontFamily: 'Nunito-Medium' }]}>@{friend.username || 'Unknown'}</Text>
                       </View>
                     </TouchableOpacity>

@@ -127,7 +127,7 @@ import PfpDefault from '../../assets/icons/pfpdefault.svg';
 import DecisionModal from '../(home)/home/eventDecision';
 import BotBar from '../botbar';
 import { useUserStore } from '../store/userStore';
-import { fetchEventRSVPNotifications, fetchFriendRequestNotifications } from '../utils/notificationsUtils';
+import { fetchEventRSVPNotifications, fetchFriendRequestNotifications, fetchInviteNotifications } from '../utils/notificationsUtils';
 // Accept friend request
 async function handleAcceptFriend(myId: string, friendId: string, refresh: () => void) {
   const { error: addError } = await supabase.from('friends')
@@ -183,6 +183,8 @@ const NotificationScreen: React.FC = () => {
   const [friendNotifications, setFriendNotifications] = useState<any[]>([]);
   // Placeholder for event notifications
   const [eventNotifications, setEventNotifications] = useState<any[]>([]);
+  // Invite notifications
+  const [inviteNotifications, setInviteNotifications] = useState<any[]>([]);
   // Placeholder for reminder notifications (generated client-side)
   const [reminderNotifications, setReminderNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -227,6 +229,9 @@ const NotificationScreen: React.FC = () => {
     // Fetch event RSVP notifications for events hosted by the user
     const eventNotifs = await fetchEventRSVPNotifications(user.id);
     setEventNotifications(eventNotifs);
+    // Fetch invite notifications for this user
+    const inviteNotifs = await fetchInviteNotifications(user.id);
+    setInviteNotifications(inviteNotifs);
 
     // Dynamically generate reminders for events the user is attending as 'Going' or 'Maybe'
     // 1. Fetch all guests for this user where decision is 'Going' or 'Maybe'
@@ -589,11 +594,12 @@ const NotificationScreen: React.FC = () => {
       </ScrollView>
     );
   } else if (activeTab === 'all') {
-    // Show all notifications (friend, event RSVP, reminders)
+    // Show all notifications (friend, event RSVP, reminders, invites)
     const allNotifications = [
       ...friendNotifications.map(n => ({ ...n, type: 'friend' })),
       ...eventNotifications.map(n => ({ ...n, type: 'event' })),
       ...reminderNotifications.map(n => ({ ...n, type: 'reminder' })),
+      ...inviteNotifications.map(n => ({ ...n, type: 'invite' })),
     ];
     allNotifications.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
     tabContent = allNotifications.length === 0 ? (

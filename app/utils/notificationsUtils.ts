@@ -1,3 +1,22 @@
+// Fetch invite notifications for a user from 'invitenoti' table
+export async function fetchInviteNotifications(userId: string) {
+  const { data, error } = await supabase
+    .from('invitenoti')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+  if (error || !data) return [];
+  return data;
+}
+
+// Delete all invite notifications for an event (call when event starts)
+export async function deleteInviteNotificationsForEvent(eventId: string) {
+  const { error } = await supabase
+    .from('invitenoti')
+    .delete()
+    .eq('event_id', eventId);
+  return error == null;
+}
 // Fetch RSVP notifications for events where the user is a guest (not host)
 export async function fetchGuestRSVPNotifications(userId: string) {
   // 1. Find all guests where user is a guest (not host)
