@@ -62,7 +62,7 @@ export default function Upcoming() {
 
     return (
         <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 32 }}>
+        contentContainerStyle={{ paddingBottom: 96 }}>
             {/* Event Card 1 */}
             {upcomingEvents.map((e, index) => {
                 return <EventCard key={index} event={e} fromUpcoming />

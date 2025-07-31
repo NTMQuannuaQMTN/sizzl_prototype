@@ -76,7 +76,7 @@ export default function Hosting() {
 
     return (
         <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 32 }}>
+        contentContainerStyle={{ paddingBottom: 96 }}>
             {/* If no upcoming events, show info message and create button */}
             {upcomingEvents.length === 0 && (
                 <View style={tw`flex-1 justify-center items-center mt-50`}>

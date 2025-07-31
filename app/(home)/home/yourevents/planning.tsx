@@ -54,7 +54,7 @@ export default function Planning() {
 
   return (
     <ScrollView style={tw`flex-1`} showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 32 }}>
+        contentContainerStyle={{ paddingBottom: 96 }}>
         {drafts.map(item => (
           <TouchableOpacity key={item.id} activeOpacity={0.85} onPress={() => router.replace({ pathname: '/(create)/create', params: { id: item.id } })}>
             <EventCard
