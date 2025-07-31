@@ -130,7 +130,7 @@ export default function Invite() {
               <TouchableOpacity onPress={() => router.back()} style={tw`p-1`}>
                 <Back width={24} height={24} />
               </TouchableOpacity>
-              <View style={tw`flex-1 flex-row items-center justify-center`}> 
+              <View style={tw`flex-1 flex-row items-center justify-center`}>
                 <Text style={[tw`text-white text-base -ml-9`, { fontFamily: 'Nunito-ExtraBold', textAlign: 'center' }]}>Invite</Text>
               </View>
             </View>
@@ -199,12 +199,13 @@ export default function Invite() {
         </View>
       </View>
       {/* Bottom action buttons */}
-      <View style={[tw`w-full flex-col px-6 pb-10 pt-3 gap-y-2`, { position: 'absolute', bottom: 0, left: 0, zIndex: 10 }]}> 
+      <View style={[tw`w-full flex-col px-6 pb-10 pt-3 gap-y-2`, { position: 'absolute', bottom: 0, left: 0, zIndex: 10 }]}>
         <TouchableOpacity
           style={tw`flex-1 bg-[#7A5CFA] py-3 rounded-full items-center`}
           onPress={async () => {
             if (!event || !user || selectedFriends.length === 0) return;
             const { sendInviteNotification } = await import('../utils/sendInviteNotification');
+            console.log('ádin');
             for (const friendId of selectedFriends) {
               await sendInviteNotification(friendId, { id: user.id, username: user.username }, { id: event.id, title: event.title });
             }
